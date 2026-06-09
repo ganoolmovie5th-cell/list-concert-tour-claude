@@ -1,0 +1,103 @@
+name: 🎵 Daily Concert Scraper
+
+# ── Triggers ────────────────────────────────────────────────────────────────
+on:
+  # Tiap hari jam 01:00 WIB = 18:00 UTC (hari sebelumnya)
+  schedule:
+    - cron: "0 18 * * *"
+
+  # Bisa juga dijalankan manual dari tab Actions di GitHub
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: "Force update even if no new concerts found"
+        required: false
+        default: "false"
+
+# ── Permissions ──────────────────────────────────────────────────────────────
+permissions:
+  contents: write   # needed to git push updated app.js back to repo
+
+# ── Job ──────────────────────────────────────────────────────────────────────
+jobs:
+  scrape-and-update:
+    name: Scrape & Update Concert Data
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # 1. Checkout repo
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # 2. Setup Python
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # 3. Install dependencies
+      - name: 📦 Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install requests beautifulsoup4 lxml
+
+      # 4. Capture app.js hash BEFORE scraping
+      - name: 🔍 Capture pre-scrape hash
+        id: pre_hash
+        run: echo "hash=$(sha256sum app.js | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      # 5. Run scraper
+      - name: 🕷️ Run concert scraper
+        run: python scraper.py
+
+      # 6. Capture app.js hash AFTER scraping
+      - name: 🔍 Capture post-scrape hash
+        id: post_hash
+        run: echo "hash=$(sha256sum app.js | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      # 7. Check if anything changed
+      - name: 🔎 Check for changes
+        id: diff
+        run: |
+          if [ "${{ steps.pre_hash.outputs.hash }}" != "${{ steps.post_hash.outputs.hash }}" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "✅ app.js has changed — will commit"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "⏭️ No changes detected"
+          fi
+
+      # 8. Commit & push if changed (or force_update)
+      - name: 📝 Commit & push updated app.js
+        if: steps.diff.outputs.changed == 'true' || github.event.inputs.force_update == 'true'
+        run: |
+          git config user.name  "KonserIndo Bot"
+          git config user.email "bot@konserindo.id"
+
+          git add app.js
+
+          # Build commit message with timestamp
+          TIMESTAMP=$(TZ="Asia/Jakarta" date "+%d %b %Y %H:%M WIB")
+          git commit -m "🎵 auto-update: concert data refreshed — ${TIMESTAMP}"
+
+          git push origin HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 9. Summary
+      - name: 📊 Job Summary
+        run: |
+          echo "## 🎵 KonserIndo Scraper Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.diff.outputs.changed }}" == "true" ]; then
+            echo "✅ **Status:** Data diupdate dan di-push ke repo" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⏭️ **Status:** Tidak ada perubahan data, skip commit" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🕐 **Waktu run:** $(TZ='Asia/Jakarta' date '+%d %b %Y %H:%M WIB')" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Repo:** ganoolmovie5th-cell/konser-claude" >> $GITHUB_STEP_SUMMARY
