@@ -75,8 +75,8 @@ jobs:
       - name: 📝 Commit & push updated app.js
         if: steps.diff.outputs.changed == 'true' || github.event.inputs.force_update == 'true'
         run: |
-          git config user.name  "KonserIndo Bot"
-          git config user.email "bot@konserindo.id"
+          git config user.name  "ConcertID Bot"
+          git config user.email "bot@list-concert-tour.web.id"
 
           git add app.js
 
@@ -91,7 +91,7 @@ jobs:
       # 9. Summary
       - name: 📊 Job Summary
         run: |
-          echo "## 🎵 KonserIndo Scraper Report" >> $GITHUB_STEP_SUMMARY
+          echo "## 🎵 ConcertID Scraper Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ steps.diff.outputs.changed }}" == "true" ]; then
             echo "✅ **Status:** Data diupdate dan di-push ke repo" >> $GITHUB_STEP_SUMMARY
@@ -100,4 +100,4 @@ jobs:
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🕐 **Waktu run:** $(TZ='Asia/Jakarta' date '+%d %b %Y %H:%M WIB')" >> $GITHUB_STEP_SUMMARY
-          echo "🔗 **Repo:** ganoolmovie5th-cell/konser-claude" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Repo:** ganoolmovie5th-cell/list-concert-tour-claude" >> $GITHUB_STEP_SUMMARY
