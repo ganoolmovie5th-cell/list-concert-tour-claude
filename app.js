@@ -213,6 +213,32 @@ const CONCERTS = [
     sources: ['cnbcindonesia.com', 'kapanlagi.com', 'indonesia.travel'],
   },
 
+  // ── PAST: Green Day (Feb 2025) ──
+  {
+    id: 'green-day-jakarta-2025',
+    artist: 'Green Day',
+    tour: 'The Saviors Tour (Hammersonic 10th Anniversary)',
+    genre: 'rock', emoji: '🟢',
+    dates: ['15 Februari 2025'],
+    rawDate: new Date('2025-02-15'),
+    time: '21:00 WIB',
+    venue: 'Pantai Carnaval Ancol',
+    city: 'Jakarta Utara',
+    promotor: 'Hammersonic / Rajawali Indonesia',
+    ticketPlatform: 'Loket.com',
+    ticketUrl: 'https://loket.com',
+    priceRange: 'Rp 850.000 – Rp 2.500.000',
+    priceMin: 850000, priceMax: 2500000,
+    ticketCategories: [
+      { name: '1-Day Pass', price: 'Rp 850.000' },
+      { name: 'VIP 1-Day', price: 'Rp 1.800.000' },
+      { name: 'VIP 2-Day', price: 'Rp 2.500.000' },
+    ],
+    confirmStatus: 'confirmed', hot: false,
+    description: 'Green Day kembali ke Jakarta setelah 29 tahun absen! Headliner Hammersonic ke-10 di Carnaval Ancol. Billie Joe Armstrong cs membawakan hit klasik seperti Basket Case, American Idiot, dan Boulevard of Broken Dreams — pertama kalinya sejak 1996.',
+    sources: ['greendayauthority.com', 'tempo.co', 'mothership.sg'],
+  },
+
   /* ════════ UPCOMING CONFIRMED ════════ */
   {
     id: 'avenged-sevenfold-jakarta-2026',
@@ -267,7 +293,57 @@ const CONCERTS = [
     sources: ['bryanadamsjakarta.com', 'shopee.co.id'],
   },
   {
-    id: 'the-weeknd-jakarta-2026',
+    id: 'the-neighbourhood-jakarta-2026',
+    artist: 'The Neighbourhood',
+    tour: 'THE WOURLD TOUR',
+    genre: 'pop', emoji: '🖤',
+    dates: ['18 Juli 2026'],
+    rawDate: new Date('2026-07-18'),
+    time: '20:00 WIB',
+    venue: 'Istora Senayan',
+    city: 'Senayan, Jakarta Selatan',
+    promotor: 'iMe Indonesia',
+    ticketPlatform: 'Loket.com',
+    ticketUrl: 'https://loket.com',
+    priceRange: 'Rp 750.000 – Rp 2.800.000',
+    priceMin: 750000, priceMax: 2800000,
+    ticketCategories: [
+      { name: 'Tribune',   price: 'Rp 750.000' },
+      { name: 'CAT 2',    price: 'Rp 1.200.000' },
+      { name: 'CAT 1',    price: 'Rp 1.800.000' },
+      { name: 'Pit / GA', price: 'Rp 2.200.000' },
+      { name: 'VIP',      price: 'Rp 2.800.000' },
+    ],
+    confirmStatus: 'confirmed', hot: true,
+    description: 'The Neighbourhood (The NBHD) membawa THE WOURLD TOUR ke Jakarta — stop final Asia Tenggara mereka. Band indie-rock asal California ini terkenal dengan hits Sweater Weather, Stargazing, dan Afraid. Konser di Istora Senayan untuk kapasitas lebih intim.',
+    sources: ['songkick.com', 'apple.com concerts', 'everythingindo.com'],
+  },
+  {
+    id: 'lalala-fest-2026',
+    artist: 'LaLaLa Festival 2026',
+    tour: 'LaLaLa Fest 10th Anniversary',
+    genre: 'indie', emoji: '🌈',
+    dates: ['22 Agustus 2026', '23 Agustus 2026'],
+    rawDate: new Date('2026-08-22'),
+    time: '12:00 – 23:00 WIB',
+    venue: 'JIEXPO Kemayoran',
+    city: 'Kemayoran, Jakarta Pusat',
+    promotor: 'LaLaLa Entertainment',
+    ticketPlatform: 'Loket.com',
+    ticketUrl: 'https://lalalafest.com',
+    priceRange: 'Rp 600.000 – Rp 2.500.000',
+    priceMin: 600000, priceMax: 2500000,
+    ticketCategories: [
+      { name: '1-Day Pass',         price: 'Rp 600.000' },
+      { name: '2-Day Pass',         price: 'Rp 1.100.000' },
+      { name: 'VIP 1-Day',          price: 'Rp 1.400.000' },
+      { name: 'VIP 2-Day',          price: 'Rp 2.500.000' },
+    ],
+    confirmStatus: 'confirmed', hot: true,
+    description: 'Festival indie-pop terbesar Indonesia kembali dengan lineup internasional kelas dunia! Headliners 2026: Steve Lacy, Rex Orange County, The Flaming Lips (Farewell Show), Two Door Cinema Club (15th Anniversary), Kodaline (Farewell Tour), HONNE, dan BE:FIRST. 60.000+ penonton hadir tiap tahun.',
+    lineup: ['Steve Lacy', 'Rex Orange County', 'The Flaming Lips', 'Two Door Cinema Club', 'Kodaline', 'HONNE', 'BE:FIRST', 'Astrid S', 'Jordan Rakei', 'Matt Maltese', 'Flo'],
+    sources: ['lalalafest.com', 'tokyohive.com', 'billboardphilippines.com'],
+  },
     artist: 'The Weeknd',
     tour: '"After Hours Til Dawn" Stadium Tour Asia',
     genre: 'pop', emoji: '🌙',
@@ -347,7 +423,28 @@ const CONCERTS = [
     sources: ['tempo.co', 'billboard.com', 'ndtvprofit.com'],
   },
 
-  /* ════════ RUMOR / BELUM OFFICIAL ════════ */
+  {
+    id: 'five-sos-jakarta-2026',
+    artist: '5 Seconds of Summer (5SOS)',
+    tour: 'EVERYONE\'S A STAR! World Tour',
+    genre: 'pop', emoji: '⭐',
+    dates: ['TBA – November 2026 (antara 12–15 Nov)'],
+    rawDate: new Date('2026-11-13'),
+    time: 'TBA',
+    venue: 'TBA (kemungkinan NICE PIK2 atau ICE BSD)',
+    city: 'Jakarta / Tangerang',
+    promotor: 'Live Nation Asia',
+    ticketPlatform: '5sosjakarta.com',
+    ticketUrl: 'https://5sosjakarta.com',
+    priceRange: 'Cek 5sosjakarta.com',
+    priceMin: 0, priceMax: 0,
+    ticketCategories: [
+      { name: 'Tickets on sale: 12.00 PM WIB', price: 'Cek 5sosjakarta.com' },
+    ],
+    confirmStatus: 'confirmed', hot: true,
+    description: '5 Seconds of Summer kembali ke Indonesia dalam tur dunia EVERYONE\'S A STAR! — mendukung album ke-6 mereka. Tur Asia mencakup Manila (11–12 Nov), Jakarta (TBA ~13–15 Nov), KL (17 Nov), Singapura (16 Nov), dan Tokyo (21 Nov). Website resmi 5sosjakarta.com sudah aktif.',
+    sources: ['5sosjakarta.com', 'thesmartlocal.my', 'livenation.sg'],
+  },
   {
     id: 'enhypen-jakarta-2027',
     artist: 'ENHYPEN',
@@ -369,6 +466,30 @@ const CONCERTS = [
     description: 'ENHYPEN mengumumkan tur dunia BLOOD SAGA (2026–2027) yang sangat luas. Indonesia disebut sebagai salah satu stop Asia di awal 2027. Detail tanggal & venue untuk Jakarta masih menunggu pengumuman resmi.',
     sources: ['chosun.com', 'kpopnewswire.com', 'enhypenbloodsagatour.com'],
   },
+  // ── RUMOR: Byeon Woo-seok ──
+  {
+    id: 'byeon-woo-seok-jakarta-2026',
+    artist: 'Byeon Woo-seok',
+    tour: '2026 Fan Meeting Tour "The Secret Library"',
+    genre: 'kpop', emoji: '📚',
+    dates: ['TBA – Late 2026 / Early 2027'],
+    rawDate: new Date('2026-11-01'),
+    time: 'TBA',
+    venue: 'TBA',
+    city: 'Jakarta',
+    promotor: 'TBA',
+    ticketPlatform: 'TBA',
+    ticketUrl: 'https://instagram.com/varoentertainment',
+    priceRange: 'Belum diumumkan',
+    priceMin: 0, priceMax: 0,
+    ticketCategories: [{ name: 'Semua kategori', price: 'Belum diumumkan' }],
+    confirmStatus: 'rumor', hot: true,
+    rumorDetail: 'VARO Entertainment mengumumkan tur Asia "The Secret Library" per 9 Juni 2026, dengan Jakarta sebagai salah satu stop. Tanggal dan venue spesifik BELUM diumumkan. Hanya teaser kota saja yang dirilis.',
+    description: 'Aktor Korea Byeon Woo-seok (Lovely Runner) mengumumkan fan meeting tur Asia 2026 bertema "The Secret Library". Jakarta masuk daftar kota bersama Seoul, Bangkok, Yokohama, Taipei, Singapore, Manila, dan Hong Kong.',
+    sources: ['chosun.com', 'gmanetwork.com', 'asiaone.com'],
+  },
+
+  // ── RUMOR: aespa ──
   {
     id: 'aespa-jakarta-rumor',
     artist: 'aespa',
@@ -432,6 +553,30 @@ const CONCERTS = [
     description: 'Setelah konser fenomenal di GBK (2023), Coldplay dirumorkan kembali untuk leg 2027 dari Music of the Spheres World Tour. Tur mereka restart 2027 setelah jeda panjang — Indonesia jadi salah satu kandidat terkuat.',
     sources: ['wikipedia.org (MOTSWT)', 'coldplaytour.org'],
   },
+  // ── RUMOR: Dua Lipa (reschedule) ──
+  {
+    id: 'dua-lipa-jakarta-rumor',
+    artist: 'Dua Lipa',
+    tour: 'Reschedule Radical Optimism / New Tour',
+    genre: 'pop', emoji: '💃',
+    dates: ['TBA – 2026/2027 (reschedule belum diumumkan)'],
+    rawDate: new Date('2027-01-01'),
+    time: 'TBA',
+    venue: 'TBA',
+    city: 'Jakarta',
+    promotor: 'TBA',
+    ticketPlatform: 'TBA',
+    ticketUrl: 'https://dualipa.com',
+    priceRange: 'Belum diumumkan',
+    priceMin: 0, priceMax: 0,
+    ticketCategories: [{ name: 'Semua kategori', price: 'TBA' }],
+    confirmStatus: 'rumor', hot: false,
+    rumorDetail: 'Dua Lipa membatalkan konser Jakarta (9 Nov 2024) menit terakhir karena masalah keamanan panggung — meninggalkan ribuan fans kecewa. Belum ada pengumuman resmi reschedule atau konser baru ke Indonesia.',
+    description: 'Dua Lipa pernah cancel detik terakhir saat hendak tampil di Indonesia Arena (Nov 2024) karena unsafe staging. Fans Indonesia masih berharap ia kembali untuk menebus kekecewaan tersebut. Hingga kini belum ada konfirmasi.',
+    sources: ['bandwagon.asia', 'deadline.com', 'billboard.com'],
+  },
+
+  // ── RUMOR: Taylor Swift ──
   {
     id: 'taylor-swift-jakarta-rumor',
     artist: 'Taylor Swift',
@@ -460,7 +605,7 @@ const CONCERTS = [
    ============================================ */
 const isPast   = c => c.rawDate < TODAY;
 const isRumor  = c => c.confirmStatus === 'rumor';
-const genreLabel = g => ({ kpop:'K-Pop', pop:'Pop / R&B', rock:'Rock', jazz:'Jazz' }[g] || g);
+const genreLabel = g => ({ kpop:'K-Pop', pop:'Pop / R&B', rock:'Rock / Metal', jazz:'Jazz', indie:'Indie / Festival' }[g] || g);
 
 /* ============================================
    RENDER CARDS
@@ -631,6 +776,7 @@ function applyFilters() {
   else if (activeFilter === 'pop')       result = result.filter(c => c.genre === 'pop');
   else if (activeFilter === 'rock')      result = result.filter(c => c.genre === 'rock');
   else if (activeFilter === 'jazz')      result = result.filter(c => c.genre === 'jazz');
+  else if (activeFilter === 'indie')     result = result.filter(c => c.genre === 'indie');
   else if (activeFilter === 'confirmed') result = result.filter(c => c.confirmStatus === 'confirmed' && !isPast(c));
   else if (activeFilter === 'rumor')     result = result.filter(c => isRumor(c));
   else if (activeFilter === 'upcoming')  result = result.filter(c => !isPast(c));
