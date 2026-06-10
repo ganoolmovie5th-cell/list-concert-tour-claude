@@ -7,7 +7,7 @@
    Last updated: June 9, 2026
    ============================================ */
 
-const TODAY = new Date('2026-06-09');
+const TODAY = new Date(); // selalu tanggal hari ini
 
 /* ============================================
    ARTIST IMAGES — Wikimedia Commons CC-licensed
@@ -1238,11 +1238,13 @@ openModal = function(id) {
   if (modalActions) {
     const shareRow = document.createElement('div');
     shareRow.className = 'modal-share-row';
+    const gcUrl = getGoogleCalendarUrl(c);
     shareRow.innerHTML = `
       <button class="btn-action${isWishlisted(c.id) ? ' wishlisted' : ''}"
         onclick="toggleWishlist('${c.id}');this.classList.toggle('wishlisted');this.innerHTML=isWishlisted('${c.id}')?'❤️ Wishlisted':'🤍 Wishlist'">
         ${isWishlisted(c.id) ? '❤️ Wishlisted' : '🤍 Wishlist'}
       </button>
+      ${gcUrl ? `<a class="btn-action" href="${gcUrl}" target="_blank" rel="noopener">📅 Google Calendar</a>` : ''}
       <button class="btn-action" onclick="openSharePanel('${c.id}')">
         🔗 Share
       </button>`;
@@ -1250,10 +1252,9 @@ openModal = function(id) {
   }
 
   // 3. Update URL for deep link (without page reload)
-  const newUrl = `${window.location.pathname}?concert=${id}`;
-  history.replaceState(null, '', newUrl);
+  history.replaceState(null, '', `${window.location.pathname}?concert=${id}`);
 
-  // 4. Inject review section after disclaimer
+  // 4. Inject review section
   const modalDisclaimer = mc.querySelector('.modal-disclaimer');
   if (modalDisclaimer && window.ConcertReviews) {
     const rvEl = document.createElement('div');
@@ -1262,13 +1263,14 @@ openModal = function(id) {
     ConcertReviews.bind(id);
   }
 
-  // 5. Track concert click in analytics
-  try {
-    const cl = JSON.parse(localStorage.getItem('cid_clicks') || '{}');
-    cl[id] = (cl[id] || 0) + 1;
-    localStorage.setItem('cid_clicks', JSON.stringify(cl));
-  } catch {}
-};
+  // 5. Inject social features, price history, social links, discussion, UGC
+  const disclaimer = mc.querySelector('.modal-disclaimer');
+  if (disclaimer) {
+    // Social features (Going/Interested)
+    const socialEl = document.createElement('div');
+    socialEl.innerHTML = SocialFeatures.renderBadges(c.id);
+    disclaimer.insertAdjacentElement('beforebegin', socialEl.firstElementChild || socialEl);
+  }
 
 // Clean up URL when modal closes
 const _origCloseModal = closeModal;

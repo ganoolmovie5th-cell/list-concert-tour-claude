@@ -571,9 +571,9 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
   --transition-theme: background 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
 }
 
-/* Smooth transition semua elemen saat ganti tema */
+/* Smooth transition hanya untuk property tema */
 *, *::before, *::after {
-  transition: var(--transition-theme);
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease;
 }
 
 /* Override: light mode diaktifkan via class di <html> */

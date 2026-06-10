@@ -1,18 +1,15 @@
 /* ================================================================
    ConcertID — features.js
    Fitur tambahan:
-   1. Notifikasi Browser (push reminder konser)
+   1. Browser Notification (reminder konser)
    2. Google Calendar Link
    3. Sort Options
-   4. Newsletter Signup
-   5. Interactive Map (Leaflet)
-   6. Social Features (Going / Interested counter)
-   7. Harga Tracker / Price History
-   8. Social Media Integration (feed preview)
-   9. Discussion / Comments per konser
-   10. Ticket Price Aggregator (price comparison)
-   11. Advanced Analytics Dashboard link
-   12. User-Generated Content (foto after concert)
+   4. Newsletter (Mailchimp JSONP — di index.html)
+   5. Social Features (Going / Interested counter)
+   6. Harga Tracker / Price History
+   7. Social Media Integration (Instagram & Twitter links)
+   8. Discussion / Comments per konser
+   9. User-Generated Content (foto after concert)
    ================================================================ */
 
 'use strict';
@@ -390,7 +387,6 @@ const SocialMedia = (() => {
     'five-sos-jakarta-2026':        { ig: '5sos',                tw: '5sos' },
     'java-jazz-2026':               { ig: 'javajazzfestival',    tw: 'JavaJazzFest' },
     'exo-exhorizon-jakarta-2026':   { ig: 'weareone.exo',        tw: 'weareoneEXO' },
-    'lalala-fest-2026':             { ig: 'lalalafest',          tw: 'lalalafestival' },
     'bryan-adams-jakarta-2026':     { ig: 'bryanadams',          tw: 'bryanadams' },
     'enhypen-jakarta-2027':         { ig: 'enhypen_official',    tw: 'ENHYPEN_members' },
     'taylor-swift-jakarta-rumor':   { ig: 'taylorswift',         tw: 'taylorswift13' },

@@ -122,7 +122,7 @@
 
     // Cek apakah konser sudah berlalu
     const concert   = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === concertId) : null;
-    const today     = typeof TODAY !== 'undefined' ? TODAY : new Date();
+    const today         = typeof TODAY !== 'undefined' ? TODAY : new Date();
     const isPastConcert = concert ? concert.rawDate < today : false;
 
     // Rating distribution
