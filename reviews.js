@@ -114,11 +114,16 @@
 
   /* ── Render the full review section for a concert ───────── */
   function renderReviewSection(concertId) {
-    const reviews = getReviewsFor(concertId);
-    const avgR    = avg(reviews);
-    const uid     = getUID();
+    const reviews   = getReviewsFor(concertId);
+    const avgR      = avg(reviews);
+    const uid       = getUID();
     const hasReviewed = reviews.some(r => r.uid === uid);
-    const formName = `rvform_${concertId}`;
+    const formName  = `rvform_${concertId}`;
+
+    // Cek apakah konser sudah berlalu
+    const concert   = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === concertId) : null;
+    const today     = typeof TODAY !== 'undefined' ? TODAY : new Date();
+    const isPastConcert = concert ? concert.rawDate < today : false;
 
     // Rating distribution
     const dist = [5,4,3,2,1].map(s => ({
@@ -154,6 +159,10 @@
         ${!hasReviewed ? `
           <div class="rv-form-wrap">
             <h5>✍️ Tulis Review</h5>
+            ${!isPastConcert ? `
+              <div class="rv-locked">
+                🔒 Review hanya bisa ditulis <strong>setelah konser berlangsung</strong>.
+              </div>` : `
             <form class="rv-form" onsubmit="ConcertReviews.submit(event, '${concertId}')">
               <div class="rv-star-picker">
                 <label>Rating:</label>
@@ -163,10 +172,10 @@
               <textarea class="rv-textarea" placeholder="Bagaimana konsernya? Ceritakan pengalamanmu... (min 10 karakter)" rows="3" maxlength="500" required></textarea>
               <div class="rv-form-footer">
                 <span class="rv-char-count">0 / 500</span>
-                <button type="submit" class="btn btn-primary" style="flex:0;padding:8px 20px;font-size:0.82rem;">Kirim Review ↑</button>
+                <button type="submit" class="btn btn-primary rv-submit-btn">Submit</button>
               </div>
               <div class="rv-form-msg"></div>
-            </form>
+            </form>`}
           </div>` : `
           <div class="rv-already">✅ Kamu sudah review konser ini. Terima kasih!</div>`}
 

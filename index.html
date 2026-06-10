@@ -123,18 +123,30 @@
   <!-- FILTER BAR -->
   <section class="filter-section" id="concerts">
     <div class="container">
-      <div class="filter-bar">
-        <button class="filter-btn active" data-filter="all">Semua</button>
-        <button class="filter-btn filter-confirmed" data-filter="confirmed">✅ Confirmed</button>
-        <button class="filter-btn filter-rumor" data-filter="rumor">🔮 Rumor</button>
-        <button class="filter-btn" data-filter="kpop">K-Pop</button>
-        <button class="filter-btn" data-filter="pop">Pop / R&amp;B</button>
-        <button class="filter-btn" data-filter="rock">Rock / Metal</button>
-        <button class="filter-btn" data-filter="jazz">Jazz</button>
-        <button class="filter-btn" data-filter="indie">Indie / Festival</button>
-        <button class="filter-btn" data-filter="upcoming">Mendatang</button>
-        <button class="filter-btn" data-filter="past">Sudah Lewat</button>
-        <button class="filter-btn filter-wishlist" data-filter="wishlist">❤️ Wishlist <span class="wishlist-count" id="wishlistCount" style="display:none">0</span></button>
+      <div class="filter-row">
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all">Semua</button>
+          <button class="filter-btn filter-confirmed" data-filter="confirmed">✅ Confirmed</button>
+          <button class="filter-btn filter-rumor" data-filter="rumor">🔮 Rumor</button>
+          <button class="filter-btn" data-filter="kpop">K-Pop</button>
+          <button class="filter-btn" data-filter="pop">Pop / R&amp;B</button>
+          <button class="filter-btn" data-filter="rock">Rock / Metal</button>
+          <button class="filter-btn" data-filter="jazz">Jazz</button>
+          <button class="filter-btn" data-filter="indie">Indie / Festival</button>
+          <button class="filter-btn" data-filter="upcoming">Mendatang</button>
+          <button class="filter-btn" data-filter="past">Sudah Lewat</button>
+          <button class="filter-btn filter-wishlist" data-filter="wishlist">❤️ Wishlist <span class="wishlist-count" id="wishlistCount" style="display:none">0</span></button>
+        </div>
+        <div class="sort-wrap">
+          <label class="sort-label" for="sortSelect">Urutkan:</label>
+          <select class="sort-select" id="sortSelect" onchange="SortOptions.set(this.value)">
+            <option value="date-asc">📅 Tanggal (Terdekat)</option>
+            <option value="date-desc">📅 Tanggal (Terjauh)</option>
+            <option value="price-asc">💰 Harga (Termurah)</option>
+            <option value="price-desc">💰 Harga (Termahal)</option>
+            <option value="name-asc">🔤 Nama Artis (A–Z)</option>
+          </select>
+        </div>
       </div>
     </div>
   </section>
@@ -261,6 +273,27 @@
     </div>
   </section>
 
+  <!-- NEWSLETTER -->
+  <section class="newsletter-section">
+    <div class="container">
+      <div class="nl-card">
+        <div class="nl-icon">🎵</div>
+        <div class="nl-text">
+          <h3>Jangan Ketinggalan Konser!</h3>
+          <p>Daftar gratis dan dapatkan update konser terbaru langsung di inbox kamu.</p>
+        </div>
+        <div class="nl-action" id="newsletterFormContainer">
+          <!-- diisi oleh Newsletter.render() -->
+          <form class="nl-form" id="nlForm" onsubmit="Newsletter.handleSubmit(event)">
+            <input class="nl-input" type="email" id="nlEmail" placeholder="email@kamu.com" required />
+            <button class="nl-btn" type="submit">Daftar Gratis</button>
+          </form>
+          <div class="nl-msg" id="nlMsg"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- FOOTER -->
   <footer class="footer">
     <div class="container footer-inner">
@@ -349,6 +382,7 @@
 
   <script src="app.js"></script>
   <script src="reviews.js"></script>
+  <script src="features.js"></script>
   <!-- chatbot.js disabled sementara -->
   <!-- <script src="chatbot.js"></script> -->
 </body>

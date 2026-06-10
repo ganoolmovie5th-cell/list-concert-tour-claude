@@ -658,6 +658,10 @@ const isPast   = c => c.rawDate < TODAY;
 const isRumor  = c => c.confirmStatus === 'rumor';
 const genreLabel = g => ({ kpop:'K-Pop', pop:'Pop / R&B', rock:'Rock / Metal', jazz:'Jazz', indie:'Indie / Festival' }[g] || g);
 
+// Expose globals agar features.js bisa pakai
+window.isPast  = isPast;
+window.isRumor = isRumor;
+
 /* ============================================
    RENDER CARDS
    ============================================ */
@@ -855,6 +859,7 @@ function applyFilters() {
   else if (activeFilter === 'rumor')     result = result.filter(c => isRumor(c));
   else if (activeFilter === 'upcoming')  result = result.filter(c => !isPast(c));
   else if (activeFilter === 'past')      result = result.filter(c => isPast(c));
+  else if (activeFilter === 'wishlist')  result = result.filter(c => getWishlist().includes(c.id));
 
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase();
@@ -865,6 +870,11 @@ function applyFilters() {
       c.city.toLowerCase().includes(q) ||
       (c.lineup && c.lineup.some(a => a.toLowerCase().includes(q)))
     );
+  }
+
+  // Terapkan sort jika SortOptions sudah tersedia
+  if (typeof SortOptions !== 'undefined') {
+    result = SortOptions.apply(result);
   }
 
   renderCards(result);
@@ -1293,28 +1303,6 @@ function applyUTMToLinks() {
     a.dataset.utmApplied = '1';
   });
 }
-
-/* ============================================
-   UPDATED applyFilters — INCLUDE WISHLIST
-   ============================================ */
-const _origApplyFilters = applyFilters;
-applyFilters = function() {
-  if (activeFilter === 'wishlist') {
-    const wl = getWishlist();
-    let result = CONCERTS.filter(c => wl.includes(c.id));
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(c =>
-        c.artist.toLowerCase().includes(q) ||
-        c.venue.toLowerCase().includes(q) ||
-        c.city.toLowerCase().includes(q)
-      );
-    }
-    renderCards(result);
-    return;
-  }
-  _origApplyFilters();
-};
 
 /* ============================================
    INIT
