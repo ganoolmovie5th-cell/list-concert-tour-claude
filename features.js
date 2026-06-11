@@ -1,96 +1,15 @@
 /* ================================================================
    ConcertID — features.js
-   Fitur tambahan:
-   1. Browser Notification (reminder konser)
+   Fitur:
    2. Google Calendar Link
    3. Sort Options
-   4. Newsletter (Mailchimp JSONP — di index.html)
    5. Social Features (Going / Interested counter)
-   6. Harga Tracker / Price History
-   7. Social Media Integration (Instagram & Twitter links)
-   8. Discussion / Comments per konser
-   9. User-Generated Content (foto after concert)
+   7. Social Media Integration
+   8. Discussion / Comments
+   9. User-Generated Content
    ================================================================ */
 
 'use strict';
-
-/* ================================================================
-   1. NOTIFIKASI BROWSER
-   ================================================================ */
-const BrowserNotif = (() => {
-  const KEY = 'cid_notif_subs'; // { concertId: true/false }
-
-  function getSubs() {
-    try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; }
-  }
-  function saveSubs(s) { localStorage.setItem(KEY, JSON.stringify(s)); }
-
-  function isSubscribed(id) { return !!getSubs()[id]; }
-
-  async function requestPermission() {
-    if (!('Notification' in window)) return false;
-    if (Notification.permission === 'granted') return true;
-    if (Notification.permission === 'denied') return false;
-    const perm = await Notification.requestPermission();
-    return perm === 'granted';
-  }
-
-  function scheduleReminder(concert) {
-    // Fire a test notification immediately so user sees it works
-    if (Notification.permission === 'granted') {
-      new Notification(`🔔 ConcertID — Reminder Aktif`, {
-        body: `${concert.artist} · ${concert.dates[0]} · ${concert.venue.split('(')[0].trim()}`,
-        icon: '/favicon-32.png',
-        badge: '/favicon-32.png',
-        tag: concert.id,
-      });
-    }
-    // Store sub so we can check on page load
-    const subs = getSubs();
-    subs[concert.id] = { date: concert.rawDate.toISOString(), artist: concert.artist, dates: concert.dates, venue: concert.venue };
-    saveSubs(subs);
-  }
-
-  function unsubscribe(id) {
-    const subs = getSubs();
-    delete subs[id];
-    saveSubs(subs);
-  }
-
-  // On page load: fire reminders for concerts in ≤7 days
-  function checkPending() {
-    if (Notification.permission !== 'granted') return;
-    const subs = getSubs();
-    const now  = Date.now();
-    Object.entries(subs).forEach(([id, info]) => {
-      const diff = new Date(info.date) - now;
-      const days = Math.ceil(diff / 86400000);
-      if (diff > 0 && days <= 7) {
-        new Notification(`⏰ ${days} hari lagi — ${info.artist}!`, {
-          body: `${info.dates[0]} · ${info.venue.split('(')[0].trim()}`,
-          icon: '/favicon-32.png',
-          tag: `remind_${id}`,
-        });
-      }
-    });
-  }
-
-  async function toggle(concert, btnEl) {
-    if (isSubscribed(concert.id)) {
-      unsubscribe(concert.id);
-      if (btnEl) { btnEl.classList.remove('notif-active'); btnEl.textContent = '🔔 Ingatkan Saya'; }
-      showToast('🔕 Reminder dibatalkan', 'info');
-      return;
-    }
-    const ok = await requestPermission();
-    if (!ok) { showToast('⚠️ Izin notifikasi ditolak. Aktifkan di pengaturan browser.', 'error', 4000); return; }
-    scheduleReminder(concert);
-    if (btnEl) { btnEl.classList.add('notif-active'); btnEl.textContent = '🔔 Diingatkan!'; }
-    showToast('✅ Reminder aktif! Kamu akan diingatkan 7 hari sebelum konser.', 'success', 3500);
-  }
-
-  return { toggle, isSubscribed, checkPending };
-})();
 
 /* ================================================================
    2. GOOGLE CALENDAR LINK
@@ -137,55 +56,8 @@ const SortOptions = (() => {
 })();
 
 /* ================================================================
-   4. NEWSLETTER SIGNUP
+   4. NEWSLETTER — handled by Mailchimp JSONP di index.html
    ================================================================ */
-const Newsletter = (() => {
-  const KEY = 'cid_newsletter';
-
-  function isSubscribed() {
-    try { return !!localStorage.getItem(KEY); } catch { return false; }
-  }
-
-  function subscribe(email) {
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, msg: 'Email tidak valid.' };
-    if (isSubscribed()) return { ok: false, msg: 'Email ini sudah terdaftar!' };
-    localStorage.setItem(KEY, JSON.stringify({ email, date: new Date().toISOString() }));
-    // GA event
-    if (window.gtag) gtag('event', 'newsletter_signup', { event_category: 'engagement', event_label: email });
-    return { ok: true };
-  }
-
-  function render() {
-    if (isSubscribed()) {
-      return `<div class="nl-done">✅ Kamu sudah terdaftar! Kami akan kirim update konser terbaru.</div>`;
-    }
-    return `
-      <form class="nl-form" id="nlForm" onsubmit="Newsletter.handleSubmit(event)">
-        <input class="nl-input" type="email" id="nlEmail" placeholder="email@kamu.com" required />
-        <button class="nl-btn" type="submit">Daftar Gratis</button>
-      </form>
-      <div class="nl-msg" id="nlMsg"></div>`;
-  }
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    const email = document.getElementById('nlEmail')?.value || '';
-    const result = subscribe(email);
-    const msg    = document.getElementById('nlMsg');
-    if (msg) {
-      msg.textContent = result.ok ? '🎉 Berhasil! Cek inbox kamu.' : '⚠️ ' + result.msg;
-      msg.style.color = result.ok ? '#4ade80' : '#f87171';
-    }
-    if (result.ok) {
-      showToast('🎉 Newsletter berhasil didaftarkan!', 'success');
-      const form = document.getElementById('nlForm');
-      if (form) form.outerHTML = `<div class="nl-done">✅ Kamu sudah terdaftar!</div>`;
-    }
-  }
-
-  return { render, handleSubmit, isSubscribed, subscribe };
-})();
-window.Newsletter = Newsletter;
 
 /* ================================================================
    5. SOCIAL FEATURES — Going / Interested counter
@@ -713,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. Ikuti di (Social media links)
         appendAfterLast(SocialMedia.renderLinks(c.id, c.artist));
 
-        // Urutan seragam untuk SEMUA tipe konser (past/confirmed/rumor):
+      // Urutan seragam untuk SEMUA tipe konser (past/confirmed/rumor):
         // Forum Jual Beli → Cari Teman Nonton → Diskusi → Review & Rating → Foto dari Fans
         // (inject Forum & Cari Teman dari features3.js via rAF ke-2)
         // Di sini hanya inject: Diskusi, Review, Foto dari Fans
@@ -736,14 +608,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 6. Foto dari Fans
         appendAfterLast(UGC.render(c.id));
+
+        // 7. Forum Jual Beli Tiket — di bawah Ikuti di, sebelum Diskusi
+        if (typeof TicketMarket !== 'undefined') {
+          const discSection = modal.querySelector('.disc-section');
+          const tmEl = document.createElement('div');
+          tmEl.innerHTML = TicketMarket.render(c.id);
+          if (discSection) discSection.insertAdjacentElement('beforebegin', tmEl.firstElementChild || tmEl);
+        }
+
+        // 8. Cari Teman Nonton — setelah Forum Jual Beli, sebelum Diskusi
+        if (typeof GroupBuying !== 'undefined') {
+          const tmSection  = modal.querySelector('.tm-section');
+          const discSection = modal.querySelector('.disc-section');
+          const anchor     = tmSection || discSection;
+          const gbEl       = document.createElement('div');
+          gbEl.innerHTML   = GroupBuying.render(c.id);
+          if (anchor) anchor.insertAdjacentElement(tmSection ? 'afterend' : 'beforebegin', gbEl.firstElementChild || gbEl);
+        }
       });
     };
   }
 
-  // Check pending notifications on load — dinonaktifkan (fitur dihapus)
+  // Check pending notifications — dinonaktifkan
   // BrowserNotif.checkPending();
-
-  // Render newsletter section if container exists
-  const nlContainer = document.getElementById('newsletterFormContainer');
-  if (nlContainer) nlContainer.innerHTML = Newsletter.render();
 });

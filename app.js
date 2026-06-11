@@ -1478,6 +1478,8 @@ function getGoogleMapsUrl(venue, city) {
 const _originalRenderCards = renderCards;
 renderCards = function(list) {
   _originalRenderCards(list);
+  // Apply UTM links setiap kali cards di-render ulang
+  setTimeout(applyUTMToLinks, 100);
   // Add countdown, action buttons, and price visual to each card after render
   list.forEach(c => {
     const card = document.querySelector(`.concert-card[onclick*="${c.id}"]`);
@@ -1590,11 +1592,11 @@ openModal = function(id) {
 
   // Going/Interested di-inject oleh features.js (setelah disclaimer)
 
-  // 5. Track click
+  // 5. Track concert view click
   try {
-    const cl = JSON.parse(localStorage.getItem('cid_clicks') || '{}');
+    const cl = JSON.parse(localStorage.getItem('cid_views') || '{}');
     cl[id] = (cl[id] || 0) + 1;
-    localStorage.setItem('cid_clicks', JSON.stringify(cl));
+    localStorage.setItem('cid_views', JSON.stringify(cl));
   } catch {}
 };
 

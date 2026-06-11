@@ -473,11 +473,6 @@ const SetlistPredict = (() => {
       source: 'Prediksi berdasarkan setlist ONE OK ROCK Luxury Disease Asia Tour 2023',
       songs: ['Wherever You Are','Taking Off','Never Let Me Go','Make It Out Alive','Vandalize','Answer is Near','Wasted Nights','(Re)make','Renegades','Stand Out Fit In','Mighty Long Fall'],
     },
-    'laufey-jakarta-2026': {
-      actual: false,
-      source: 'Prediksi berdasarkan setlist Laufey A Night at the Symphony 2023',
-      songs: ['Valentine','Let You Break My Heart Again','Bewitched','From the Start','Best Friend','Falling Behind',"I'd Rather Go Blind",'Lovesick','Atonement','An Evening I Will Not Forget'],
-    },
     'westlife-jakarta-2027': {
       actual: false,
       source: 'Prediksi berdasarkan setlist Westlife Wild Dreams Tour 2022',
@@ -705,8 +700,11 @@ const GroupBuying = (() => {
     e.preventDefault();
     const f = e.target;
     const result = add(concertId, {
-      name: f.name?.value, seats: f.seats?.value,
-      category: f.category?.value, contact: f.contact?.value, note: f.note?.value,
+      name:     f.querySelector('[name="name"]')?.value,
+      seats:    f.querySelector('[name="seats"]')?.value,
+      category: f.querySelector('[name="category"]')?.value,
+      contact:  f.querySelector('[name="contact"]')?.value,
+      note:     f.querySelector('[name="note"]')?.value,
     });
     if (!result.ok) { showToast('⚠️ ' + result.msg, 'error'); return; }
     const section = document.getElementById(`gb_${concertId}`);
@@ -825,29 +823,9 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // E. Forum Jual Beli Tiket — inject ke akhir modal, sebelum disc-section
-        // (urutan final ditentukan oleh DOM order: features.js inject disc, rv, ugc duluan via rAF-1,
-        //  features3.js inject TM dan GB via rAF-2 di atas disc yang sudah ada)
-        const tmHtml = TicketMarket.render(c.id);
-        if (tmHtml) {
-          const discSection = modal.querySelector('.disc-section');
-          const el = document.createElement('div');
-          el.innerHTML = tmHtml;
-          if (discSection) discSection.insertAdjacentElement('beforebegin', el.firstElementChild || el);
-          else modal.appendChild(el.firstElementChild || el);
-        }
+        // Forum Jual Beli dan Cari Teman Nonton sudah di-inject dari features.js
+        // untuk menghindari race condition rAF bertingkat
 
-        // F. Cari Teman Nonton — setelah Forum Jual Beli, sebelum Diskusi
-        const gbHtml = GroupBuying.render(c.id);
-        if (gbHtml) {
-          const discSection = modal.querySelector('.disc-section');
-          const tmSection   = modal.querySelector('.tm-section');
-          const anchor      = tmSection || discSection;
-          const el          = document.createElement('div');
-          el.innerHTML      = gbHtml;
-          if (anchor) anchor.insertAdjacentElement('afterend', el.firstElementChild || el);
-          else modal.appendChild(el.firstElementChild || el);
-        }
       }));
     };
   }
@@ -1011,12 +989,16 @@ const TicketMarket = (() => {
 
   function handleSubmit(e, concertId) {
     e.preventDefault();
-    const f = e.target;
+    const f    = e.target;
     const type = f.querySelector('input[name="type"]:checked')?.value || 'jual';
     const result = add(concertId, {
-      type, name: f.name?.value, category: f.category?.value,
-      qty: f.qty?.value, price: f.price?.value,
-      contact: f.contact?.value, note: f.note?.value,
+      type,
+      name:     f.querySelector('[name="name"]')?.value,
+      category: f.querySelector('[name="category"]')?.value,
+      qty:      f.querySelector('[name="qty"]')?.value,
+      price:    f.querySelector('[name="price"]')?.value,
+      contact:  f.querySelector('[name="contact"]')?.value,
+      note:     f.querySelector('[name="note"]')?.value,
     });
     if (!result.ok) { showToast('⚠️ ' + result.msg, 'error'); return; }
     const section = document.getElementById(`tm_${concertId}`);
