@@ -1077,7 +1077,7 @@ const FeedbackForm = (() => {
     if (attachedFile) {
       try {
         btn.textContent = 'Mengupload foto...';
-        photoUrl = await FeedbackForm.uploadToImgBB(attachedFile);
+        photoUrl = await FeedbackForm.uploadPhoto(attachedFile);
       } catch (uploadErr) {
         showToast('⚠️ Gagal upload foto, pesan tetap dikirim tanpa foto.', 'error', 4000);
       }
@@ -1118,19 +1118,18 @@ const FeedbackForm = (() => {
     }
   }
 
-  async function uploadToImgBB(file) {
+  async function uploadPhoto(file) {
+    // Upload ke Catbox.moe — free, no signup, SSL valid, URL stabil
     const formData = new FormData();
-    formData.append('image', file);
-    const res  = await fetch('https://api.imgbb.com/1/upload?key=78b1898502c744adca5a5686eed6a102', {
+    formData.append('reqtype', 'fileupload');
+    formData.append('userhash', '');
+    formData.append('fileToUpload', file);
+    const res  = await fetch('https://catbox.moe/user/api.php', {
       method: 'POST', body: formData,
     });
-    const data = await res.json();
-    if (data.success) {
-      // Pakai image.url (direct, tanpa subdomain i.ibb.co yang bermasalah SSL)
-      // Fallback ke url jika image.url tidak ada
-      return data.data.image?.url || data.data.url;
-    }
-    throw new Error(data.error?.message || 'Upload foto gagal');
+    const url = await res.text();
+    if (url && url.startsWith('https://files.catbox.moe/')) return url.trim();
+    throw new Error('Upload foto gagal: ' + url);
   }
 
   function onAttach(input) {
@@ -1163,6 +1162,6 @@ const FeedbackForm = (() => {
     if (label)   label.textContent = 'Lampirkan foto (opsional · JPG/PNG/WebP · maks 2MB)';
   }
 
-  return { render, handleSubmit, uploadToImgBB, onAttach, removeAttach };
+  return { render, handleSubmit, uploadPhoto, onAttach, removeAttach };
 })();
 window.FeedbackForm = FeedbackForm;
