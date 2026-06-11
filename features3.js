@@ -817,7 +817,17 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // E. Group Buying — setelah .disc-section (bawah Diskusi)
+        // E. Forum Jual Beli Tiket — di atas .disc-section (Diskusi)
+        const tmHtml = TicketMarket.render(c.id);
+        if (tmHtml) {
+          const discSection = modal.querySelector('.disc-section');
+          const el = document.createElement('div');
+          el.innerHTML = tmHtml;
+          if (discSection) discSection.insertAdjacentElement('beforebegin', el.firstElementChild || el);
+          else modal.appendChild(el.firstElementChild || el);
+        }
+
+        // F. Group Buying — setelah .disc-section (bawah Diskusi)
         const gbHtml = GroupBuying.render(c.id);
         if (gbHtml) {
           const anchor = modal.querySelector('.disc-section');
@@ -830,3 +840,178 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 });
+
+
+
+/* ================================================================
+   7. FORUM JUAL BELI TIKET
+   - Jual: punya tiket, cari pembeli
+   - Beli: cari tiket, butuh seller
+   - Disabled untuk konser PAST dan RUMOR
+   ================================================================ */
+const TicketMarket = (() => {
+  const KEY = 'cid_ticket_market';
+
+  function getAll()   { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } }
+  function saveAll(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
+  function getFor(id) { return getAll()[id] || []; }
+
+  function getUID() {
+    let uid = localStorage.getItem('cid_uid');
+    if (!uid) { uid = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('cid_uid', uid); }
+    return uid;
+  }
+
+  function timeAgo(date) {
+    const diff = Date.now() - new Date(date).getTime();
+    const m = Math.floor(diff / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
+    if (d > 0) return `${d} hari lalu`;
+    if (h > 0) return `${h} jam lalu`;
+    if (m > 0) return `${m} menit lalu`;
+    return 'Baru saja';
+  }
+
+  function add(concertId, { type, name, category, qty, price, contact, note }) {
+    if (!name || !contact) return { ok: false, msg: 'Nama dan kontak wajib diisi.' };
+    const all = getAll();
+    if (!all[concertId]) all[concertId] = [];
+    if (all[concertId].length >= 50) return { ok: false, msg: 'Maksimal 50 listing per konser.' };
+    all[concertId].unshift({
+      uid:      getUID(),
+      type:     type || 'jual',
+      name:     name.trim().slice(0,30).replace(/</g,'&lt;'),
+      category: (category||'TBA').trim().slice(0,30).replace(/</g,'&lt;'),
+      qty:      Math.min(parseInt(qty)||1, 20),
+      price:    (price||'').trim().slice(0,30).replace(/</g,'&lt;'),
+      contact:  contact.trim().slice(0,60).replace(/</g,'&lt;'),
+      note:     (note||'').trim().slice(0,150).replace(/</g,'&lt;'),
+      date:     new Date().toISOString(),
+    });
+    saveAll(all);
+    return { ok: true };
+  }
+
+  function buildContactHref(contact) {
+    const digits = contact.replace(/\D/g, '');
+    if (contact.startsWith('http')) return contact;
+    if (digits.length >= 8) return `https://wa.me/${digits}`;
+    return `https://instagram.com/${contact.replace('@','')}`;
+  }
+
+  function render(concertId) {
+    const posts    = getFor(concertId);
+    const concert  = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === concertId) : null;
+    const isPastC  = concert && concert.rawDate < new Date();
+    const isRumorC = concert && concert.confirmStatus === 'rumor';
+    const disabled = isPastC || isRumorC;
+
+    // Split jual & beli
+    const jual = posts.filter(p => p.type === 'jual');
+    const beli = posts.filter(p => p.type === 'beli');
+
+    function renderItems(items) {
+      if (!items.length) return `<div class="tm-empty">Belum ada listing.</div>`;
+      return items.map(p => `
+        <div class="tm-item">
+          <div class="tm-item-top">
+            <span class="tm-type-badge tm-type-${p.type}">${p.type === 'jual' ? 'JUAL' : 'BELI'}</span>
+            <div class="tm-info">
+              <span class="tm-name">${p.name}</span>
+              <span class="tm-meta">${p.category} · ${p.qty} tiket${p.price ? ` · ${p.price}` : ''}</span>
+            </div>
+            <a class="gb-contact" href="${buildContactHref(p.contact)}" target="_blank" rel="noopener">Hubungi →</a>
+          </div>
+          ${p.note ? `<div class="gb-note">${p.note}</div>` : ''}
+          <div class="tm-time">${timeAgo(p.date)}</div>
+        </div>`).join('');
+    }
+
+    const formHtml = disabled
+      ? `<div class="gb-ended">${isPastC ? 'Konser sudah selesai' : 'Konser belum dikonfirmasi'} — listing ditutup.</div>`
+      : `<form class="gb-form tm-form" onsubmit="TicketMarket.handleSubmit(event,'${concertId}')">
+          <div class="tm-type-row">
+            <label class="tm-type-opt">
+              <input type="radio" name="type" value="jual" checked /> 🎫 Jual Tiket
+            </label>
+            <label class="tm-type-opt">
+              <input type="radio" name="type" value="beli" /> 🔍 Cari Tiket
+            </label>
+          </div>
+          <div class="gb-form-row">
+            <input class="gb-input" name="name" type="text" placeholder="Nama kamu *" maxlength="30" required />
+            <input class="gb-input gb-input-sm" name="qty" type="number" placeholder="Jml" min="1" max="20" />
+          </div>
+          <div class="gb-form-row">
+            <input class="gb-input" name="category" type="text" placeholder="Kategori (CAT 1, VIP...)" maxlength="30" />
+            <input class="gb-input" name="price" type="text" placeholder="Harga (Rp ...)" maxlength="30" />
+          </div>
+          <div class="gb-form-row">
+            <input class="gb-input" name="contact" type="text" placeholder="No WA / @instagram *" maxlength="60" required />
+            <input class="gb-input" name="note" type="text" placeholder="Catatan (opsional)" maxlength="150" />
+          </div>
+          <button class="gb-submit" type="submit" style="width:100%">+ Post Listing</button>
+          <p class="tm-warn">⚠️ Selalu verifikasi tiket sebelum transfer. Waspada penipuan!</p>
+        </form>`;
+
+    return `
+      <div class="tm-section" id="tm_${concertId}">
+        <div class="gb-header">
+          <h4>🎫 Forum Jual Beli Tiket</h4>
+          ${posts.length ? `<span class="gb-count">${posts.length}</span>` : ''}
+        </div>
+        ${formHtml}
+        ${posts.length ? `
+          <div class="tm-tabs">
+            <button class="tm-tab active" onclick="TicketMarket.switchTab(this,'${concertId}','jual')">
+              Jual <span class="tm-tab-count">${jual.length}</span>
+            </button>
+            <button class="tm-tab" onclick="TicketMarket.switchTab(this,'${concertId}','beli')">
+              Cari <span class="tm-tab-count">${beli.length}</span>
+            </button>
+          </div>
+          <div class="tm-list" id="tmlist_${concertId}">${renderItems(jual)}</div>
+        ` : ''}
+      </div>`;
+  }
+
+  function switchTab(btnEl, concertId, type) {
+    const posts = getFor(concertId);
+    const items = posts.filter(p => p.type === type);
+    document.querySelectorAll(`#tm_${concertId} .tm-tab`).forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+    const list = document.getElementById(`tmlist_${concertId}`);
+    if (list) list.innerHTML = items.length
+      ? items.map(p => `
+          <div class="tm-item">
+            <div class="tm-item-top">
+              <span class="tm-type-badge tm-type-${p.type}">${p.type === 'jual' ? 'JUAL' : 'BELI'}</span>
+              <div class="tm-info">
+                <span class="tm-name">${p.name}</span>
+                <span class="tm-meta">${p.category} · ${p.qty} tiket${p.price ? ` · ${p.price}` : ''}</span>
+              </div>
+              <a class="gb-contact" href="${buildContactHref(p.contact)}" target="_blank" rel="noopener">Hubungi →</a>
+            </div>
+            ${p.note ? `<div class="gb-note">${p.note}</div>` : ''}
+            <div class="tm-time">${timeAgo(p.date)}</div>
+          </div>`).join('')
+      : `<div class="tm-empty">Belum ada listing.</div>`;
+  }
+
+  function handleSubmit(e, concertId) {
+    e.preventDefault();
+    const f = e.target;
+    const type = f.querySelector('input[name="type"]:checked')?.value || 'jual';
+    const result = add(concertId, {
+      type, name: f.name?.value, category: f.category?.value,
+      qty: f.qty?.value, price: f.price?.value,
+      contact: f.contact?.value, note: f.note?.value,
+    });
+    if (!result.ok) { showToast('⚠️ ' + result.msg, 'error'); return; }
+    const section = document.getElementById(`tm_${concertId}`);
+    if (section) section.outerHTML = render(concertId);
+    showToast(type === 'jual' ? '🎫 Tiket berhasil di-listing!' : '🔍 Pencarian tiket berhasil diposting!', 'success', 2500);
+  }
+
+  return { render, handleSubmit, switchTab };
+})();
+window.TicketMarket = TicketMarket;
