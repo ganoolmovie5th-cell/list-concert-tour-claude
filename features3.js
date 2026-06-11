@@ -825,7 +825,9 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // E. Forum Jual Beli Tiket — di atas .disc-section (Diskusi)
+        // E. Forum Jual Beli Tiket — inject ke akhir modal, sebelum disc-section
+        // (urutan final ditentukan oleh DOM order: features.js inject disc, rv, ugc duluan via rAF-1,
+        //  features3.js inject TM dan GB via rAF-2 di atas disc yang sudah ada)
         const tmHtml = TicketMarket.render(c.id);
         if (tmHtml) {
           const discSection = modal.querySelector('.disc-section');
@@ -835,12 +837,14 @@ document.addEventListener('DOMContentLoaded', () => {
           else modal.appendChild(el.firstElementChild || el);
         }
 
-        // F. Group Buying — setelah .disc-section (bawah Diskusi)
+        // F. Cari Teman Nonton — setelah Forum Jual Beli, sebelum Diskusi
         const gbHtml = GroupBuying.render(c.id);
         if (gbHtml) {
-          const anchor = modal.querySelector('.disc-section');
-          const el     = document.createElement('div');
-          el.innerHTML = gbHtml;
+          const discSection = modal.querySelector('.disc-section');
+          const tmSection   = modal.querySelector('.tm-section');
+          const anchor      = tmSection || discSection;
+          const el          = document.createElement('div');
+          el.innerHTML      = gbHtml;
           if (anchor) anchor.insertAdjacentElement('afterend', el.firstElementChild || el);
           else modal.appendChild(el.firstElementChild || el);
         }

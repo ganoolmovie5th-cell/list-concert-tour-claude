@@ -1675,3 +1675,11 @@ html.light .fb-textarea { background: rgba(0,0,0,0.04); color: var(--text); }
   .fb-card { padding: 20px 16px; }
   .fb-type-row { gap: 8px; }
 }
+
+
+/* ── DISKUSI PAST INFO ── */
+.disc-past-info {
+  font-size: 0.82rem; color: var(--text-muted); padding: 10px 14px;
+  background: rgba(113,113,122,0.08); border: 1px solid rgba(113,113,122,0.15);
+  border-radius: var(--radius-sm); margin-bottom: 12px; line-height: 1.5;
+}

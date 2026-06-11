@@ -396,21 +396,25 @@ const Discussion = (() => {
     return 'Baru saja';
   }
 
-  function render(concertId) {
+  function render(concertId, isPastConcert = false) {
     const comments = getFor(concertId);
-    return `
-      <div class="disc-section" id="disc_${concertId}">
-        <div class="disc-header">
-          <h4>💬 Diskusi <span class="disc-count">${comments.length || ''}</span></h4>
-        </div>
-        <form class="disc-form" onsubmit="Discussion.handleSubmit(event, '${concertId}')">
+    const formHtml = isPastConcert
+      ? `<div class="disc-past-info">📋 Konser sudah selesai — diskusi ditutup, tapi kamu masih bisa baca komentar di bawah.</div>`
+      : `<form class="disc-form" onsubmit="Discussion.handleSubmit(event, '${concertId}')">
           <input class="disc-name" type="text" placeholder="Nama (opsional)" maxlength="30" />
           <div id="discReplyPreview_${concertId}" class="disc-reply-preview" style="display:none"></div>
           <div class="disc-input-row">
             <textarea class="disc-textarea" placeholder="Tulis komentar... (max 300 karakter)" rows="2" maxlength="300" required></textarea>
             <button class="disc-submit" type="submit">Kirim</button>
           </div>
-        </form>
+        </form>`;
+
+    return `
+      <div class="disc-section" id="disc_${concertId}">
+        <div class="disc-header">
+          <h4>💬 Diskusi <span class="disc-count">${comments.length || ''}</span></h4>
+        </div>
+        ${formHtml}
         <div class="disc-list" id="disclist_${concertId}">
           ${comments.length
             ? comments.map((c, i) => `
@@ -422,11 +426,11 @@ const Discussion = (() => {
                   <div class="disc-text">${c.text}</div>
                   <div class="disc-actions">
                     <button class="disc-like" onclick="Discussion.likeAndUpdate('${concertId}', ${i}, this)">👍 ${c.likes || 0}</button>
-                    <button class="disc-reply-btn" onclick="Discussion.setReply('${concertId}', ${i})">↩ Reply</button>
+                    ${!isPastConcert ? `<button class="disc-reply-btn" onclick="Discussion.setReply('${concertId}', ${i})">↩ Reply</button>` : ''}
                   </div>
                 </div>
               </div>`).join('')
-            : '<div class="disc-empty">Jadilah yang pertama berkomentar! 💬</div>'
+            : `<div class="disc-empty">${isPastConcert ? 'Belum ada diskusi untuk konser ini.' : 'Jadilah yang pertama berkomentar! 💬'}</div>`
           }
         </div>
       </div>`;
@@ -709,10 +713,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. Ikuti di (Social media links)
         appendAfterLast(SocialMedia.renderLinks(c.id, c.artist));
 
-        // 4. Diskusi — hanya untuk confirmed & rumor (bukan past)
-        if (c.rawDate >= new Date()) {
-          appendAfterLast(Discussion.render(c.id));
-        }
+        // Urutan seragam untuk SEMUA tipe konser (past/confirmed/rumor):
+        // Forum Jual Beli → Cari Teman Nonton → Diskusi → Review & Rating → Foto dari Fans
+        // (inject Forum & Cari Teman dari features3.js via rAF ke-2)
+        // Di sini hanya inject: Diskusi, Review, Foto dari Fans
+
+        // 4. Diskusi — tampil untuk semua, tapi form disabled untuk past
+        appendAfterLast(Discussion.render(c.id, c.rawDate < new Date()));
 
         // 5. Rating & Review
         if (typeof window.ConcertReviews !== 'undefined') {
@@ -727,7 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // 6. Foto dari Fans (paling bawah)
+        // 6. Foto dari Fans
         appendAfterLast(UGC.render(c.id));
       });
     };
