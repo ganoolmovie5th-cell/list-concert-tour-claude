@@ -16,7 +16,7 @@ const TODAY = new Date(); // selalu tanggal hari ini
    ============================================ */
 const ARTIST_IMAGES = {
   // ── PAST — live concert photos CC-licensed ──
-  'blackpink-deadline-2025':      'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/221201_BLACKPINK_Born_Pink_Tour_London.jpg/600px-221201_BLACKPINK_Born_Pink_Tour_London.jpg',
+  'blackpink-deadline-2025':      'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Blackpink_Born_Pink_Tour_Hanoi_01.jpg/600px-Blackpink_Born_Pink_Tour_Hanoi_01.jpg',
   'green-day-jakarta-2025':       'https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Green_Day_live.jpg/600px-Green_Day_live.jpg',
   'ateez-2026':                   'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/ATEEZ_at_KCON_LA_2023_%28cropped%29.jpg/600px-ATEEZ_at_KCON_LA_2023_%28cropped%29.jpg',
   'dream-theater-2026':           'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/DreamTheater2011.jpg/600px-DreamTheater2011.jpg',
