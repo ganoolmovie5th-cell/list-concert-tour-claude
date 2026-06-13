@@ -1048,9 +1048,10 @@ const FeedbackForm = (() => {
   function checkRateLimit() {
     const KEY   = 'cid_fb_rl';
     const LIMIT = 10;
-    const TTL   = 10 * 60 * 1000; // 10 menit    try {
-      const raw  = JSON.parse(localStorage.getItem(KEY) || '{"count":0,"ts":0}');
-      const now  = Date.now();
+    const TTL   = 10 * 60 * 1000;
+    try {
+      const raw = JSON.parse(localStorage.getItem(KEY) || '{"count":0,"ts":0}');
+      const now = Date.now();
       if (now - raw.ts > TTL) {
         localStorage.setItem(KEY, JSON.stringify({ count: 1, ts: now }));
         return true;
@@ -1076,7 +1077,6 @@ const FeedbackForm = (() => {
       showToast('⚠️ Pesan minimal 10 karakter.', 'error'); return;
     }
 
-    // Rate limit check
     if (!checkRateLimit()) {
       showToast('⚠️ Terlalu banyak pengiriman. Coba lagi dalam 10 menit.', 'error', 5000);
       return;
@@ -1107,7 +1107,6 @@ const FeedbackForm = (() => {
           msg.style.color = '#4ade80';
         }
         form.reset();
-        FeedbackForm.removeAttach();
         showToast('📬 Pesan berhasil dikirim!', 'success', 4000);
       }
     } catch (err) {
@@ -1123,11 +1122,6 @@ const FeedbackForm = (() => {
     }
   }
 
-  async function uploadPhoto(file) { return ''; } // tidak dipakai, placeholder agar tidak breaking
-
-  function onAttach() {}
-  function removeAttach() {}
-
-  return { render, handleSubmit, uploadPhoto, onAttach, removeAttach };
+  return { render, handleSubmit };
 })();
 window.FeedbackForm = FeedbackForm;
