@@ -13,15 +13,24 @@
 |---|---|
 | 🗓️ Jadwal Lengkap | Data konser 2025–2027: artis, tanggal, venue, jam, dan harga tiket |
 | ✅ / 🔮 Status | Label jelas **Confirmed** (resmi) vs **Rumor** (belum dikonfirmasi) |
-| 🔍 Search & Filter | Cari berdasarkan artis/venue/kota; filter genre, status, dan wishlist |
+| 🔍 Search & Filter | Cari berdasarkan artis/venue/kota; filter genre, status, harga, bulan, kota |
+| 🔍 Advanced Search | Filter harga (slider), bulan, kota/area, dan status konser |
 | ❤️ Wishlist | Simpan konser favorit ke localStorage tanpa perlu akun |
 | ⏱️ Countdown | Timer hitung mundur untuk setiap konser mendatang |
-| 📤 Share | Share konser via WhatsApp, Twitter/X, atau copy link |
-| 🗺️ Venue Info | Peta & info kapasitas venue-venue utama di Indonesia |
-| ⭐ Review & Rating | Sistem ulasan berbasis localStorage tanpa backend |
-| 💬 Chatbot | ConcertBot — Q&A soal jadwal, harga, dan venue (pure JS) |
-| 📊 Analytics Dashboard | Dashboard admin dengan proteksi password untuk melihat engagement |
-| 🔄 Auto-update Harian | Scraper otomatis via GitHub Actions setiap hari pukul 01:00 WIB |
+| 📤 Share | Share konser via WhatsApp, Telegram, Instagram, atau copy link |
+| 🗓️ Google Calendar | Tambah konser langsung ke Google Calendar |
+| 🗺️ Venue Maps | Embed Google Maps untuk setiap venue |
+| 🎵 Spotify Preview | Preview musik artis langsung di modal detail |
+| 🎟️ Going / Interested | Vote kehadiran & ketertarikan per konser |
+| ⭐ Review & Rating | Sistem ulasan & rating berbasis localStorage |
+| 💬 Diskusi | Komentar publik per konser berbasis localStorage |
+| 🛒 Group Buying | Form koordinasi beli tiket bareng |
+| 🏷️ Ticket Market | Listing jual-beli tiket antar fans |
+| 📋 Setlist.fm | Lihat setlist konser sebelumnya via Setlist.fm API |
+| 📰 Newsletter | Daftar email untuk update konser terbaru (via Mailchimp) |
+| 📬 Kritik & Saran | Form feedback dengan lampiran foto (via EmailJS) |
+| 📊 Analytics Dashboard | Dashboard admin untuk melihat engagement |
+| 🔄 Auto-monitor Harian | Scraper otomatis via GitHub Actions setiap hari pukul 01:00 WIB |
 
 ---
 
@@ -30,29 +39,36 @@
 ```
 list-concert-tour-claude/
 ├── index.html          # Halaman utama
-├── app.js              # Data konser & logika aplikasi utama
-├── style.css           # Styling (dark mode, responsive)
+├── app.js              # Data konser & logika utama (render, modal, filter, wishlist)
+├── style.css           # Styling (dark/light mode, responsive)
 ├── reviews.js          # Sistem review & rating
-├── chatbot.js          # Widget chatbot (dinonaktifkan sementara)
+├── features.js         # Going/Interested, Sort, Google Calendar, Social Media, Diskusi, UGC
+├── features2.js        # Calendar View, Advanced Search, Harga Alert, Spotify Integration
+├── features3.js        # Group Buying, Ticket Market, Review Tabs, Kritik & Saran (EmailJS)
+├── features4.js        # Setlist.fm, New Concert Notif, Tips & Artikel, Bahasa
+├── api/
+│   └── subscribe.js    # Vercel Serverless Function — proxy Mailchimp Newsletter
 ├── analytics.html      # Dashboard analytics (admin only)
-├── scraper.py          # Scraper Python untuk update data harian
+├── scraper.py          # Scraper Python untuk monitoring data konser
+├── email_reporter.py   # Kirim laporan scraper via Gmail SMTP
+├── email-template.html # Template email laporan
 ├── requirements.txt    # Dependensi Python scraper
-├── vercel.json         # Konfigurasi deployment Vercel
+├── vercel.json         # Konfigurasi Vercel + CSP headers
 ├── robots.txt          # Instruksi untuk search engine
 ├── sitemap.xml         # Sitemap untuk SEO
+├── images/             # Foto artis/konser
 ├── logo.svg            # Logo ConcertID
 ├── og-image.png        # Open Graph image untuk social share
-├── favicon.*           # Favicon dalam berbagai format
 └── .github/
     └── workflows/
-        └── scrape.yml  # GitHub Actions: scraper harian
+        └── scrape.yml  # GitHub Actions: monitor harian
 ```
 
 ---
 
 ## 🚀 Cara Menjalankan Secara Lokal
 
-Proyek ini adalah **static website** murni — tidak butuh build step atau server khusus.
+Proyek ini adalah **static website** murni — tidak butuh build step.
 
 ```bash
 # Clone repo
@@ -63,179 +79,97 @@ cd list-concert-tour-claude
 python3 -m http.server 8080
 # atau
 npx serve .
-# atau
-php -S localhost:8080
 ```
 
 Buka browser dan akses `http://localhost:8080`.
 
 ---
 
-## 📧 Setup Gmail App Password (Wajib untuk Email Laporan)
+## ⚙️ Setup Environment Variables (Vercel Dashboard)
 
-Scraper mengirim laporan harian ke **listconcerttour@gmail.com** via Gmail SMTP.
-Agar bisa kirim email dari GitHub Actions, kamu perlu buat **App Password** di Google:
+Setelah deploy ke Vercel, tambahkan variabel berikut di **Settings → Environment Variables**:
 
-### Langkah-langkah:
+| Variable | Keterangan |
+|---|---|
+| `MAILCHIMP_API_KEY` | API key dari Mailchimp → Account → Extras → API keys |
+| `MAILCHIMP_LIST_ID` | Audience ID dari Mailchimp → Audience → Settings |
+| `MAILCHIMP_SERVER` | Server prefix, contoh `us20` (dari URL: `us20.admin.mailchimp.com`) |
 
-**1. Aktifkan 2-Step Verification**
-- Buka [myaccount.google.com/security](https://myaccount.google.com/security)
-- Pastikan **2-Step Verification** sudah ON
-
-**2. Buat App Password**
-- Buka [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-- Login dengan akun `listconcerttour@gmail.com`
-- Klik **"Create"** → pilih nama: `ConcertID Scraper`
-- Google akan generate password **16 karakter** (contoh: `abcd efgh ijkl mnop`)
-- **Salin password tersebut** (hanya tampil sekali)
-
-**3. Tambahkan ke GitHub Secrets**
-- Buka repo di GitHub → **Settings → Secrets and variables → Actions**
-- Klik **"New repository secret"**
-- Name: `GMAIL_APP_PASSWORD`
-- Value: paste 16-karakter App Password (tanpa spasi)
-- Klik **"Add secret"**
-
-**4. Test kirim email**
-- Buka tab **Actions** di GitHub
-- Pilih workflow **"🎵 Daily Concert Monitor"**
-- Klik **"Run workflow"** → `dry_run: false` → **Run**
-- Cek inbox `listconcerttour@gmail.com`
-
-> ⚠️ **Jangan pernah** hardcode App Password langsung di kode. Selalu pakai GitHub Secrets.
+> ⚠️ Isi `MAILCHIMP_SERVER` dengan prefix saja (misal `us20`), **bukan** URL lengkap.
 
 ---
 
-## 🤖 Auto-Scraper — Monitoring Only (GitHub Actions)
+## 📧 Setup GitHub Secrets (untuk Scraper Email)
 
-Scraper berjalan otomatis setiap hari pukul **01:00 WIB** (18:00 UTC) via GitHub Actions.
+Scraper mengirim laporan harian ke **listconcerttour@gmail.com** via Gmail SMTP.
 
-### ⚠️ Cara Kerja (Opsi A — Review Manual)
+**Secrets yang dibutuhkan** (Settings → Secrets and variables → Actions):
+
+| Secret | Keterangan |
+|---|---|
+| `GMAIL_APP_PASSWORD` | Gmail App Password 16 karakter dari [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) |
+| `ADMIN_EMAIL` | Email tujuan laporan, contoh: `listconcerttour@gmail.com` |
+
+---
+
+## 🤖 Auto-Monitor Harian (GitHub Actions)
+
+Scraper berjalan otomatis setiap hari pukul **01:00 WIB** (18:00 UTC).
+
+### Cara Kerja
 
 ```
 Scraper jalan tiap hari
        ↓
-Scrape 7 sumber terpercaya
+Scrape 7+ sumber terpercaya
        ↓
 Generate laporan HTML + JSON
        ↓
-Kirim ke listconcerttour@gmail.com
+Kirim ke email admin
        ↓
-Kamu review isi laporan
-       ↓
-Kalau ada info valid → update manual di app.js → merge ke main
+Admin review → update manual app.js jika valid
 ```
 
-> **TIDAK ada auto-push ke repo.** `app.js` hanya diubah secara manual setelah kamu review.
-> Ini mencegah data konser yang salah/belum terverifikasi masuk ke website.
+> **Tidak ada auto-push ke repo.** `app.js` hanya diubah secara manual setelah review.
 
-### Sumber yang Di-scrape
+### Trigger Manual
 
-| Sumber | Trust | Keterangan |
-|---|---|---|
-| Bandwagon Asia | HIGH | Portal musik Asia Tenggara terpercaya |
-| Tempo.co | HIGH | Media Indonesia terpercaya |
-| The Jakarta Post | HIGH | Berita Indonesia berbahasa Inggris |
-| Songkick | HIGH | Database konser global |
-| tiket.com | HIGH | Platform tiket resmi Indonesia |
-| Loket.com | HIGH | Platform tiket resmi Indonesia |
-| JamBase | MEDIUM | Database konser global |
+Buka tab **Actions** → pilih **"🎵 Daily Concert Monitor"** → **Run workflow**.
 
-### File yang Dihasilkan
+---
 
-| File | Keterangan |
-|---|---|
-| `scraper_report.json` | Data mentah hasil scraping (machine-readable) |
-| `scraper_report.html` | Laporan visual yang dikirim via email |
+## 📬 Setup EmailJS (Kritik & Saran)
 
-> File report **tidak di-commit ke repo** — hanya tersedia sebagai GitHub Actions artifact (30 hari).
+Form Kritik & Saran mengirim pesan + foto ke email via [EmailJS](https://emailjs.com).
 
-### Jalankan Scraper Secara Manual
+**Konfigurasi di `features3.js`:**
+- Service ID: `service_lq3pvsq`
+- Template ID: `template_w8grsoa`
+- Public Key: di `index.html` saat init
 
-```bash
-# Install dependensi Python
-pip install -r requirements.txt
+**Template EmailJS** harus punya variable berikut:
+- `{{from_name}}`, `{{from_email}}`, `{{type}}`, `{{message}}`, `{{sent_at}}`
+- `{{photo_data}}` — untuk foto (base64 murni, gunakan dalam tag `<img>`)
 
-# Jalankan scraper (generate report saja, tidak kirim email)
-python scraper.py
-
-# Kirim email laporan (butuh GMAIL_APP_PASSWORD di environment)
-GMAIL_APP_PASSWORD="xxxx xxxx xxxx xxxx" python email_reporter.py
+Di template EmailJS, bagian foto ditulis:
+```html
+{{#if has_photo}}
+<img src="data:image/jpeg;base64,{{photo_data}}"
+     style="max-width:500px;width:100%;border-radius:8px;" />
+{{/if}}
 ```
-
-Bisa juga trigger manual dari tab **Actions** di GitHub → pilih **"🎵 Daily Concert Monitor"** → **Run workflow**.
 
 ---
 
 ## 📊 Analytics Dashboard
 
-Akses di `/analytics.html` (atau `analytics.html` secara lokal).
+Akses di `/analytics.html`.
 
 - **Dilindungi password** — default: `ConcertID2026!`
 - Menampilkan: klik per konser, wishlist, review stats, distribusi genre/status
 - Fitur export: **CSV** dan **JSON**
-- Data disimpan di `localStorage` browser pengunjung
 
-> ⚠️ Ganti password default sebelum deploy ke production! Edit nilai `PASS_HASH` di `analytics.html`.
-
----
-
-## 🌐 Deployment
-
-Proyek ini di-deploy di **Vercel** sebagai static site.
-
-```json
-// vercel.json
-{
-  "cleanUrls": true,
-  "trailingSlash": false
-}
-```
-
-### Deploy ke Vercel
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
-```
-
-Atau hubungkan repo GitHub ke [vercel.com](https://vercel.com) untuk deploy otomatis setiap push ke `main`.
-
----
-
-## 📋 Sumber Data
-
-Data konser dikurasi dari sumber-sumber terpercaya:
-
-- [iMe Indonesia](https://www.imelive.com)
-- [Live Nation Asia](https://www.livenation.com)
-- [Loket.com](https://loket.com)
-- [tiket.com](https://tiket.com)
-- [Tempo.co](https://tempo.co)
-- [Weverse](https://weverse.io)
-- [Billboard](https://www.billboard.com)
-- [Bandwagon Asia](https://bandwagon.asia)
-- [The Jakarta Post](https://www.thejakartapost.com)
-
----
-
-## 🎭 Data Konser
-
-Saat ini mencakup konser dari:
-
-**Confirmed ✅**
-- BLACKPINK (Nov 2025 – sudah selesai)
-- Green Day (Feb 2025 – sudah selesai)
-- Dream Theater, ATEEZ, MCR (Hammersonic), Laufey, Java Jazz, F✦FOREVER, EXO (2026)
-- The Neighbourhood, LaLaLa Festival, The Weeknd, Bryan Adams (2026)
-- Avenged Sevenfold, MCR (JIS), 5 Seconds of Summer, BTS (2026)
-
-**Rumor 🔮**
-- ENHYPEN, Byeon Woo-seok, Dua Lipa, aespa
-- Ed Sheeran, Coldplay, Taylor Swift
+> ⚠️ Ganti password default sebelum deploy ke production — edit `PASS_HASH` di `analytics.html`.
 
 ---
 
@@ -243,45 +177,46 @@ Saat ini mencakup konser dari:
 
 | Layer | Teknologi |
 |---|---|
-| Frontend | HTML5, CSS3 (custom dark theme), Vanilla JavaScript |
-| Font | [Inter](https://fonts.google.com/specimen/Inter) + [Syne](https://fonts.google.com/specimen/Syne) via Google Fonts |
+| Frontend | HTML5, CSS3 (custom dark/light theme), Vanilla JavaScript |
+| Font | Inter + Syne via Google Fonts |
 | Analytics | Google Analytics 4 (GA4) |
-| Storage | `localStorage` (wishlist, reviews, chatbot history) |
-| Scraper | Python 3.12 + `requests` + `BeautifulSoup4` |
+| Storage | `localStorage` (wishlist, reviews, diskusi, vote) |
+| Newsletter | Mailchimp Marketing API v3 (via Vercel Serverless Function) |
+| Email | EmailJS (kritik & saran dengan foto) |
+| Maps | Google Maps Embed API |
+| Music | Spotify Embed, Setlist.fm API |
+| Scraper | Python 3.12 + requests + BeautifulSoup4 |
 | CI/CD | GitHub Actions |
 | Hosting | Vercel |
-| Images | Wikimedia Commons (CC-licensed) |
 
 ---
 
-## 📁 Konvensi Data Konser (`app.js`)
-
-Setiap konser didefinisikan sebagai objek dengan struktur berikut:
+## 📋 Konvensi Data Konser (`app.js`)
 
 ```javascript
 {
-  id: 'unique-concert-id',        // Digunakan sebagai URL hash & localStorage key
+  id: 'unique-concert-id',
   artist: 'Nama Artis',
   tour: 'Nama Tur',
   genre: 'kpop|pop|rock|jazz|indie',
   emoji: '🎵',
-  dates: ['DD Bulan YYYY'],       // Array — bisa multi-hari
-  rawDate: new Date('YYYY-MM-DD'), // Untuk sorting & status past/upcoming
+  dates: ['DD Bulan YYYY'],
+  rawDate: new Date('YYYY-MM-DD'),
   time: 'HH:MM WIB',
   venue: 'Nama Venue',
   city: 'Kota, Provinsi',
   promotor: 'Nama Promotor',
   ticketUrl: 'https://...',
   priceRange: 'Rp X – Rp Y',
-  priceMin: 0,                    // Angka untuk filter & visualisasi
+  priceMin: 0,
   priceMax: 0,
   ticketCategories: [{ name, price }],
   confirmStatus: 'confirmed|rumor',
-  hot: true|false,                // Ditampilkan di seksi "Paling Ditunggu"
-  rumorDetail: '...',             // Opsional, hanya untuk status rumor
+  hot: true|false,
+  rumorDetail: '...',   // opsional, hanya untuk rumor
   description: '...',
-  sources: ['domain1.com', 'domain2.com'],
-  lineup: ['Artis 1', 'Artis 2'], // Opsional, untuk festival
+  sources: ['domain1.com'],
+  lineup: ['Artis 1'],  // opsional, untuk festival
 }
 ```
 
@@ -289,24 +224,20 @@ Setiap konser didefinisikan sebagai objek dengan struktur berikut:
 
 ## 🤝 Kontribusi
 
-Ada konser yang belum masuk atau informasi yang perlu diperbarui?
+Ada konser yang belum masuk atau info yang perlu diperbarui?
 
 1. Fork repo ini
-2. Edit data di `app.js` atau `scraper.py`
-3. Buat Pull Request dengan deskripsi sumber informasi yang valid
-4. Pastikan menyertakan link sumber resmi (promotor / platform tiket)
+2. Edit data di `app.js`
+3. Buat Pull Request dengan deskripsi dan link sumber resmi
 
 ---
 
 ## ⚠️ Disclaimer
 
-- Data diupdate berkala namun **selalu verifikasi ke platform resmi** sebelum membeli tiket.
+- Selalu verifikasi ke platform resmi sebelum membeli tiket.
+- Konser berlabel **🔮 Rumor** belum dikonfirmasi — **jangan beli tiket dari calo!**
 - Harga tiket dapat berubah sewaktu-waktu.
-- Konser berlabel **🔮 Rumor** belum dikonfirmasi resmi — **jangan beli tiket dari calo!**
-- Gambar artis menggunakan foto dari Wikimedia Commons dengan lisensi CC.
 
 ---
-
-## 📜 Lisensi
 
 © 2026 ConcertID. Dibuat dengan ❤️ untuk komunitas fans musik Indonesia.
