@@ -1095,15 +1095,15 @@ const FeedbackForm = (() => {
     btn.disabled    = true;
     btn.textContent = 'Mengirim...';
 
-    // Upload foto ke ImgBB jika ada, dapatkan URL
+    // Encode foto ke base64 jika ada
     let photoUrl = '';
     const attachedFile = FeedbackForm._attachedFile || null;
     if (attachedFile) {
       try {
-        btn.textContent = 'Mengupload foto...';
+        btn.textContent = 'Memproses foto...';
         photoUrl = await FeedbackForm.uploadPhoto(attachedFile);
       } catch (uploadErr) {
-        showToast('⚠️ Gagal upload foto, pesan tetap dikirim tanpa foto.', 'error', 4000);
+        showToast('⚠️ Gagal proses foto, pesan tetap dikirim tanpa foto.', 'error', 4000);
       }
     }
 
@@ -1114,11 +1114,10 @@ const FeedbackForm = (() => {
         type:       type.charAt(0).toUpperCase() + type.slice(1),
         message:    message,
         sent_at:    new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }),
-        // Template EmailJS pakai {{{photo_url}}} (triple curly = unescaped HTML)
-        // Kirim full <img> tag dengan base64 sebagai src
+        // Template EmailJS pakai {{{photo_url}}} (triple curly = render HTML)
         photo_url: photoUrl
           ? `<img src="${photoUrl}" alt="Foto lampiran" style="max-width:480px;width:100%;border-radius:8px;display:block;margin-top:8px;" />`
-          : '<em style="color:#999">Tidak ada foto</em>',
+          : '<em>Tidak ada foto</em>',
       };
 
       const result = await emailjs.send('service_lq3pvsq', 'template_w8grsoa', payload);
