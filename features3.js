@@ -1117,9 +1117,10 @@ const FeedbackForm = (() => {
         type:       type.charAt(0).toUpperCase() + type.slice(1),
         message:    safeMessage,
         sent_at:    new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }),
-        // Kirim URL foto dari ImgBB sebagai HTML img tag agar tampil di email
-        photo_url:  photoUrl
-          ? `<img src="${photoUrl}" alt="Foto lampiran" style="max-width:600px;width:100%;border-radius:8px;display:block;margin-top:8px;" /><br><a href="${photoUrl}">${photoUrl}</a>`
+        // Kirim base64 data URL langsung sebagai <img> di body email
+        // EmailJS template harus pakai {{{photo_url}}} (triple curly = unescaped HTML)
+        photo_url: photoUrl
+          ? `<img src="${photoUrl}" alt="Foto lampiran" style="max-width:560px;width:100%;border-radius:8px;display:block;margin-top:8px;" />`
           : 'Tidak ada foto',
       };
 
@@ -1149,17 +1150,14 @@ const FeedbackForm = (() => {
   }
 
   async function uploadPhoto(file) {
-    // Upload ke ImgBB → dapat URL publik → kirim via EmailJS sebagai link (bukan base64)
-    // ImgBB free API key — max 32MB, gambar disimpan permanen
-    const IMGBB_KEY = 'fe4e15d41df72a5f7c5e7f1e1a27bd39';
-
-    // Kompres dulu ke JPEG ~400px max agar upload cepat
-    const compressed = await new Promise((resolve, reject) => {
-      const image = new Image();
+    // Encode foto ke base64 data URL → kirim langsung di body email via EmailJS
+    // Resize ke max 600px, quality 60% → hasil ~25-50KB base64 (aman untuk EmailJS)
+    return new Promise((resolve, reject) => {
+      const image  = new Image();
       const objUrl = URL.createObjectURL(file);
-      image.onerror = () => reject(new Error('Gagal memuat gambar'));
+      image.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error('Gagal memuat gambar')); };
       image.onload  = () => {
-        const MAX = 1200;
+        const MAX = 600;
         let { width, height } = image;
         if (width > MAX || height > MAX) {
           const ratio = Math.min(MAX / width, MAX / height);
@@ -1171,27 +1169,11 @@ const FeedbackForm = (() => {
         canvas.height = height;
         canvas.getContext('2d').drawImage(image, 0, 0, width, height);
         URL.revokeObjectURL(objUrl);
-        // Ambil pure base64 (tanpa prefix data:image/jpeg;base64,)
-        const b64 = canvas.toDataURL('image/jpeg', 0.80).split(',')[1];
-        resolve(b64);
+        // Kembalikan full data URL (dengan prefix) agar langsung bisa dipakai di <img src="">
+        resolve(canvas.toDataURL('image/jpeg', 0.60));
       };
       image.src = objUrl;
     });
-
-    // POST ke ImgBB API
-    const form = new FormData();
-    form.append('key', IMGBB_KEY);
-    form.append('image', compressed);
-
-    const res  = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: form });
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      throw new Error(data?.error?.message || 'ImgBB upload failed');
-    }
-
-    // Kembalikan URL display image (bukan thumbnail)
-    return data.data.display_url || data.data.url;
   }
 
   function onAttach(input) {

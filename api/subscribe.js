@@ -8,7 +8,7 @@
  */
 
 module.exports = async function handler(req, res) {
-  // Handle CORS preflight
+  // CORS headers — wajib ada sebelum apapun
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -21,7 +21,14 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email } = req.body || {};
+  // Parse body — Vercel otomatis parse JSON jika Content-Type: application/json
+  let email;
+  try {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    email = body?.email;
+  } catch {
+    return res.status(400).json({ error: 'Request body tidak valid.' });
+  }
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Email tidak valid.' });
@@ -32,15 +39,16 @@ module.exports = async function handler(req, res) {
   const SERVER  = process.env.MAILCHIMP_SERVER || 'us20';
 
   if (!API_KEY || !LIST_ID) {
-    console.error('[subscribe] Missing env vars');
+    console.error('[subscribe] Missing env vars: MAILCHIMP_API_KEY or MAILCHIMP_LIST_ID');
     return res.status(500).json({ error: 'Konfigurasi server belum lengkap.' });
   }
 
-  const url = `https://${SERVER}.api.mailchimp.com/3.0/lists/${LIST_ID}/members`;
+  const url  = `https://${SERVER}.api.mailchimp.com/3.0/lists/${LIST_ID}/members`;
   const auth = Buffer.from(`anystring:${API_KEY}`).toString('base64');
 
+  let mcRes, data;
   try {
-    const mc   = await fetch(url, {
+    mcRes = await fetch(url, {
       method:  'POST',
       headers: {
         'Content-Type':  'application/json',
@@ -51,22 +59,21 @@ module.exports = async function handler(req, res) {
         status:        'subscribed',
       }),
     });
-
-    const data = await mc.json();
-
-    if (mc.status === 200 || mc.status === 201) {
-      return res.status(200).json({ result: 'success' });
-    }
-
-    if (mc.status === 400 && data.title === 'Member Exists') {
-      return res.status(200).json({ result: 'success', note: 'already_subscribed' });
-    }
-
-    const msg = data.detail || data.title || 'Gagal mendaftar.';
-    return res.status(400).json({ error: msg });
-
+    data = await mcRes.json();
   } catch (err) {
-    console.error('[subscribe] Error:', err);
-    return res.status(500).json({ error: 'Koneksi ke server gagal. Coba lagi.' });
+    console.error('[subscribe] Fetch to Mailchimp failed:', err);
+    return res.status(500).json({ error: 'Gagal menghubungi Mailchimp.' });
   }
+
+  if (mcRes.status === 200 || mcRes.status === 201) {
+    return res.status(200).json({ result: 'success' });
+  }
+
+  if (mcRes.status === 400 && data.title === 'Member Exists') {
+    return res.status(200).json({ result: 'success', note: 'already_subscribed' });
+  }
+
+  const errMsg = data.detail || data.title || 'Gagal mendaftar.';
+  console.error('[subscribe] Mailchimp error:', mcRes.status, data);
+  return res.status(400).json({ error: errMsg });
 };
