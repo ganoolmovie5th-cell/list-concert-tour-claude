@@ -1114,9 +1114,10 @@ const FeedbackForm = (() => {
         type:       type.charAt(0).toUpperCase() + type.slice(1),
         message:    message,
         sent_at:    new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }),
-        // Kirim base64 data URL sebagai nilai src — EmailJS template tulis: <img src="{{photo_url}}" />
-        // Jangan kirim tag HTML karena EmailJS free plan escape semua variable
-        photo_url:  photoUrl || '',
+        // Kirim base64 murni (tanpa prefix data:image/...) sebagai photo_data
+        // Di EmailJS template tulis: <img src="data:image/jpeg;base64,{{photo_data}}" />
+        photo_data: photoUrl ? photoUrl.split(',')[1] || '' : '',
+        has_photo:  photoUrl ? 'ya' : 'tidak',
       };
 
       const result = await emailjs.send('service_lq3pvsq', 'template_w8grsoa', payload);
@@ -1146,12 +1147,14 @@ const FeedbackForm = (() => {
 
   async function uploadPhoto(file) {
     // Resize ke max 300px, quality 40% → base64 ~8-15KB, aman untuk EmailJS payload limit
+  async function uploadPhoto(file) {
+    // Resize ke 400px max, quality 50% → base64 ~15-25KB, aman untuk EmailJS
     return new Promise((resolve, reject) => {
       const image  = new Image();
       const objUrl = URL.createObjectURL(file);
       image.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error('Gagal memuat gambar')); };
       image.onload  = () => {
-        const MAX = 300;
+        const MAX = 400;
         let { width, height } = image;
         if (width > MAX || height > MAX) {
           const ratio = Math.min(MAX / width, MAX / height);
@@ -1163,7 +1166,8 @@ const FeedbackForm = (() => {
         canvas.height = height;
         canvas.getContext('2d').drawImage(image, 0, 0, width, height);
         URL.revokeObjectURL(objUrl);
-        resolve(canvas.toDataURL('image/jpeg', 0.40));
+        // Kembalikan full data URL — prefix "data:image/jpeg;base64," akan distrip saat kirim
+        resolve(canvas.toDataURL('image/jpeg', 0.50));
       };
       image.src = objUrl;
     });

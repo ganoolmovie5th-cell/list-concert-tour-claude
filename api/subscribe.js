@@ -51,7 +51,9 @@ module.exports = async function handler(req, res) {
 
   const API_KEY = process.env.MAILCHIMP_API_KEY;
   const LIST_ID = process.env.MAILCHIMP_LIST_ID;
-  const SERVER  = process.env.MAILCHIMP_SERVER || 'us20';
+  // SERVER bisa berisi "us20" atau "us20.admin.mailchimp.com" — ambil prefix saja
+  const rawServer = process.env.MAILCHIMP_SERVER || 'us20';
+  const SERVER    = rawServer.split('.')[0];  // selalu ambil bagian pertama saja
 
   if (!API_KEY || !LIST_ID) {
     console.error('[subscribe] Missing env vars');
