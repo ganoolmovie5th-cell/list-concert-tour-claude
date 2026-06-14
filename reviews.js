@@ -1,78 +1,89 @@
 /* ============================================================
    ConcertID Review & Rating System
-   localStorage-based, no backend required
+   Supabase primary, localStorage fallback
    ============================================================ */
 
 (function () {
   'use strict';
 
-  /* ── Storage helpers ────────────────────────────────────── */
-  const KEY = 'cid_reviews';
+  const LS_KEY = 'cid_reviews';
 
-  function getAll()      { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } }
-  function saveAll(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
+  /* ── localStorage fallback ── */
+  function lsGetAll()     { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } }
+  function lsSaveAll(d)   { localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+  function lsGetFor(id)   { return lsGetAll()[id] || []; }
 
-  function getReviewsFor(id) { return getAll()[id] || []; }
-
-  function addReview(id, { rating, comment, author }) {
-    const all  = getAll();
-    if (!all[id]) all[id] = [];
-    // Spam guard: same user max 1 review per concert
-    const uid  = getUID();
-    if (all[id].find(r => r.uid === uid)) return { ok: false, msg: 'Kamu sudah pernah review konser ini!' };
-    if (comment.trim().length < 10)       return { ok: false, msg: 'Komentar minimal 10 karakter.' };
-    if (rating < 1 || rating > 5)         return { ok: false, msg: 'Rating harus 1–5 bintang.' };
-
-    all[id].push({
-      uid,
-      author:    author.trim() || 'Anonim',
-      rating:    parseInt(rating),
-      comment:   sanitize(comment.trim()),
-      date:      new Date().toISOString(),
-      likes:     0,
-    });
-    saveAll(all);
-
-    // Track review submission (terpisah dari cid_views)
+  /* ── Supabase helpers ── */
+  async function fetchReviews(concertId) {
     try {
-      const cl = JSON.parse(localStorage.getItem('cid_clicks') || '{}');
-      cl[id] = (cl[id] || 0) + 1;
-      localStorage.setItem('cid_clicks', JSON.stringify(cl));
-    } catch {}
-
-    return { ok: true };
-  }
-
-  function likeReview(concertId, idx) {
-    const all = getAll();
-    if (all[concertId] && all[concertId][idx]) {
-      all[concertId][idx].likes = (all[concertId][idx].likes || 0) + 1;
-      saveAll(all);
+      const rows = await DB.select('reviews',
+        `concert_id=eq.${encodeURIComponent(concertId)}&order=created_at.desc`);
+      return rows.map(r => ({
+        id:      r.id,
+        uid:     r.device_uid,
+        author:  r.author,
+        rating:  r.rating,
+        comment: r.comment,
+        date:    r.created_at,
+        likes:   r.likes,
+      }));
+    } catch {
+      return lsGetFor(concertId);
     }
   }
 
-  /* ── Anti-spam UID ──────────────────────────────────────── */
-  function getUID() {
+  async function addReview(concertId, { rating, comment, author }) {
+    if (comment.trim().length < 10) return { ok: false, msg: 'Komentar minimal 10 karakter.' };
+    if (rating < 1 || rating > 5)   return { ok: false, msg: 'Rating harus 1–5 bintang.' };
+    const uid = getDeviceUID();
+    try {
+      // Cek duplikat
+      const existing = await DB.select('reviews',
+        `concert_id=eq.${encodeURIComponent(concertId)}&device_uid=eq.${uid}`);
+      if (existing.length > 0) return { ok: false, msg: 'Kamu sudah pernah review konser ini!' };
+      await DB.insert('reviews', {
+        concert_id: concertId,
+        device_uid: uid,
+        author:     (author || 'Anonim').trim().slice(0, 30),
+        rating:     parseInt(rating),
+        comment:    sanitize(comment.trim()),
+      });
+      return { ok: true };
+    } catch {
+      // fallback localStorage
+      const all = lsGetAll();
+      if (!all[concertId]) all[concertId] = [];
+      if (all[concertId].find(r => r.uid === uid)) return { ok: false, msg: 'Kamu sudah pernah review konser ini!' };
+      all[concertId].push({ uid, author: author || 'Anonim', rating: parseInt(rating), comment: sanitize(comment.trim()), date: new Date().toISOString(), likes: 0 });
+      lsSaveAll(all);
+      return { ok: true };
+    }
+  }
+
+  async function likeReview(concertId, reviewId) {
+    try {
+      const rows = await DB.select('reviews', `id=eq.${reviewId}&select=likes`);
+      const cur  = rows[0]?.likes ?? 0;
+      await DB.update('reviews', `id=eq.${reviewId}`, { likes: cur + 1 });
+    } catch { /* silent */ }
+  }
+
+  /* ── Helpers ── */
+  function getDeviceUIDLocal() {
     let uid = localStorage.getItem('cid_uid');
-    if (!uid) {
-      uid = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem('cid_uid', uid);
-    }
+    if (!uid) { uid = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('cid_uid', uid); }
     return uid;
   }
 
-  /* ── Sanitize HTML ──────────────────────────────────────── */
   function sanitize(str) {
-    return str.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').slice(0, 500);
+    return str.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').slice(0,500);
   }
 
-  /* ── Average rating ─────────────────────────────────────── */
   function avg(reviews) {
     if (!reviews.length) return 0;
     return reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
   }
 
-  /* ── Render stars ───────────────────────────────────────── */
   function renderStars(rating, interactive = false, name = '') {
     if (!interactive) {
       const full  = Math.floor(rating);
@@ -85,14 +96,12 @@
     `).join('');
   }
 
-  /* ── Render a single review card ────────────────────────── */
-  function renderReviewCard(r, concertId, idx) {
-    const d    = new Date(r.date);
-    const ago  = timeAgo(d);
-    const uid  = getUID();
-    const isOwn = r.uid === uid;
+  function renderReviewCard(r, concertId) {
+    const ago    = timeAgo(new Date(r.date));
+    const uid    = getDeviceUIDLocal();
+    const isOwn  = r.uid === uid;
     return `
-      <div class="rv-card" data-idx="${idx}">
+      <div class="rv-card" data-id="${r.id || ''}">
         <div class="rv-card-top">
           <div class="rv-card-author">
             <div class="rv-avatar">${r.author.charAt(0).toUpperCase()}</div>
@@ -105,41 +114,39 @@
         </div>
         <p class="rv-comment">${r.comment}</p>
         <div class="rv-card-bottom">
-          <button class="rv-like-btn" onclick="ConcertReviews.like('${concertId}', ${idx}, this)">
+          <button class="rv-like-btn" onclick="ConcertReviews.like('${concertId}', '${r.id || ''}', this)">
             👍 ${r.likes || 0}
           </button>
         </div>
       </div>`;
   }
 
-  /* ── Render the full review section for a concert ───────── */
   function renderReviewSection(concertId) {
-    const reviews   = getReviewsFor(concertId);
-    const avgR      = avg(reviews);
-    const uid       = getUID();
-    const hasReviewed = reviews.some(r => r.uid === uid);
-    const formName  = `rvform_${concertId}`;
+    const uid      = getDeviceUIDLocal();
+    const concert  = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === concertId) : null;
+    const today    = typeof TODAY !== 'undefined' ? TODAY : new Date();
+    const isPast   = concert ? concert.rawDate < today : false;
+    const formName = `rvform_${concertId}`;
 
-    // Cek apakah konser sudah berlalu
-    const concert   = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === concertId) : null;
-    const today         = typeof TODAY !== 'undefined' ? TODAY : new Date();
-    const isPastConcert = concert ? concert.rawDate < today : false;
+    // Async load
+    setTimeout(async () => {
+      const reviews   = await fetchReviews(concertId);
+      const section   = document.getElementById(`rv_${concertId}`);
+      if (!section) return;
+      const avgR      = avg(reviews);
+      const hasReviewed = reviews.some(r => r.uid === uid);
+      const countEl   = section.querySelector('.rv-count');
+      if (countEl) countEl.textContent = reviews.length ? `${reviews.length} review` : '';
 
-    // Rating distribution
-    const dist = [5,4,3,2,1].map(s => ({
-      star: s,
-      count: reviews.filter(r => r.rating === s).length,
-      pct: reviews.length ? Math.round(reviews.filter(r => r.rating === s).length / reviews.length * 100) : 0,
-    }));
+      const dist = [5,4,3,2,1].map(s => ({
+        star: s,
+        count: reviews.filter(r => r.rating === s).length,
+        pct:   reviews.length ? Math.round(reviews.filter(r => r.rating === s).length / reviews.length * 100) : 0,
+      }));
 
-    return `
-      <div class="rv-section" id="rv_${concertId}">
-        <div class="rv-header">
-          <h4>⭐ Review &amp; Rating</h4>
-          ${reviews.length ? `<span class="rv-count">${reviews.length} review</span>` : ''}
-        </div>
-
-        ${reviews.length ? `
+      const summaryEl = section.querySelector('.rv-summary-wrap');
+      if (summaryEl && reviews.length) {
+        summaryEl.innerHTML = `
           <div class="rv-summary">
             <div class="rv-avg-wrap">
               <div class="rv-avg-num">${avgR.toFixed(1)}</div>
@@ -154,41 +161,59 @@
                   <span class="rv-dist-count">${d.count}</span>
                 </div>`).join('')}
             </div>
-          </div>` : ''}
+          </div>`;
+      }
 
-        ${!hasReviewed ? `
+      const alreadyEl = section.querySelector('.rv-already-wrap');
+      if (alreadyEl) {
+        alreadyEl.innerHTML = hasReviewed
+          ? `<div class="rv-already">✅ Kamu sudah review konser ini. Terima kasih!</div>`
+          : '';
+      }
+
+      const listEl = document.getElementById(`rvlist_${concertId}`);
+      if (listEl) {
+        listEl.innerHTML = reviews.length
+          ? reviews.map(r => renderReviewCard(r, concertId)).join('')
+          : `<div class="rv-empty">Belum ada review. Jadilah yang pertama! 🎵</div>`;
+      }
+    }, 0);
+
+    return `
+      <div class="rv-section" id="rv_${concertId}">
+        <div class="rv-header">
+          <h4>⭐ Review &amp; Rating</h4>
+          <span class="rv-count"></span>
+        </div>
+        <div class="rv-summary-wrap"></div>
+        <div class="rv-already-wrap"></div>
+        ${isPast ? `
           <div class="rv-form-wrap">
             <h5>✍️ Tulis Review</h5>
-            ${!isPastConcert ? `
-              <div class="rv-locked">
-                🔒 Review hanya bisa ditulis <strong>setelah konser berlangsung</strong>.
-              </div>` : `
             <form class="rv-form" onsubmit="ConcertReviews.submit(event, '${concertId}')">
               <div class="rv-star-picker">
                 <label>Rating:</label>
                 <div class="rv-stars-wrap">${renderStars(0, true, formName)}</div>
               </div>
               <input class="rv-author-input" type="text" placeholder="Nama kamu (opsional)" maxlength="30" />
-              <textarea class="rv-textarea" placeholder="Bagaimana konsernya? Ceritakan pengalamanmu... (min 10 karakter)" rows="3" maxlength="500" required></textarea>
+              <textarea class="rv-textarea" placeholder="Bagaimana konsernya? (min 10 karakter)" rows="3" maxlength="500" required></textarea>
               <div class="rv-form-footer">
                 <span class="rv-char-count">0 / 500</span>
                 <button type="submit" class="btn btn-primary rv-submit-btn">Submit</button>
               </div>
               <div class="rv-form-msg"></div>
-            </form>`}
+            </form>
           </div>` : `
-          <div class="rv-already">✅ Kamu sudah review konser ini. Terima kasih!</div>`}
-
+          <div class="rv-form-wrap">
+            <div class="rv-locked">🔒 Review hanya bisa ditulis <strong>setelah konser berlangsung</strong>.</div>
+          </div>`}
         <div class="rv-list" id="rvlist_${concertId}">
-          ${reviews.length
-            ? reviews.slice().reverse().map((r, i) => renderReviewCard(r, concertId, reviews.length - 1 - i)).join('')
-            : `<div class="rv-empty">Belum ada review. Jadilah yang pertama! 🎵</div>`}
+          <div class="rv-empty" style="opacity:0.5">Memuat review...</div>
         </div>
       </div>`;
   }
 
-  /* ── Submit handler ─────────────────────────────────────── */
-  function handleSubmit(e, concertId) {
+  async function handleSubmit(e, concertId) {
     e.preventDefault();
     const form    = e.target;
     const rating  = parseInt(form.querySelector('input[type=radio]:checked')?.value || '0');
@@ -197,43 +222,38 @@
     const msgEl   = form.querySelector('.rv-form-msg');
 
     if (!rating) {
-      msgEl.textContent = '⚠️ Pilih rating bintang dulu!';
-      msgEl.style.color = '#f87171';
+      if (msgEl) { msgEl.textContent = '⚠️ Pilih rating bintang dulu!'; msgEl.style.color = '#f87171'; }
       return;
     }
 
-    const result = addReview(concertId, { rating, comment, author });
+    const result = await addReview(concertId, { rating, comment, author });
     if (!result.ok) {
-      msgEl.textContent = '⚠️ ' + result.msg;
-      msgEl.style.color = '#f87171';
+      if (msgEl) { msgEl.textContent = '⚠️ ' + result.msg; msgEl.style.color = '#f87171'; }
       return;
     }
 
-    // Re-render the whole section
     const section = document.getElementById(`rv_${concertId}`);
     if (section) {
       section.outerHTML = renderReviewSection(concertId);
       bindCharCount(concertId);
     }
-
-    // GA event
     if (window.gtag) gtag('event', 'review_submitted', { event_category: 'reviews', event_label: concertId });
   }
 
-  /* ── Like handler ───────────────────────────────────────── */
-  function handleLike(concertId, idx, btn) {
-    likeReview(concertId, idx);
-    const all   = getReviewsFor(concertId);
-    btn.textContent = `👍 ${all[idx]?.likes || 0}`;
-    btn.disabled = true;
+  async function handleLike(concertId, reviewId, btn) {
+    await likeReview(concertId, reviewId);
+    if (btn) {
+      const cur = parseInt(btn.textContent.replace('👍 ','')) || 0;
+      btn.textContent = `👍 ${cur + 1}`;
+      btn.disabled    = true;
+    }
   }
 
-  /* ── Char count binding ─────────────────────────────────── */
   function bindCharCount(concertId) {
     const section = document.getElementById(`rv_${concertId}`);
     if (!section) return;
-    const ta   = section.querySelector('.rv-textarea');
-    const cnt  = section.querySelector('.rv-char-count');
+    const ta  = section.querySelector('.rv-textarea');
+    const cnt = section.querySelector('.rv-char-count');
     if (ta && cnt) {
       ta.addEventListener('input', () => {
         cnt.textContent = `${ta.value.length} / 500`;
@@ -242,27 +262,23 @@
     }
   }
 
-  /* ── Time ago helper ────────────────────────────────────── */
   function timeAgo(date) {
     const diff = Date.now() - date.getTime();
-    const m = Math.floor(diff / 60000);
-    const h = Math.floor(m / 60);
-    const d = Math.floor(h / 24);
-    if (d > 30)  return date.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
-    if (d > 0)   return `${d} hari lalu`;
-    if (h > 0)   return `${h} jam lalu`;
-    if (m > 0)   return `${m} menit lalu`;
+    const m = Math.floor(diff/60000), h = Math.floor(m/60), d = Math.floor(h/24);
+    if (d > 30) return date.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+    if (d > 0)  return `${d} hari lalu`;
+    if (h > 0)  return `${h} jam lalu`;
+    if (m > 0)  return `${m} menit lalu`;
     return 'Baru saja';
   }
 
-  /* ── Public API ─────────────────────────────────────────── */
   window.ConcertReviews = {
     render:  renderReviewSection,
     submit:  handleSubmit,
     like:    handleLike,
     bind:    bindCharCount,
-    getAll:  getReviewsFor,
-    avgFor:  (id) => avg(getReviewsFor(id)),
+    getAll:  lsGetFor,
+    avgFor:  async (id) => avg(await fetchReviews(id)),
   };
 
 })();

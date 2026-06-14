@@ -596,26 +596,15 @@ window.PriceConverter = PriceConverter;
 
 /* ================================================================
    6. GROUP BUYING / CARI TEMAN NONTON
-   Form dinonaktifkan untuk konser PAST dan RUMOR
+   Supabase primary, localStorage fallback
    ================================================================ */
 const GroupBuying = (() => {
-  const KEY = 'cid_group_buying';
+  const LS_KEY = 'cid_group_buying';
 
-  function getAll()   { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } }
-  function saveAll(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
-  function getFor(id) { return getAll()[id] || []; }
+  function lsGetAll()   { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } }
+  function lsGetFor(id) { return lsGetAll()[id] || []; }
 
-  function getOwnerUID() {
-    // UID perangkat — persistent, untuk cek kepemilikan post
-    let uid = localStorage.getItem('cid_uid');
-    if (!uid) { uid = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('cid_uid', uid); }
-    return uid;
-  }
-
-  function genPostUID() {
-    // UID unik per posting — berbeda setiap kali post baru dibuat
-    return 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-  }
+  function genPostUID() { return 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
 
   function timeAgo(date) {
     const diff = Date.now() - new Date(date).getTime();
@@ -626,38 +615,71 @@ const GroupBuying = (() => {
     return 'Baru saja';
   }
 
-  function add(concertId, { name, category, contact, ig, note }) {
+  async function fetchPosts(concertId) {
+    try {
+      const rows = await DB.select('group_buying',
+        `concert_id=eq.${encodeURIComponent(concertId)}&order=created_at.desc`);
+      return rows.map(r => ({
+        uid:      r.post_uid,
+        ownerUid: r.owner_uid,
+        name:     r.name,
+        category: r.category || 'Semua kategori',
+        contact:  r.contact,
+        ig:       r.ig || '',
+        note:     r.note || '',
+        date:     r.created_at,
+      }));
+    } catch {
+      return lsGetFor(concertId);
+    }
+  }
+
+  async function add(concertId, { name, category, contact, ig, note }) {
     if (!name || !contact) return { ok: false, msg: 'Nama dan kontak WA wajib diisi.' };
-    const all = getAll();
-    if (!all[concertId]) all[concertId] = [];
-    if (all[concertId].length >= 30) return { ok: false, msg: 'Maksimal 30 posting per konser.' };
-    all[concertId].unshift({
-      uid:      genPostUID(),
-      ownerUid: getOwnerUID(),
-      name:     name.trim().slice(0,30).replace(/</g,'&lt;'),
-      category: (category||'Semua kategori').trim().slice(0,30).replace(/</g,'&lt;'),
-      contact:  contact.trim().slice(0,60).replace(/</g,'&lt;'),
-      ig:       (ig||'').replace('@','').trim().slice(0,40).replace(/</g,'&lt;'),
-      note:     (note||'').trim().slice(0,150).replace(/</g,'&lt;'),
-      date:     new Date().toISOString(),
-    });
-    saveAll(all);
-    return { ok: true };
+    const uid      = genPostUID();
+    const ownerUid = getDeviceUID();
+    try {
+      await DB.insert('group_buying', {
+        concert_id: concertId,
+        post_uid:   uid,
+        owner_uid:  ownerUid,
+        name:       name.trim().slice(0,30).replace(/</g,'&lt;'),
+        category:   (category||'Semua kategori').trim().slice(0,30).replace(/</g,'&lt;'),
+        contact:    contact.trim().slice(0,60).replace(/</g,'&lt;'),
+        ig:         (ig||'').replace('@','').trim().slice(0,40).replace(/</g,'&lt;'),
+        note:       (note||'').trim().slice(0,150).replace(/</g,'&lt;'),
+      });
+      return { ok: true };
+    } catch {
+      // fallback localStorage
+      const all = lsGetAll();
+      if (!all[concertId]) all[concertId] = [];
+      all[concertId].unshift({ uid, ownerUid, name: name.trim().slice(0,30).replace(/</g,'&lt;'), category: (category||'Semua kategori').trim().slice(0,30).replace(/</g,'&lt;'), contact: contact.trim().slice(0,60).replace(/</g,'&lt;'), ig: (ig||'').replace('@','').trim().slice(0,40).replace(/</g,'&lt;'), note: (note||'').trim().slice(0,150).replace(/</g,'&lt;'), date: new Date().toISOString() });
+      localStorage.setItem(LS_KEY, JSON.stringify(all));
+      return { ok: true };
+    }
   }
 
-  function update(concertId, uid, fields) {
-    const all   = getAll();
-    const posts = all[concertId] || [];
-    const idx   = posts.findIndex(p => p.uid === uid);
-    if (idx === -1) return;
-    posts[idx] = { ...posts[idx], ...fields };
-    saveAll(all);
+  async function updatePost(concertId, uid, fields) {
+    try {
+      const mapped = {};
+      if (fields.name)     mapped.name     = fields.name;
+      if (fields.category) mapped.category = fields.category;
+      if (fields.contact)  mapped.contact  = fields.contact;
+      if ('ig'   in fields) mapped.ig   = fields.ig;
+      if ('note' in fields) mapped.note = fields.note;
+      await DB.update('group_buying', `post_uid=eq.${uid}`, mapped);
+    } catch { /* silent */ }
   }
 
-  function remove(concertId, uid) {
-    const all = getAll();
-    all[concertId] = (all[concertId] || []).filter(p => p.uid !== uid);
-    saveAll(all);
+  async function removePost(concertId, uid) {
+    try {
+      await DB.delete('group_buying', `post_uid=eq.${uid}`);
+    } catch {
+      const all = lsGetAll();
+      all[concertId] = (all[concertId]||[]).filter(p => p.uid !== uid);
+      localStorage.setItem(LS_KEY, JSON.stringify(all));
+    }
   }
 
   function buildWaHref(contact) {
@@ -670,7 +692,7 @@ const GroupBuying = (() => {
   }
 
   function renderCard(p, concertId) {
-    const isOwner = p.ownerUid === getOwnerUID();
+    const isOwner = p.ownerUid === getDeviceUID();
     const waHref  = buildWaHref(p.contact);
     const igHref  = p.ig ? `https://instagram.com/${p.ig}` : null;
     return `
@@ -696,15 +718,22 @@ const GroupBuying = (() => {
   }
 
   function render(concertId) {
-    const posts        = getFor(concertId);
     const concert      = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === concertId) : null;
     const isPastC      = concert && concert.rawDate < new Date();
     const isRumorC     = concert && concert.confirmStatus === 'rumor';
     const formDisabled = isPastC || isRumorC;
 
-    const postItems = posts.length
-      ? posts.map(p => renderCard(p, concertId)).join('')
-      : `<div class="gb-empty">Belum ada yang cari teman nonton. Jadilah yang pertama! 🎉</div>`;
+    // Async load posts
+    setTimeout(async () => {
+      const posts  = await fetchPosts(concertId);
+      const listEl = document.getElementById(`gblist_${concertId}`);
+      if (!listEl) return;
+      const countEl = document.querySelector(`#gb_${concertId} .gb-count`);
+      if (countEl) countEl.textContent = posts.length || '';
+      listEl.innerHTML = posts.length
+        ? posts.map(p => renderCard(p, concertId)).join('')
+        : `<div class="gb-empty">Belum ada yang cari teman nonton. Jadilah yang pertama! 🎉</div>`;
+    }, 0);
 
     const formHtml = formDisabled
       ? `<div class="gb-ended">${isPastC ? 'Konser sudah selesai' : 'Konser belum dikonfirmasi'} — form posting ditutup.</div>`
@@ -727,18 +756,20 @@ const GroupBuying = (() => {
       <div class="gb-section" id="gb_${concertId}">
         <div class="gb-header">
           <h4>🤝 Cari Teman Nonton</h4>
-          ${posts.length ? `<span class="gb-count">${posts.length}</span>` : ''}
+          <span class="gb-count"></span>
         </div>
         <p class="gb-desc">Cari teman nonton bareng! Kontak hanya ditampilkan sebagai ikon — nomor tidak diekspos.</p>
         ${formHtml}
-        <div class="gb-list">${postItems}</div>
+        <div class="gb-list" id="gblist_${concertId}">
+          <div class="gb-empty" style="opacity:0.5">Memuat...</div>
+        </div>
       </div>`;
   }
 
-  function handleSubmit(e, concertId) {
+  async function handleSubmit(e, concertId) {
     e.preventDefault();
     const f = e.target;
-    const result = add(concertId, {
+    const result = await add(concertId, {
       name:     f.querySelector('[name="name"]')?.value,
       category: f.querySelector('[name="category"]')?.value,
       contact:  f.querySelector('[name="contact"]')?.value,
@@ -751,31 +782,34 @@ const GroupBuying = (() => {
     showToast('🤝 Posting berhasil!', 'success', 2500);
   }
 
-  function deletePost(concertId, uid) {
+  async function deletePost(concertId, uid) {
     if (!confirm('Hapus posting ini?')) return;
-    remove(concertId, uid);
+    await removePost(concertId, uid);
     const section = document.getElementById(`gb_${concertId}`);
     if (section) section.outerHTML = render(concertId);
     showToast('🗑️ Posting dihapus.', 'info', 2000);
   }
 
   function startEdit(concertId, uid) {
-    const p    = getFor(concertId).find(x => x.uid === uid);
-    if (!p) return;
     const card = document.getElementById(`gbi_${uid}`);
     if (!card) return;
+    // Ambil nilai dari DOM
+    const name     = card.querySelector('.gb-name')?.textContent || '';
+    const meta     = card.querySelector('.gb-meta')?.textContent || '';
+    const category = meta.split('·').slice(1).join('·').trim() || '';
+    const note     = card.querySelector('.gb-note')?.textContent || '';
     card.innerHTML = `
       <form class="gb-form" style="padding:0" onsubmit="GroupBuying.saveEdit(event,'${concertId}','${uid}')">
         <div class="gb-form-row">
-          <input class="gb-input" name="name" value="${p.name}" maxlength="30" required />
-          <input class="gb-input" name="category" value="${p.category}" maxlength="30" />
+          <input class="gb-input" name="name" value="${name}" maxlength="30" required />
+          <input class="gb-input" name="category" value="${category}" maxlength="30" />
         </div>
         <div class="gb-form-row">
-          <input class="gb-input" name="contact" value="${p.contact}" maxlength="20" required />
-          <input class="gb-input" name="ig" value="${p.ig||''}" placeholder="@instagram (opsional)" maxlength="40" />
+          <input class="gb-input" name="contact" placeholder="No WA baru (opsional)" maxlength="20" />
+          <input class="gb-input" name="ig" placeholder="@instagram (opsional)" maxlength="40" />
         </div>
         <div class="gb-form-row">
-          <input class="gb-input" name="note" value="${p.note||''}" placeholder="Catatan" maxlength="150" />
+          <input class="gb-input" name="note" value="${note}" placeholder="Catatan" maxlength="150" />
         </div>
         <div class="gb-form-row">
           <button class="gb-submit" type="submit">💾 Simpan</button>
@@ -785,22 +819,25 @@ const GroupBuying = (() => {
       </form>`;
   }
 
-  function saveEdit(e, concertId, uid) {
+  async function saveEdit(e, concertId, uid) {
     e.preventDefault();
     const f = e.target;
-    update(concertId, uid, {
+    const fields = {
       name:     f.querySelector('[name="name"]')?.value.trim().slice(0,30).replace(/</g,'&lt;'),
       category: f.querySelector('[name="category"]')?.value.trim().slice(0,30).replace(/</g,'&lt;'),
-      contact:  f.querySelector('[name="contact"]')?.value.trim().slice(0,60).replace(/</g,'&lt;'),
-      ig:       f.querySelector('[name="ig"]')?.value.replace('@','').trim().slice(0,40).replace(/</g,'&lt;'),
       note:     f.querySelector('[name="note"]')?.value.trim().slice(0,150).replace(/</g,'&lt;'),
-    });
+    };
+    const contact = f.querySelector('[name="contact"]')?.value.trim();
+    const ig      = f.querySelector('[name="ig"]')?.value.replace('@','').trim();
+    if (contact) fields.contact = contact.slice(0,60).replace(/</g,'&lt;');
+    if (ig)      fields.ig      = ig.slice(0,40).replace(/</g,'&lt;');
+    await updatePost(concertId, uid, fields);
     const section = document.getElementById(`gb_${concertId}`);
     if (section) section.outerHTML = render(concertId);
     showToast('✅ Posting diperbarui!', 'success', 2000);
   }
 
-  function cancelEdit(concertId, uid) {
+  function cancelEdit(concertId) {
     const section = document.getElementById(`gb_${concertId}`);
     if (section) section.outerHTML = render(concertId);
   }
@@ -811,142 +848,16 @@ window.GroupBuying = GroupBuying;
 
 
 /* ================================================================
-   INIT
-   ================================================================ */
-document.addEventListener('DOMContentLoaded', () => {
-
-  // ── 1. Tombol bahasa di navbar (sebelum theme toggle) ──
-  const navCta = document.querySelector('.nav-cta');
-  if (navCta) {
-    const langBtn = document.createElement('button');
-    langBtn.id        = 'langToggleBtn';
-    langBtn.className = 'theme-toggle';
-    langBtn.style.cssText = 'font-size:0.68rem;font-weight:700;width:auto;padding:0 10px;border-radius:99px;letter-spacing:0.5px;flex-shrink:0;';
-    langBtn.textContent   = I18n.getLang() === 'id' ? '🌐 EN' : '🌐 ID';
-    langBtn.title         = 'Toggle Language / Bahasa';
-    langBtn.onclick       = () => I18n.toggle();
-    navCta.insertBefore(langBtn, navCta.firstChild);
-  }
-
-  // ── 2. Tombol Ticket Alert di filter-extra-btns ──
-  const filterExtraBtns = document.querySelector('.filter-extra-btns');
-  if (filterExtraBtns) {
-    const taBtn = document.createElement('button');
-    taBtn.className = 'filter-extra-btn';
-    taBtn.title     = 'Tiket On-Sale Alert';
-    taBtn.onclick   = () => TicketAlert.openPanel();
-    taBtn.innerHTML = `🔔<span class="ha-badge" id="taBadge" style="display:none"></span>`;
-    filterExtraBtns.appendChild(taBtn);
-    TicketAlert.updateAlertBadge();
-  }
-
-  // ── 3. Fetch kurs ──
-  PriceConverter.fetchRates();
-
-  // ── 4. Been-there badges ──
-  setTimeout(() => BeenThere.applyBadgesToCards(), 600);
-
-  // ── 5. Ticket alert check ──
-  setTimeout(() => TicketAlert.checkAndNotify(), 3000);
-
-  // ── 6. Patch openModal ──
-  const _prevF3 = window.openModal;
-  if (typeof _prevF3 === 'function') {
-    window.openModal = function(id) {
-      _prevF3(id);
-      const c = typeof CONCERTS !== 'undefined' ? CONCERTS.find(x => x.id === id) : null;
-      if (!c) return;
-
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        const modal = document.getElementById('modalContent');
-        if (!modal) return;
-
-        const isPastC  = c.rawDate < new Date();
-        const isRumorC = c.confirmStatus === 'rumor';
-
-        // A. Ticket On-Sale Alert — di bawah share row, hanya confirmed + TBA harga + upcoming
-        if (!isRumorC && c.priceMin === 0 && !isPastC) {
-          const shareRow = modal.querySelector('.modal-share-row');
-          if (shareRow) {
-            const el = document.createElement('div');
-            el.className = 'ta-wrap';
-            el.innerHTML = TicketAlert.renderBtn(c.id);
-            shareRow.insertAdjacentElement('afterend', el);
-          }
-        }
-
-        // B. Sudah Nonton — hanya konser past, tepat setelah .modal-disclaimer
-        if (isPastC) {
-          const disclaimer = modal.querySelector('.modal-disclaimer');
-          if (disclaimer) {
-            const el = document.createElement('div');
-            el.className = 'bt-wrap';
-            el.innerHTML = BeenThere.renderBtn(c.id);
-            disclaimer.insertAdjacentElement('afterend', el);
-          }
-        }
-
-        // C. Setlist — di atas kategori tiket (.modal-ticket-area)
-        const setlistHtml = SetlistPredict.render(c.id);
-        if (setlistHtml) {
-          // Coba beberapa anchor karena ada kemungkinan ticket area sudah dipindah
-          const anchor = modal.querySelector('.modal-ticket-area') ||
-                         modal.querySelector('.modal-desc') ||
-                         modal.querySelector('.modal-details');
-          if (anchor) {
-            const el = document.createElement('div');
-            el.innerHTML = setlistHtml;
-            anchor.insertAdjacentElement('beforebegin', el.firstElementChild || el);
-          } else {
-            // Fallback: tambah ke dalam modal langsung
-            const el = document.createElement('div');
-            el.innerHTML = setlistHtml;
-            modal.appendChild(el.firstElementChild || el);
-          }
-        }
-
-        // D. Konverter Harga — hanya confirmed + upcoming + ada harga
-        const fxHtml = PriceConverter.render(c);
-        if (fxHtml) {
-          const anchor = modal.querySelector('.setlist-section') || modal.querySelector('.modal-ticket-area');
-          if (anchor) {
-            const el = document.createElement('div');
-            el.innerHTML = fxHtml;
-            anchor.insertAdjacentElement('afterend', el.firstElementChild || el);
-          }
-        }
-
-        // Forum Jual Beli dan Cari Teman Nonton sudah di-inject dari features.js
-        // untuk menghindari race condition rAF bertingkat
-
-      }));
-    };
-  }
-});
-
-
-
-/* ================================================================
    7. FORUM JUAL BELI TIKET
+   Supabase primary, localStorage fallback
    ================================================================ */
 const TicketMarket = (() => {
-  const KEY = 'cid_ticket_market';
+  const LS_KEY = 'cid_ticket_market';
 
-  function getAll()   { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } }
-  function saveAll(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
-  function getFor(id) { return getAll()[id] || []; }
+  function lsGetAll()   { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } }
+  function lsGetFor(id) { return lsGetAll()[id] || []; }
 
-  function getOwnerUID() {
-    // UID perangkat — persistent, untuk cek kepemilikan post
-    let uid = localStorage.getItem('cid_uid');
-    if (!uid) { uid = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('cid_uid', uid); }
-    return uid;
-  }
-
-  function genPostUID() {
-    // UID unik per posting — berbeda setiap kali post baru dibuat
-    return 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-  }
+  function genPostUID() { return 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
 
   function timeAgo(date) {
     const diff = Date.now() - new Date(date).getTime();
@@ -957,46 +868,74 @@ const TicketMarket = (() => {
     return 'Baru saja';
   }
 
-  function add(concertId, { type, name, category, qty, price, contact, note }) {
+  async function fetchPosts(concertId) {
+    try {
+      const rows = await DB.select('ticket_market',
+        `concert_id=eq.${encodeURIComponent(concertId)}&order=created_at.desc`);
+      return rows.map(r => ({
+        uid:      r.post_uid,
+        ownerUid: r.owner_uid,
+        type:     r.type,
+        name:     r.name,
+        category: r.category || 'TBA',
+        qty:      r.qty || 1,
+        price:    r.price || '',
+        contact:  r.contact,
+        note:     r.note || '',
+        date:     r.created_at,
+        sold:     r.sold || false,
+      }));
+    } catch {
+      return lsGetFor(concertId);
+    }
+  }
+
+  async function add(concertId, { type, name, category, qty, price, contact, note }) {
     if (!name || !contact) return { ok: false, msg: 'Nama dan kontak wajib diisi.' };
-    const all = getAll();
-    if (!all[concertId]) all[concertId] = [];
-    if (all[concertId].length >= 50) return { ok: false, msg: 'Maksimal 50 listing per konser.' };
-    all[concertId].unshift({
-      uid:      genPostUID(),
-      ownerUid: getOwnerUID(),
-      type:     type || 'jual',
-      name:     name.trim().slice(0,30).replace(/</g,'&lt;'),
-      category: (category||'TBA').trim().slice(0,30).replace(/</g,'&lt;'),
-      qty:      Math.min(parseInt(qty)||1, 20),
-      price:    (price||'').replace(/\./g,'').trim().slice(0,20),
-      contact:  contact.trim().slice(0,60).replace(/</g,'&lt;'),
-      note:     (note||'').trim().slice(0,150).replace(/</g,'&lt;'),
-      date:     new Date().toISOString(),
-      sold:     false,
-    });
-    saveAll(all);
-    return { ok: true };
+    const uid      = genPostUID();
+    const ownerUid = getDeviceUID();
+    const priceNum = (price||'').replace(/\./g,'').trim().slice(0,20);
+    try {
+      await DB.insert('ticket_market', {
+        concert_id: concertId,
+        post_uid:   uid,
+        owner_uid:  ownerUid,
+        type:       type || 'jual',
+        name:       name.trim().slice(0,30).replace(/</g,'&lt;'),
+        category:   (category||'TBA').trim().slice(0,30).replace(/</g,'&lt;'),
+        qty:        Math.min(parseInt(qty)||1, 20),
+        price:      priceNum,
+        contact:    contact.trim().slice(0,60).replace(/</g,'&lt;'),
+        note:       (note||'').trim().slice(0,150).replace(/</g,'&lt;'),
+      });
+      return { ok: true };
+    } catch {
+      const all = lsGetAll();
+      if (!all[concertId]) all[concertId] = [];
+      all[concertId].unshift({ uid, ownerUid, type: type||'jual', name: name.trim().slice(0,30).replace(/</g,'&lt;'), category: (category||'TBA').trim().slice(0,30).replace(/</g,'&lt;'), qty: Math.min(parseInt(qty)||1,20), price: priceNum, contact: contact.trim().slice(0,60).replace(/</g,'&lt;'), note: (note||'').trim().slice(0,150).replace(/</g,'&lt;'), date: new Date().toISOString(), sold: false });
+      localStorage.setItem(LS_KEY, JSON.stringify(all));
+      return { ok: true };
+    }
   }
 
-  function update(concertId, uid, fields) {
-    const all   = getAll();
-    const posts = all[concertId] || [];
-    const idx   = posts.findIndex(p => p.uid === uid);
-    if (idx === -1) return;
-    posts[idx] = { ...posts[idx], ...fields };
-    saveAll(all);
+  async function updatePost(concertId, uid, fields) {
+    try {
+      await DB.update('ticket_market', `post_uid=eq.${uid}`, fields);
+    } catch { /* silent */ }
   }
 
-  function remove(concertId, uid) {
-    const all   = getAll();
-    const posts = all[concertId] || [];
-    all[concertId] = posts.filter(p => p.uid !== uid);
-    saveAll(all);
+  async function removePost(concertId, uid) {
+    try {
+      await DB.delete('ticket_market', `post_uid=eq.${uid}`);
+    } catch {
+      const all = lsGetAll();
+      all[concertId] = (all[concertId]||[]).filter(p => p.uid !== uid);
+      localStorage.setItem(LS_KEY, JSON.stringify(all));
+    }
   }
 
   function buildWaHref(contact) {
-    const digits = contact.replace(/\D/g, '');
+    const digits = contact.replace(/\D/g,'');
     if (!digits || digits.length < 8) return null;
     let num = digits;
     if (num.startsWith('0')) num = '62' + num.slice(1);
@@ -1008,9 +947,9 @@ const TicketMarket = (() => {
     if (!contact) return '';
     const waHref = buildWaHref(contact);
     if (waHref) return `<a class="gb-contact-emoji" href="${waHref}" target="_blank" rel="noopener" title="Chat WhatsApp">💬</a>`;
-    if (contact.trim().startsWith('@') || (!contact.startsWith('http') && contact.replace(/\D/g,'').length < 8))
+    if (contact.trim().startsWith('@') || contact.replace(/\D/g,'').length < 8)
       return `<a class="gb-contact-emoji" href="https://instagram.com/${contact.replace('@','').trim()}" target="_blank" rel="noopener" title="Instagram">📷</a>`;
-    return `<a class="gb-contact-emoji" href="${contact}" target="_blank" rel="noopener" title="Kontak">🔗</a>`;
+    return '';
   }
 
   function formatRpDisplay(price) {
@@ -1023,8 +962,8 @@ const TicketMarket = (() => {
 
   function renderCard(p, concertId) {
     const priceDisplay = formatRpDisplay(p.price);
-    const isOwner  = p.ownerUid === getOwnerUID();
-    const soldLabel = p.type === 'jual' ? 'Terjual' : 'Ditemukan';
+    const isOwner      = p.ownerUid === getDeviceUID();
+    const soldLabel    = p.type === 'jual' ? 'Terjual' : 'Ditemukan';
     return `
       <div class="tm-item${p.sold ? ' tm-item-sold' : ''}" id="tmi_${p.uid}">
         <div class="tm-item-top">
@@ -1054,13 +993,23 @@ const TicketMarket = (() => {
   }
 
   function render(concertId) {
-    const posts    = getFor(concertId);
     const concert  = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === concertId) : null;
     const isPastC  = concert && concert.rawDate < new Date();
     const isRumorC = concert && concert.confirmStatus === 'rumor';
     const disabled = isPastC || isRumorC;
-    const jual     = posts.filter(p => p.type === 'jual');
-    const beli     = posts.filter(p => p.type === 'beli');
+
+    // Async load
+    setTimeout(async () => {
+      const posts  = await fetchPosts(concertId);
+      const jual   = posts.filter(p => p.type === 'jual');
+      const beli   = posts.filter(p => p.type === 'beli');
+      const countEl = document.querySelector(`#tm_${concertId} .gb-count`);
+      if (countEl) countEl.textContent = posts.length || '';
+      const listEl = document.getElementById(`tmlist_${concertId}`);
+      if (listEl) listEl.innerHTML = jual.map(p => renderCard(p, concertId)).join('') || '<div class="tm-empty">Belum ada listing.</div>';
+      const tabJual = document.querySelector(`#tm_${concertId} .tm-tab`);
+      if (tabJual) { tabJual.nextElementSibling && (tabJual.nextElementSibling.querySelector('.tm-tab-count') && (tabJual.nextElementSibling.querySelector('.tm-tab-count').textContent = beli.length)); tabJual.querySelector('.tm-tab-count') && (tabJual.querySelector('.tm-tab-count').textContent = jual.length); }
+    }, 0);
 
     const formHtml = disabled
       ? `<div class="gb-ended">${isPastC ? 'Konser sudah selesai' : 'Konser belum dikonfirmasi'} — listing ditutup.</div>`
@@ -1090,32 +1039,35 @@ const TicketMarket = (() => {
       <div class="tm-section" id="tm_${concertId}">
         <div class="gb-header">
           <h4>🎫 Forum Jual Beli Tiket</h4>
-          ${posts.length ? `<span class="gb-count">${posts.length}</span>` : ''}
+          <span class="gb-count"></span>
         </div>
         ${formHtml}
-        ${posts.length ? `
-          <div class="tm-tabs">
-            <button class="tm-tab active" onclick="TicketMarket.switchTab(this,'${concertId}','jual')">Jual <span class="tm-tab-count">${jual.length}</span></button>
-            <button class="tm-tab" onclick="TicketMarket.switchTab(this,'${concertId}','beli')">Cari <span class="tm-tab-count">${beli.length}</span></button>
-          </div>
-          <div class="tm-list" id="tmlist_${concertId}">${jual.map(p => renderCard(p, concertId)).join('') || '<div class="tm-empty">Belum ada listing.</div>'}</div>
-        ` : ''}
+        <div class="tm-tabs">
+          <button class="tm-tab active" onclick="TicketMarket.switchTab(this,'${concertId}','jual')">Jual <span class="tm-tab-count">-</span></button>
+          <button class="tm-tab" onclick="TicketMarket.switchTab(this,'${concertId}','beli')">Cari <span class="tm-tab-count">-</span></button>
+        </div>
+        <div class="tm-list" id="tmlist_${concertId}">
+          <div class="tm-empty" style="opacity:0.5">Memuat...</div>
+        </div>
       </div>`;
   }
 
-  function switchTab(btnEl, concertId, type) {
-    const items = getFor(concertId).filter(p => p.type === type);
+  async function switchTab(btnEl, concertId, type) {
     document.querySelectorAll(`#tm_${concertId} .tm-tab`).forEach(b => b.classList.remove('active'));
     btnEl.classList.add('active');
     const list = document.getElementById(`tmlist_${concertId}`);
-    if (list) list.innerHTML = items.map(p => renderCard(p, concertId)).join('') || '<div class="tm-empty">Belum ada listing.</div>';
+    if (!list) return;
+    list.innerHTML = '<div class="tm-empty" style="opacity:0.5">Memuat...</div>';
+    const posts = await fetchPosts(concertId);
+    const items = posts.filter(p => p.type === type);
+    list.innerHTML = items.map(p => renderCard(p, concertId)).join('') || '<div class="tm-empty">Belum ada listing.</div>';
   }
 
-  function handleSubmit(e, concertId) {
+  async function handleSubmit(e, concertId) {
     e.preventDefault();
     const f    = e.target;
     const type = f.querySelector('input[name="type"]:checked')?.value || 'jual';
-    const result = add(concertId, {
+    const result = await add(concertId, {
       type,
       name:     f.querySelector('[name="name"]')?.value,
       category: f.querySelector('[name="category"]')?.value,
@@ -1130,94 +1082,94 @@ const TicketMarket = (() => {
     showToast(type === 'jual' ? '🎫 Listing berhasil diposting!' : '🔍 Pencarian berhasil diposting!', 'success', 2500);
   }
 
-  function markSold(concertId, uid, type) {
-    const all   = getAll();
-    const posts = all[concertId] || [];
-    const p     = posts.find(x => x.uid === uid);
-    if (!p) return;
-    p.sold = true;
-    saveAll(all);
-    // Re-render section lalu set tab ke tipe post yang di-tandai
+  async function markSold(concertId, uid, type) {
+    await updatePost(concertId, uid, { sold: true });
     const section = document.getElementById(`tm_${concertId}`);
     if (section) {
       section.outerHTML = render(concertId);
-      // Aktifkan tab yang sesuai
-      const activeType = type || p.type;
-      const tabs = document.querySelectorAll(`#tm_${concertId} .tm-tab`);
-      tabs.forEach(btn => {
-        const isTarget = (activeType === 'jual' && btn.textContent.trim().startsWith('Jual'))
-                      || (activeType === 'beli' && btn.textContent.trim().startsWith('Cari'));
-        if (isTarget) switchTab(btn, concertId, activeType);
-      });
+      setTimeout(async () => {
+        const tabs = document.querySelectorAll(`#tm_${concertId} .tm-tab`);
+        for (const btn of tabs) {
+          const isTarget = (type === 'jual' && btn.textContent.trim().startsWith('Jual'))
+                        || (type === 'beli' && btn.textContent.trim().startsWith('Cari'));
+          if (isTarget) { await switchTab(btn, concertId, type); break; }
+        }
+      }, 300);
     }
-    showToast(p.type === 'jual' ? '✅ Tandai Terjual!' : '✅ Tandai Ditemukan!', 'success', 2000);
+    showToast(type === 'jual' ? '✅ Tandai Terjual!' : '✅ Tandai Ditemukan!', 'success', 2000);
   }
 
-  function deletePost(concertId, uid, type) {
+  async function deletePost(concertId, uid, type) {
     if (!confirm('Hapus listing ini?')) return;
-    remove(concertId, uid);
+    await removePost(concertId, uid);
     const section = document.getElementById(`tm_${concertId}`);
     if (section) {
       section.outerHTML = render(concertId);
-      // Kembali ke tab yang sama setelah delete
-      const activeType = type || 'jual';
-      const tabs = document.querySelectorAll(`#tm_${concertId} .tm-tab`);
-      tabs.forEach(btn => {
-        const isTarget = (activeType === 'jual' && btn.textContent.trim().startsWith('Jual'))
-                      || (activeType === 'beli' && btn.textContent.trim().startsWith('Cari'));
-        if (isTarget) switchTab(btn, concertId, activeType);
-      });
+      setTimeout(async () => {
+        const tabs = document.querySelectorAll(`#tm_${concertId} .tm-tab`);
+        for (const btn of tabs) {
+          const isTarget = (type === 'jual' && btn.textContent.trim().startsWith('Jual'))
+                        || (type === 'beli' && btn.textContent.trim().startsWith('Cari'));
+          if (isTarget) { await switchTab(btn, concertId, type); break; }
+        }
+      }, 300);
     }
     showToast('🗑️ Listing dihapus.', 'info', 2000);
   }
 
   function startEdit(concertId, uid) {
-    const posts = getFor(concertId);
-    const p     = posts.find(x => x.uid === uid);
-    if (!p) return;
     const card = document.getElementById(`tmi_${uid}`);
     if (!card) return;
-    const priceRaw = p.price ? parseInt(p.price.replace(/\D/g,'')).toLocaleString('id-ID') : '';
+    const name     = card.querySelector('.tm-name')?.textContent.split('(')[0].trim() || '';
+    const meta     = card.querySelector('.tm-meta')?.textContent || '';
+    const parts    = meta.split('·');
+    const category = parts[0]?.trim() || '';
+    const qty      = parts[1]?.trim().replace(' tiket','') || '1';
+    const priceRaw = parts[2]?.trim().replace('Rp ','').replace(' jt','000000').replace(/[^0-9]/g,'') || '';
+    const priceFormatted = priceRaw ? parseInt(priceRaw).toLocaleString('id-ID') : '';
+    const note = card.querySelector('.gb-note')?.textContent || '';
     card.innerHTML = `
       <form class="gb-form" style="padding:0" onsubmit="TicketMarket.saveEdit(event,'${concertId}','${uid}')">
         <div class="gb-form-row">
-          <input class="gb-input" name="name" value="${p.name}" maxlength="30" required />
-          <input class="gb-input gb-input-sm" name="qty" type="number" value="${p.qty}" min="1" max="20" />
+          <input class="gb-input" name="name" value="${name}" maxlength="30" required />
+          <input class="gb-input gb-input-sm" name="qty" type="number" value="${qty}" min="1" max="20" />
         </div>
         <div class="gb-form-row">
-          <input class="gb-input" name="category" value="${p.category}" maxlength="30" />
-          <input class="gb-input" name="price" value="${priceRaw}" maxlength="15"
+          <input class="gb-input" name="category" value="${category}" maxlength="30" />
+          <input class="gb-input" name="price" value="${priceFormatted}" maxlength="15"
             oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/\\B(?=(\\d{3})+(?!\\d))/g,'.')" />
         </div>
         <div class="gb-form-row">
-          <input class="gb-input" name="contact" value="${p.contact}" maxlength="60" required />
-          <input class="gb-input" name="note" value="${p.note||''}" maxlength="150" />
+          <input class="gb-input" name="contact" placeholder="No WA baru (opsional)" maxlength="60" />
+          <input class="gb-input" name="note" value="${note}" maxlength="150" />
         </div>
         <div class="gb-form-row">
           <button class="gb-submit" type="submit">💾 Simpan</button>
           <button class="gb-submit" type="button" style="background:rgba(255,255,255,0.06)"
-            onclick="TicketMarket.cancelEdit('${concertId}','${uid}')">Batal</button>
+            onclick="TicketMarket.cancelEdit('${concertId}')">Batal</button>
         </div>
       </form>`;
   }
 
-  function saveEdit(e, concertId, uid) {
+  async function saveEdit(e, concertId, uid) {
     e.preventDefault();
     const f = e.target;
-    update(concertId, uid, {
+    const fields = {
       name:     f.querySelector('[name="name"]')?.value.trim().slice(0,30).replace(/</g,'&lt;'),
       category: f.querySelector('[name="category"]')?.value.trim().slice(0,30).replace(/</g,'&lt;'),
       qty:      Math.min(parseInt(f.querySelector('[name="qty"]')?.value)||1, 20),
       price:    (f.querySelector('[name="price"]')?.value||'').replace(/\./g,'').slice(0,20),
-      contact:  f.querySelector('[name="contact"]')?.value.trim().slice(0,60).replace(/</g,'&lt;'),
       note:     f.querySelector('[name="note"]')?.value.trim().slice(0,150).replace(/</g,'&lt;'),
-    });
+    };
+    const contact = f.querySelector('[name="contact"]')?.value.trim();
+    if (contact) fields.contact = contact.slice(0,60).replace(/</g,'&lt;');
+    await updatePost(concertId, uid, fields);
     const section = document.getElementById(`tm_${concertId}`);
     if (section) section.outerHTML = render(concertId);
     showToast('✅ Listing diperbarui!', 'success', 2000);
   }
 
-  function cancelEdit(concertId, uid) {
+  function cancelEdit(concertId) {
     const section = document.getElementById(`tm_${concertId}`);
     if (section) section.outerHTML = render(concertId);
   }
@@ -1225,7 +1177,6 @@ const TicketMarket = (() => {
   return { render, handleSubmit, switchTab, markSold, deletePost, startEdit, saveEdit, cancelEdit };
 })();
 window.TicketMarket = TicketMarket;
-
 
 
 /* ================================================================

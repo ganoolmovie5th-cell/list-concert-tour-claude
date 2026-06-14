@@ -61,68 +61,104 @@ const SortOptions = (() => {
 
 /* ================================================================
    5. SOCIAL FEATURES — Going / Interested counter
+   Supabase primary, localStorage fallback
    ================================================================ */
 const SocialFeatures = (() => {
+  // localStorage keys (fallback)
   const KEY_GOING    = 'cid_going';
   const KEY_INTEREST = 'cid_interest';
-  const KEY_MYVOTE   = 'cid_myvote'; // { concertId: 'going'|'interested' }
+  const KEY_MYVOTE   = 'cid_myvote';
 
-  function getCounts(key) {
+  /* ── localStorage fallback helpers ── */
+  function lsGetCounts(key) {
     try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; }
   }
-  function saveCounts(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-  function getMyVotes() {
+  function lsSaveCounts(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+  function lsGetMyVotes() {
     try { return JSON.parse(localStorage.getItem(KEY_MYVOTE) || '{}'); } catch { return {}; }
   }
 
-  function getGoingCount(id)    { return getCounts(KEY_GOING)[id]    ?? 0; }
-  function getInterestCount(id) { return getCounts(KEY_INTEREST)[id] ?? 0; }
-  function getMyVote(id)        { return getMyVotes()[id] || null; }
+  /* ── Supabase: ambil counts untuk satu konser ── */
+  async function fetchCounts(id) {
+    try {
+      const rows = await DB.select('concert_votes',
+        `concert_id=eq.${encodeURIComponent(id)}&select=type`);
+      const going      = rows.filter(r => r.type === 'going').length;
+      const interested = rows.filter(r => r.type === 'interested').length;
+      const myVote     = rows.find(r => r.device_uid === getDeviceUID())?.type || null;
+      return { going, interested, myVote };
+    } catch {
+      // fallback localStorage
+      return {
+        going:      lsGetCounts(KEY_GOING)[id]    ?? 0,
+        interested: lsGetCounts(KEY_INTEREST)[id] ?? 0,
+        myVote:     lsGetMyVotes()[id] || null,
+      };
+    }
+  }
 
-  function vote(id, type) {
-    const myVotes = getMyVotes();
+  /* ── Supabase: toggle vote ── */
+  async function vote(id, type) {
+    const uid = getDeviceUID();
+    try {
+      // Cek apakah sudah ada vote dengan type ini
+      const existing = await DB.select('concert_votes',
+        `concert_id=eq.${encodeURIComponent(id)}&device_uid=eq.${uid}&type=eq.${type}`);
+
+      if (existing.length > 0) {
+        // Undo — hapus vote ini
+        await DB.delete('concert_votes',
+          `concert_id=eq.${encodeURIComponent(id)}&device_uid=eq.${uid}&type=eq.${type}`);
+      } else {
+        // Upsert vote baru (hapus type lain dulu jika ada)
+        await DB.delete('concert_votes',
+          `concert_id=eq.${encodeURIComponent(id)}&device_uid=eq.${uid}`);
+        await DB.insert('concert_votes', { concert_id: id, device_uid: uid, type });
+      }
+      return await fetchCounts(id);
+    } catch {
+      // fallback localStorage
+      return voteFallback(id, type);
+    }
+  }
+
+  function voteFallback(id, type) {
+    const myVotes = lsGetMyVotes();
     const prev    = myVotes[id];
-
-    const going    = getCounts(KEY_GOING);
-    const interest = getCounts(KEY_INTEREST);
-
-    // Init dari 0 jika belum ada
+    const going    = lsGetCounts(KEY_GOING);
+    const interest = lsGetCounts(KEY_INTEREST);
     if (going[id]    == null) going[id]    = 0;
     if (interest[id] == null) interest[id] = 0;
-
     if (prev === type) {
-      // Undo vote
       if (type === 'going')      going[id]    = Math.max(0, going[id] - 1);
       if (type === 'interested') interest[id] = Math.max(0, interest[id] - 1);
       delete myVotes[id];
     } else {
-      // Undo prev if exists
       if (prev === 'going')      going[id]    = Math.max(0, going[id] - 1);
       if (prev === 'interested') interest[id] = Math.max(0, interest[id] - 1);
-      // Add new
       if (type === 'going')      going[id]++;
       if (type === 'interested') interest[id]++;
       myVotes[id] = type;
     }
-
-    saveCounts(KEY_GOING, going);
-    saveCounts(KEY_INTEREST, interest);
+    lsSaveCounts(KEY_GOING, going);
+    lsSaveCounts(KEY_INTEREST, interest);
     localStorage.setItem(KEY_MYVOTE, JSON.stringify(myVotes));
-    return { going: going[id], interest: interest[id], myVote: myVotes[id] || null };
+    return { going: going[id], interested: interest[id], myVote: myVotes[id] || null };
+  }
+
+  function fmtCount(n) {
+    if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
+    return n;
   }
 
   function renderBadges(id) {
-    const going    = getGoingCount(id);
-    const interest = getInterestCount(id);
-    const myVote   = getMyVote(id);
-    const concert  = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === id) : null;
-    const past     = concert && concert.rawDate < (typeof TODAY !== 'undefined' ? TODAY : new Date());
+    const concert = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === id) : null;
+    const past    = concert && concert.rawDate < (typeof TODAY !== 'undefined' ? TODAY : new Date());
 
     if (past) {
-      // Dummy disabled untuk konser past — angka deterministik dari ID agar konsisten tiap render
-      const seed = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-      const dummyGoing    = going    || (seed % 900) + 100;
-      const dummyInterest = interest || ((seed * 3) % 1500) + 300;
+      const seed          = id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+      const dummyGoing    = (seed % 900) + 100;
+      const dummyInterest = ((seed * 3) % 1500) + 300;
       return `
         <div class="social-badges" data-concert="${id}">
           <button class="social-btn" disabled style="opacity:0.5;cursor:not-allowed">
@@ -134,6 +170,22 @@ const SocialFeatures = (() => {
         </div>`;
     }
 
+    // Render placeholder dulu, lalu async update
+    const going    = lsGetCounts(KEY_GOING)[id]    ?? 0;
+    const interest = lsGetCounts(KEY_INTEREST)[id] ?? 0;
+    const myVote   = lsGetMyVotes()[id] || null;
+
+    setTimeout(async () => {
+      const data    = await fetchCounts(id);
+      const el      = document.querySelector(`.social-badges[data-concert="${id}"]`);
+      if (!el) return;
+      el.outerHTML  = renderBadgesHtml(id, data.going, data.interested, data.myVote);
+    }, 0);
+
+    return renderBadgesHtml(id, going, interest, myVote);
+  }
+
+  function renderBadgesHtml(id, going, interested, myVote) {
     return `
       <div class="social-badges" data-concert="${id}">
         <button class="social-btn${myVote === 'going' ? ' active-going' : ''}"
@@ -142,15 +194,15 @@ const SocialFeatures = (() => {
         </button>
         <button class="social-btn${myVote === 'interested' ? ' active-interested' : ''}"
           onclick="SocialFeatures.voteAndUpdate('${id}', 'interested', this.closest('.social-badges'))">
-          ⭐ Interested <span class="social-count">${fmtCount(interest)}</span>
+          ⭐ Interested <span class="social-count">${fmtCount(interested)}</span>
         </button>
       </div>`;
   }
 
-  function voteAndUpdate(id, type, container) {
-    const result = vote(id, type);
+  async function voteAndUpdate(id, type, container) {
+    const result = await vote(id, type);
     if (container) {
-      container.outerHTML = renderBadges(id);
+      container.outerHTML = renderBadgesHtml(id, result.going, result.interested, result.myVote);
     }
     const msg = type === 'going'
       ? (result.myVote === 'going' ? '🎟️ Kamu tandai akan hadir!' : '✅ Vote dibatalkan')
@@ -158,12 +210,7 @@ const SocialFeatures = (() => {
     if (typeof showToast === 'function') showToast(msg, 'success', 2000);
   }
 
-  function fmtCount(n) {
-    if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
-    return n;
-  }
-
-  return { renderBadges, vote, voteAndUpdate, getGoingCount, getInterestCount };
+  return { renderBadges, vote, voteAndUpdate, fetchCounts };
 })();
 window.SocialFeatures = SocialFeatures;
 
@@ -233,53 +280,18 @@ window.SocialMedia = SocialMedia;
 
 /* ================================================================
    8. DISCUSSION / COMMENTS PER KONSER
+   Supabase primary, localStorage fallback
    ================================================================ */
 const Discussion = (() => {
-  const KEY = 'cid_discussions';
+  const LS_KEY = 'cid_discussions';
 
-  function getAll() {
-    try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; }
-  }
-  function saveAll(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
-  function getFor(id) { return getAll()[id] || []; }
-
-  function getUID() {
-    let uid = localStorage.getItem('cid_uid');
-    if (!uid) { uid = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('cid_uid', uid); }
-    return uid;
-  }
-
-  function add(id, { author, text, replyTo = null }) {
-    if (!text || text.trim().length < 3) return { ok: false, msg: 'Komentar minimal 3 karakter.' };
-    const all = getAll();
-    if (!all[id]) all[id] = [];
-    all[id].unshift({
-      uid: getUID(),
-      author: (author || 'Anonim').trim().slice(0, 30),
-      text: text.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;').slice(0, 300),
-      date: new Date().toISOString(),
-      likes: 0,
-      replyTo: replyTo || null, // { author, text snippet }
-    });
-    if (all[id].length > 100) all[id] = all[id].slice(0, 100);
-    saveAll(all);
-    return { ok: true };
-  }
-
-  function like(concertId, idx) {
-    const all = getAll();
-    if (all[concertId] && all[concertId][idx]) {
-      all[concertId][idx].likes = (all[concertId][idx].likes || 0) + 1;
-      saveAll(all);
-    }
-  }
+  function lsGetAll() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } }
+  function lsGetFor(id) { return lsGetAll()[id] || []; }
 
   function timeAgo(date) {
-    const d = typeof date === 'string' ? new Date(date) : date;
+    const d    = typeof date === 'string' ? new Date(date) : date;
     const diff = Date.now() - d.getTime();
-    const m = Math.floor(diff / 60000);
-    const h = Math.floor(m / 60);
-    const dy = Math.floor(h / 24);
+    const m = Math.floor(diff / 60000), h = Math.floor(m / 60), dy = Math.floor(h / 24);
     if (dy > 30) return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
     if (dy > 0)  return `${dy} hari lalu`;
     if (h > 0)   return `${h} jam lalu`;
@@ -287,8 +299,60 @@ const Discussion = (() => {
     return 'Baru saja';
   }
 
+  /* ── Fetch dari Supabase ── */
+  async function fetchComments(concertId) {
+    try {
+      const rows = await DB.select('discussions',
+        `concert_id=eq.${encodeURIComponent(concertId)}&order=created_at.desc&limit=100`);
+      return rows.map(r => ({
+        id:       r.id,
+        uid:      r.device_uid,
+        author:   r.author,
+        text:     r.text,
+        date:     r.created_at,
+        likes:    r.likes,
+        replyTo:  r.reply_to,
+      }));
+    } catch {
+      return lsGetFor(concertId);
+    }
+  }
+
+  /* ── Add komentar ── */
+  async function add(concertId, { author, text, replyTo = null }) {
+    if (!text || text.trim().length < 3) return { ok: false, msg: 'Komentar minimal 3 karakter.' };
+    const clean = text.trim().replace(/</g,'&lt;').replace(/>/g,'&gt;').slice(0,300);
+    const name  = (author || 'Anonim').trim().slice(0,30);
+    try {
+      await DB.insert('discussions', {
+        concert_id: concertId,
+        device_uid: getDeviceUID(),
+        author:     name,
+        text:       clean,
+        reply_to:   replyTo || null,
+      });
+      return { ok: true };
+    } catch (e) {
+      // fallback localStorage
+      const all = lsGetAll();
+      if (!all[concertId]) all[concertId] = [];
+      all[concertId].unshift({ uid: getDeviceUID(), author: name, text: clean, date: new Date().toISOString(), likes: 0, replyTo });
+      localStorage.setItem(LS_KEY, JSON.stringify(all));
+      return { ok: true };
+    }
+  }
+
+  /* ── Like komentar ── */
+  async function like(concertId, commentId) {
+    try {
+      const rows = await DB.select('discussions', `id=eq.${commentId}&select=likes`);
+      const cur  = rows[0]?.likes ?? 0;
+      await DB.update('discussions', `id=eq.${commentId}`, { likes: cur + 1 });
+    } catch { /* silent */ }
+  }
+
+  /* ── Render section ── */
   function render(concertId, isPastConcert = false) {
-    const comments = getFor(concertId);
     const formHtml = isPastConcert
       ? `<div class="disc-past-info">📋 Konser sudah selesai — diskusi ditutup, tapi kamu masih bisa baca komentar di bawah.</div>`
       : `<form class="disc-form" onsubmit="Discussion.handleSubmit(event, '${concertId}')">
@@ -300,49 +364,62 @@ const Discussion = (() => {
           </div>
         </form>`;
 
+    // Render placeholder, lalu async load
+    setTimeout(async () => {
+      const comments = await fetchComments(concertId);
+      const listEl   = document.getElementById(`disclist_${concertId}`);
+      if (!listEl) return;
+      const countEl  = document.querySelector(`#disc_${concertId} .disc-count`);
+      if (countEl) countEl.textContent = comments.length || '';
+      listEl.innerHTML = renderCommentList(comments, concertId, isPastConcert);
+    }, 0);
+
     return `
       <div class="disc-section" id="disc_${concertId}">
         <div class="disc-header">
-          <h4>💬 Diskusi <span class="disc-count">${comments.length || ''}</span></h4>
+          <h4>💬 Diskusi <span class="disc-count"></span></h4>
         </div>
         ${formHtml}
         <div class="disc-list" id="disclist_${concertId}">
-          ${comments.length
-            ? comments.map((c, i) => `
-              <div class="disc-item">
-                <div class="disc-avatar">${c.author.charAt(0).toUpperCase()}</div>
-                <div class="disc-body">
-                  <div class="disc-meta"><strong>${c.author}</strong> <span>${timeAgo(c.date)}</span></div>
-                  ${c.replyTo ? `<div class="disc-reply-quote">↩ <strong>${c.replyTo.author}:</strong> ${c.replyTo.text}</div>` : ''}
-                  <div class="disc-text">${c.text}</div>
-                  <div class="disc-actions">
-                    <button class="disc-like" onclick="Discussion.likeAndUpdate('${concertId}', ${i}, this)">👍 ${c.likes || 0}</button>
-                    ${!isPastConcert ? `<button class="disc-reply-btn" onclick="Discussion.setReply('${concertId}', ${i})">↩ Reply</button>` : ''}
-                  </div>
-                </div>
-              </div>`).join('')
-            : `<div class="disc-empty">${isPastConcert ? 'Belum ada diskusi untuk konser ini.' : 'Jadilah yang pertama berkomentar! 💬'}</div>`
-          }
+          <div class="disc-empty" style="opacity:0.5">Memuat komentar...</div>
         </div>
       </div>`;
   }
 
+  function renderCommentList(comments, concertId, isPastConcert) {
+    if (!comments.length) return `<div class="disc-empty">${isPastConcert ? 'Belum ada diskusi.' : 'Jadilah yang pertama berkomentar! 💬'}</div>`;
+    return comments.map((c, i) => `
+      <div class="disc-item">
+        <div class="disc-avatar">${c.author.charAt(0).toUpperCase()}</div>
+        <div class="disc-body">
+          <div class="disc-meta"><strong>${c.author}</strong> <span>${timeAgo(c.date)}</span></div>
+          ${c.replyTo ? `<div class="disc-reply-quote">↩ <strong>${c.replyTo.author}:</strong> ${c.replyTo.text}</div>` : ''}
+          <div class="disc-text">${c.text}</div>
+          <div class="disc-actions">
+            <button class="disc-like" onclick="Discussion.likeAndUpdate('${concertId}', ${c.id || i}, this)">👍 ${c.likes || 0}</button>
+            ${!isPastConcert ? `<button class="disc-reply-btn" onclick="Discussion.setReply('${concertId}', ${i})">↩ Reply</button>` : ''}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
   function setReply(concertId, idx) {
-    const comments = getFor(concertId);
-    const c = comments[idx];
-    if (!c) return;
-    // Simpan info reply di form
+    // Ambil dari DOM karena sudah di-render async
+    const items   = document.querySelectorAll(`#disclist_${concertId} .disc-item`);
+    const item    = items[idx];
+    if (!item) return;
+    const author  = item.querySelector('.disc-meta strong')?.textContent || 'Anonim';
+    const text    = item.querySelector('.disc-text')?.textContent || '';
     const form    = document.querySelector(`#disc_${concertId} .disc-form`);
     const preview = document.getElementById(`discReplyPreview_${concertId}`);
-    const textarea = form?.querySelector('.disc-textarea');
     if (!form || !preview) return;
-    form.dataset.replyAuthor = c.author;
-    form.dataset.replyText   = c.text.slice(0, 60);
-    preview.style.display = 'flex';
+    form.dataset.replyAuthor = author;
+    form.dataset.replyText   = text.slice(0, 60);
+    preview.style.display    = 'flex';
     preview.innerHTML = `
-      <span class="disc-reply-to">↩ Membalas <strong>${c.author}</strong>: ${c.text.slice(0,50)}${c.text.length > 50 ? '...' : ''}</span>
+      <span class="disc-reply-to">↩ Membalas <strong>${author}</strong>: ${text.slice(0,50)}${text.length > 50 ? '...' : ''}</span>
       <button class="disc-reply-cancel" onclick="Discussion.cancelReply('${concertId}')">✕</button>`;
-    textarea?.focus();
+    form.querySelector('.disc-textarea')?.focus();
   }
 
   function cancelReply(concertId) {
@@ -352,60 +429,54 @@ const Discussion = (() => {
     if (preview) preview.style.display = 'none';
   }
 
-  function handleSubmit(e, concertId) {
+  async function handleSubmit(e, concertId) {
     e.preventDefault();
-    const form   = e.target;
-    const author = form.querySelector('.disc-name')?.value || 'Anonim';
-    const text   = form.querySelector('.disc-textarea')?.value || '';
+    const form    = e.target;
+    const author  = form.querySelector('.disc-name')?.value || 'Anonim';
+    const text    = form.querySelector('.disc-textarea')?.value || '';
     const replyTo = form.dataset.replyAuthor
       ? { author: form.dataset.replyAuthor, text: form.dataset.replyText }
       : null;
-    const result = add(concertId, { author, text, replyTo });
+    const result  = await add(concertId, { author, text, replyTo });
     if (!result.ok) { showToast('⚠️ ' + result.msg, 'error'); return; }
     const section = document.getElementById(`disc_${concertId}`);
     if (section) section.outerHTML = render(concertId);
     showToast('💬 Komentar berhasil dikirim!', 'success', 2000);
   }
 
-  function likeAndUpdate(concertId, idx, btn) {
-    like(concertId, idx);
-    const all = getFor(concertId);
-    if (btn) { btn.textContent = `👍 ${all[idx]?.likes || 0}`; btn.disabled = true; }
+  async function likeAndUpdate(concertId, commentId, btn) {
+    await like(concertId, commentId);
+    if (btn) {
+      const cur = parseInt(btn.textContent.replace('👍 ','')) || 0;
+      btn.textContent = `👍 ${cur + 1}`;
+      btn.disabled    = true;
+    }
   }
 
-  return { render, handleSubmit, likeAndUpdate, setReply, cancelReply, getFor };
+  return { render, handleSubmit, likeAndUpdate, setReply, cancelReply, getFor: lsGetFor };
 })();
 window.Discussion = Discussion;
 
 
 
 /* ================================================================
-   10. USER-GENERATED CONTENT — foto setelah konser (file upload)
+   10. USER-GENERATED CONTENT — foto setelah konser
+   Supabase Storage primary, localStorage fallback
    ================================================================ */
 const UGC = (() => {
-  const KEY      = 'cid_ugc';
-  const MAX_SIZE = 2 * 1024 * 1024; // 2 MB max per foto
-  const MAX_DIM  = 1200;            // resize jika > 1200px
+  const LS_KEY  = 'cid_ugc';
+  const BUCKET  = 'fan-photos';
+  const MAX_SIZE = 2 * 1024 * 1024;
+  const MAX_DIM  = 1200;
 
-  function getAll() {
-    try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; }
-  }
-  function saveAll(d) {
-    try { localStorage.setItem(KEY, JSON.stringify(d)); return true; }
-    catch (e) {
-      // localStorage penuh — hapus foto paling lama
-      showToast('⚠️ Storage penuh, foto lama dihapus otomatis.', 'error', 4000);
-      return false;
-    }
-  }
-  function getFor(id) { return getAll()[id] || []; }
+  function lsGetAll() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } }
+  function lsGetFor(id) { return lsGetAll()[id] || []; }
 
-  /* Resize & compress image ke canvas → base64 JPEG */
+  /* Resize & compress */
   function processFile(file) {
     return new Promise((resolve, reject) => {
       if (!file.type.startsWith('image/')) return reject('Hanya file gambar yang diizinkan.');
       if (file.size > MAX_SIZE) return reject('Ukuran file maks 2 MB.');
-
       const reader = new FileReader();
       reader.onerror = () => reject('Gagal membaca file.');
       reader.onload = (e) => {
@@ -422,7 +493,7 @@ const UGC = (() => {
           canvas.width  = width;
           canvas.height = height;
           canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.82));
+          canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.82);
         };
         img.src = e.target.result;
       };
@@ -430,19 +501,35 @@ const UGC = (() => {
     });
   }
 
-  function addPhoto(concertId, { caption, dataUrl, author }) {
-    if (!dataUrl) return { ok: false, msg: 'Data foto tidak valid.' };
-    const all = getAll();
-    if (!all[concertId]) all[concertId] = [];
-    if (all[concertId].length >= 20) return { ok: false, msg: 'Maksimal 20 foto per konser.' };
-    all[concertId].unshift({
-      url: dataUrl,
-      caption: (caption || '').trim().replace(/</g, '&lt;').slice(0, 100),
-      author:  (author  || 'Anonim').trim().slice(0, 30),
-      date: new Date().toISOString(),
+  /* ── Fetch foto dari Supabase ── */
+  async function fetchPhotos(concertId) {
+    try {
+      const rows = await DB.select('fan_photos',
+        `concert_id=eq.${encodeURIComponent(concertId)}&order=created_at.desc&limit=20`);
+      return rows.map(r => ({
+        url:     r.public_url,
+        caption: r.caption || '',
+        author:  r.author  || 'Anonymous',
+        date:    r.created_at,
+      }));
+    } catch {
+      return lsGetFor(concertId);
+    }
+  }
+
+  /* ── Upload ke Supabase Storage + insert row ── */
+  async function uploadPhoto(concertId, { blob, caption, author }) {
+    const path      = `${concertId}/${Date.now()}_${getDeviceUID()}.jpg`;
+    const publicUrl = await Storage.upload(BUCKET, path, blob);
+    await DB.insert('fan_photos', {
+      concert_id:   concertId,
+      device_uid:   getDeviceUID(),
+      storage_path: path,
+      public_url:   publicUrl,
+      caption:      (caption || '').trim().slice(0, 100),
+      author:       (author  || 'Anonymous').trim().slice(0, 30),
     });
-    saveAll(all);
-    return { ok: true };
+    return publicUrl;
   }
 
   function renderGrid(photos) {
@@ -458,13 +545,22 @@ const UGC = (() => {
   function render(concertId) {
     const concert = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === concertId) : null;
     const past    = concert && concert.rawDate < (typeof TODAY !== 'undefined' ? TODAY : new Date());
-    const photos  = getFor(concertId);
+
+    // Async load foto
+    setTimeout(async () => {
+      const gridEl = document.getElementById(`ugcgrid_${concertId}`);
+      if (!gridEl) return;
+      const photos = await fetchPhotos(concertId);
+      gridEl.innerHTML = renderGrid(photos);
+      const countEl = document.querySelector(`#ugc_${concertId} .ugc-count`);
+      if (countEl && photos.length) countEl.textContent = `${photos.length} foto`;
+    }, 0);
 
     return `
       <div class="ugc-section" id="ugc_${concertId}">
         <div class="ugc-header">
           <h4>📸 Foto dari Fans</h4>
-          ${photos.length ? `<span class="ugc-count">${photos.length} foto</span>` : ''}
+          <span class="ugc-count"></span>
         </div>
         ${past ? `
           <div class="ugc-form" id="ugcform_${concertId}">
@@ -482,7 +578,7 @@ const UGC = (() => {
                 <input class="ugc-caption-input" id="ugccaption_${concertId}" type="text"
                   placeholder="Caption foto (opsional)" maxlength="100" />
                 <input class="ugc-author-input" id="ugcauthor_${concertId}" type="text"
-                  placeholder="Nama kamu (opsional, default: Anonymous)" maxlength="30" />
+                  placeholder="Nama kamu (opsional)" maxlength="30" />
                 <div class="ugc-preview-actions">
                   <button class="ugc-cancel" onclick="UGC.cancelPreview('${concertId}')">Batal</button>
                   <button class="ugc-submit" onclick="UGC.confirmUpload('${concertId}')">Upload Foto</button>
@@ -490,33 +586,27 @@ const UGC = (() => {
               </div>
             </div>
           </div>` : `<div class="ugc-not-yet">📸 Foto dapat ditambahkan setelah konser berlangsung.</div>`}
-        <div id="ugcgrid_${concertId}">${renderGrid(photos)}</div>
+        <div id="ugcgrid_${concertId}"><div class="ugc-empty" style="opacity:0.5">Memuat foto...</div></div>
       </div>`;
   }
 
-  // Saat user pilih file — tampilkan preview dulu
   function handleFileChange(e, concertId) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) { showToast('⚠️ Hanya file gambar yang diizinkan.', 'error'); return; }
-    if (file.size > MAX_SIZE) { showToast('⚠️ Ukuran file maks 2 MB.', 'error'); return; }
-
+    if (!file.type.startsWith('image/')) { showToast('⚠️ Hanya file gambar.', 'error'); return; }
+    if (file.size > MAX_SIZE)            { showToast('⚠️ Ukuran file maks 2 MB.', 'error'); return; }
     const reader = new FileReader();
     reader.onload = (ev) => {
       const previewWrap = document.getElementById(`ugcpreview_${concertId}`);
       const previewImg  = document.getElementById(`ugcpreviewimg_${concertId}`);
       if (previewWrap && previewImg) {
-        previewImg.src = ev.target.result;
+        previewImg.src            = ev.target.result;
         previewWrap.style.display = 'flex';
       }
-      // Simpan dataURL sementara di dataset
-      const label = document.querySelector(`#ugcform_${concertId} .ugc-file-label`);
-      if (label) label.dataset.pending = ev.target.result;
     };
     reader.readAsDataURL(file);
   }
 
-  // Batalkan preview
   function cancelPreview(concertId) {
     const previewWrap = document.getElementById(`ugcpreview_${concertId}`);
     const fileInput   = document.getElementById(`ugcfile_${concertId}`);
@@ -524,36 +614,29 @@ const UGC = (() => {
     if (fileInput)   fileInput.value = '';
   }
 
-  // Konfirmasi upload — compress lalu simpan
   async function confirmUpload(concertId) {
     const fileInput = document.getElementById(`ugcfile_${concertId}`);
     const file      = fileInput?.files?.[0];
     const caption   = document.getElementById(`ugccaption_${concertId}`)?.value?.trim() || '';
-    const author    = document.getElementById(`ugcauthor_${concertId}`)?.value?.trim()  || '';
-
-    if (!file)    { showToast('⚠️ Pilih foto terlebih dahulu.', 'error'); return; }
-    // Nama kosong → Anonymous
-    const finalAuthor = author || 'Anonymous';
+    const author    = document.getElementById(`ugcauthor_${concertId}`)?.value?.trim() || 'Anonymous';
+    if (!file) { showToast('⚠️ Pilih foto terlebih dahulu.', 'error'); return; }
 
     const btn = document.querySelector(`#ugc_${concertId} .ugc-submit`);
-    if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Mengupload...'; }
 
     try {
-      const dataUrl = await processFile(file);
-      const result  = addPhoto(concertId, { dataUrl, caption, author: finalAuthor });
-      if (!result.ok) { showToast('⚠️ ' + result.msg, 'error'); return; }
-
-      // Re-render section
+      const blob = await processFile(file);
+      await uploadPhoto(concertId, { blob, caption, author });
       const section = document.getElementById(`ugc_${concertId}`);
       if (section) section.outerHTML = render(concertId);
       showToast('📸 Foto berhasil ditambahkan!', 'success');
     } catch (err) {
-      showToast('⚠️ ' + (typeof err === 'string' ? err : 'Gagal memproses foto.'), 'error');
+      showToast('⚠️ ' + (typeof err === 'string' ? err : 'Gagal upload foto.'), 'error');
       if (btn) { btn.disabled = false; btn.textContent = 'Upload Foto'; }
     }
   }
 
-  return { render, handleFileChange, cancelPreview, confirmUpload, getFor };
+  return { render, handleFileChange, cancelPreview, confirmUpload, getFor: lsGetFor };
 })();
 window.UGC = UGC;
 
