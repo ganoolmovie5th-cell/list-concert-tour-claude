@@ -53,11 +53,17 @@ Website jadwal konser internasional di Indonesia 2025–2027.
 
 ### Storage
 - Bucket: `fan-photos` (Public)
-- Upload: `Storage.upload(bucket, path, blob)`
+- Upload: `Storage.upload(bucket, path, blob)` — wajib set `Content-Type` pada blob
+- Sudah dihandle di `supabase.js` — ambil `file.type || 'image/jpeg'`
 
 ### Strategi
-- **Supabase = primary** — sync antar semua device & platform
+- **Supabase = primary** — sync antar semua device & platform (web & mobile)
 - **localStorage = fallback** — tetap berfungsi jika offline/error
+
+### Catatan Teknis Supabase
+- `Storage.upload` pakai `fetch` langsung (bukan `_fetch`) karena butuh `Content-Type` custom
+- `_fetch` (REST API) selalu set `Content-Type: application/json`
+- Going/Interested past konser: fetch Supabase async, fallback ke dummy jika count = 0
 
 ---
 
@@ -75,7 +81,8 @@ Website jadwal konser internasional di Indonesia 2025–2027.
 - Service ID: `service_lq3pvsq` | Template ID: `template_w8grsoa`
 - Foto dikirim sebagai field **`photo_data`** (base64 murni, tanpa prefix)
 - Field **`has_photo`**: `'ya'` atau `'tidak'`
-- Template EmailJS (sudah di-save & berfungsi):
+- **Template EmailJS sudah di-save dan berfungsi dengan benar**
+- Template bagian foto:
   ```html
   {{#if has_photo}}
   <img src="data:image/jpeg;base64,{{photo_data}}" style="max-width:500px;" />
@@ -106,7 +113,7 @@ Website jadwal konser internasional di Indonesia 2025–2027.
 ## Keputusan Desain Penting
 
 ### uid per posting (TicketMarket & GroupBuying)
-- `post_uid` = `genPostUID()` — unik setiap post baru (tidak sama antar post)
+- `post_uid` = `genPostUID()` — unik setiap post baru
 - `owner_uid` = `getDeviceUID()` — device UID persistent, untuk cek kepemilikan
 - Hapus/edit hanya bisa oleh pemilik: `p.ownerUid === getDeviceUID()`
 
@@ -128,6 +135,13 @@ Website jadwal konser internasional di Indonesia 2025–2027.
 - `frame-src`: google.com, maps.google.com, open.spotify.com
 - `connect-src`: api.emailjs.com, api.setlist.fm, crtqxgsruywurdlcsjfp.supabase.co
 - `form-action`: self (Mailchimp via serverless)
+
+---
+
+## Mobile App
+- Belum ada detail stack mobile — perlu konfirmasi dari user
+- Supabase URL & key sama untuk web dan mobile
+- Data sync otomatis karena semua pakai Supabase sebagai primary storage
 
 ---
 

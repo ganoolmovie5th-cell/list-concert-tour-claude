@@ -22,12 +22,12 @@
 | 🗓️ Google Calendar | Tambah konser langsung ke Google Calendar |
 | 🗺️ Venue Maps | Embed Google Maps untuk setiap venue |
 | 🎵 Spotify Preview | Preview musik artis langsung di modal detail |
-| 🎟️ Going / Interested | Vote kehadiran & ketertarikan per konser — **sync via Supabase** |
-| ⭐ Review & Rating | Sistem ulasan & rating — **sync via Supabase** |
-| 💬 Diskusi | Komentar publik per konser — **sync via Supabase** |
-| 🛒 Forum Jual Beli Tiket | Listing jual/cari tiket antar fans — **sync via Supabase** |
-| 🤝 Cari Teman Nonton | Posting cari teman nonton — **sync via Supabase** |
-| 📸 Foto dari Fans | Upload foto setelah konser ke Supabase Storage — **sync via Supabase** |
+| 🎟️ Going / Interested | Vote kehadiran & ketertarikan — **sync Supabase**, past konser tampil angka real |
+| ⭐ Review & Rating | Sistem ulasan & rating — **sync Supabase** |
+| 💬 Diskusi | Komentar publik per konser — **sync Supabase** |
+| 🛒 Forum Jual Beli Tiket | Listing jual/cari tiket antar fans — **sync Supabase** |
+| 🤝 Cari Teman Nonton | Posting cari teman nonton — **sync Supabase** |
+| 📸 Foto dari Fans | Upload foto ke Supabase Storage — **sync Supabase** |
 | 📋 Setlist.fm | Lihat setlist konser sebelumnya via Setlist.fm API |
 | 📰 Newsletter | Daftar email untuk update konser terbaru (via Mailchimp) |
 | 📬 Kritik & Saran | Form feedback dengan lampiran foto (via EmailJS) |
@@ -43,7 +43,7 @@ list-concert-tour-claude/
 ├── index.html              # Halaman utama
 ├── app.js                  # Data konser & logika utama
 ├── style.css               # Styling (dark/light mode, responsive)
-├── supabase.js             # Supabase client (DB helper + Storage + getDeviceUID)
+├── supabase.js             # Supabase client (DB + Storage + getDeviceUID)
 ├── reviews.js              # Review & Rating — Supabase primary
 ├── features.js             # Going/Interested, Diskusi, Foto Fans — Supabase primary
 ├── features2.js            # Calendar View, Advanced Search, Harga Alert, Spotify
@@ -83,12 +83,12 @@ Buka `http://localhost:8080`.
 **URL:** `https://crtqxgsruywurdlcsjfp.supabase.co`
 
 ### 1. Jalankan SQL Schema
-Buka **[SQL Editor](https://supabase.com/dashboard/project/crtqxgsruywurdlcsjfp/sql)** → paste isi `supabase_schema.sql` → **Run**
+**[SQL Editor](https://supabase.com/dashboard/project/crtqxgsruywurdlcsjfp/sql)** → paste isi `supabase_schema.sql` → **Run**
 
 ### 2. Buat Storage Bucket
 **[Storage](https://supabase.com/dashboard/project/crtqxgsruywurdlcsjfp/storage)** → New bucket → nama: `fan-photos` → centang **Public** → Create
 
-### Tabel yang dibuat
+### Tabel
 
 | Tabel | Fungsi |
 |---|---|
@@ -100,8 +100,12 @@ Buka **[SQL Editor](https://supabase.com/dashboard/project/crtqxgsruywurdlcsjfp/
 | `fan_photos` | Foto dari fans (URL Supabase Storage) |
 
 ### Strategi Data
-- **Supabase = primary** → data sync antar semua device & platform
-- **localStorage = fallback** → tetap berfungsi jika koneksi gagal
+- **Supabase = primary** — sync antar semua device & platform (web & mobile)
+- **localStorage = fallback** — tetap berfungsi jika offline/koneksi gagal
+
+### Catatan Teknis
+- Upload foto wajib set `Content-Type` header (`image/jpeg` dst) — sudah dihandle di `supabase.js`
+- Going/Interested past konser: tampil angka real dari Supabase, fallback ke angka dummy jika belum ada vote
 
 ---
 
@@ -126,11 +130,11 @@ Buka **[SQL Editor](https://supabase.com/dashboard/project/crtqxgsruywurdlcsjfp/
 
 ## 📬 Setup EmailJS (Kritik & Saran)
 
-- Service ID: `service_lq3pvsq`
-- Template ID: `template_w8grsoa`
-- Foto dikirim sebagai `photo_data` (base64 murni)
+- Service ID: `service_lq3pvsq` | Template ID: `template_w8grsoa`
+- Foto dikirim sebagai field **`photo_data`** (base64 murni, tanpa prefix `data:image/...`)
+- Field **`has_photo`**: `'ya'` atau `'tidak'`
 
-Template EmailJS bagian foto:
+Template EmailJS bagian foto (sudah di-save & berfungsi):
 ```html
 {{#if has_photo}}
 <img src="data:image/jpeg;base64,{{photo_data}}"
