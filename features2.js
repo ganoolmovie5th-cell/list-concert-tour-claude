@@ -398,7 +398,7 @@ const AdvancedSearch = (() => {
     }
   }
 
-  return { toggle, onSlider, onMonth, onCity, onStatus, apply, reset };
+  return { toggle, onSlider, onMonth, onCity, onStatus, apply, reset, setVisible: (v) => { visible = v; } };
 })();
 window.AdvancedSearch = AdvancedSearch;
 
@@ -467,7 +467,7 @@ const HargaAlert = (() => {
                 <span class="ha-match">${matches.length} konser cocok</span>
               </div>
               <div class="ha-item-right">
-                ${matches.length ? `<button class="ha-see" onclick="AdvancedSearch.onSlider(${b});AdvancedSearch.apply();HargaAlert.closePanel()">Lihat →</button>` : ''}
+                ${matches.length ? `<button class="ha-see" onclick="AdvancedSearch.setVisible(true);AdvancedSearch.onSlider(${b});AdvancedSearch.apply();HargaAlert.closePanel()">Lihat →</button>` : ''}
                 <button class="ha-remove" onclick="HargaAlert.remove(${b})">✕</button>
               </div>
             </div>`;

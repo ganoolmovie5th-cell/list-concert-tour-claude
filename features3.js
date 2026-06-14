@@ -620,29 +620,52 @@ const GroupBuying = (() => {
     return 'Baru saja';
   }
 
-  function add(concertId, { name, seats, category, contact, note }) {
-    if (!name || !seats || !contact) return { ok: false, msg: 'Nama, jumlah tiket, dan kontak wajib diisi.' };
+  function add(concertId, { name, category, contact, note }) {
+    if (!name || !contact) return { ok: false, msg: 'Nama dan kontak wajib diisi.' };
     const all = getAll();
     if (!all[concertId]) all[concertId] = [];
     if (all[concertId].length >= 30) return { ok: false, msg: 'Maksimal 30 posting per konser.' };
     all[concertId].unshift({
-      uid: getUID(),
-      name: name.trim().slice(0,30).replace(/</g,'&lt;'),
-      seats: Math.min(parseInt(seats)||1, 10),
+      uid:      getUID(),
+      name:     name.trim().slice(0,30).replace(/</g,'&lt;'),
       category: (category||'TBA').trim().slice(0,30).replace(/</g,'&lt;'),
-      contact: contact.trim().slice(0,60).replace(/</g,'&lt;'),
-      note: (note||'').trim().slice(0,150).replace(/</g,'&lt;'),
-      date: new Date().toISOString(),
+      contact:  contact.trim().slice(0,60).replace(/</g,'&lt;'),
+      note:     (note||'').trim().slice(0,150).replace(/</g,'&lt;'),
+      date:     new Date().toISOString(),
     });
     saveAll(all);
     return { ok: true };
   }
 
   function buildContactHref(contact) {
+    if (!contact) return '#';
     const digits = contact.replace(/\D/g, '');
-    if (contact.startsWith('http')) return contact;
-    if (digits.length >= 8) return `https://wa.me/${digits}`;
-    return `https://instagram.com/${contact.replace('@','')}`;
+    if (contact.trim().startsWith('http')) return contact.trim();
+    if (digits.length >= 8) {
+      let num = digits;
+      if (num.startsWith('0')) num = '62' + num.slice(1);
+      else if (!num.startsWith('62')) num = '62' + num;
+      return `https://wa.me/${num}`;
+    }
+    return `https://instagram.com/${contact.replace('@','').trim()}`;
+  }
+
+  function buildContactDisplay(contact) {
+    if (!contact) return '';
+    const digits = contact.replace(/\D/g, '');
+    const isPhone = digits.length >= 8 && !contact.trim().startsWith('http');
+    const isIG    = contact.trim().startsWith('@') || (!isPhone && digits.length < 8);
+    if (isPhone) return `<a class="gb-contact-inline" href="${buildContactHref(contact)}" target="_blank" rel="noopener">📱 ${contact}</a>`;
+    if (isIG)    return `<a class="gb-contact-inline" href="https://instagram.com/${contact.replace('@','')}" target="_blank" rel="noopener">📷 ${contact}</a>`;
+    return `<a class="gb-contact-inline" href="${contact}" target="_blank" rel="noopener">🔗 ${contact}</a>`;
+  }
+
+  function formatRpDisplay(price) {
+    if (!price) return '';
+    const num = parseInt(price.replace(/\D/g, ''));
+    if (!num) return price;
+    if (num >= 1000000) return `Rp ${(num/1000000).toFixed(1).replace('.0','')} jt`;
+    return `Rp ${num.toLocaleString('id-ID')}`;
   }
 
   function render(concertId) {
@@ -659,11 +682,11 @@ const GroupBuying = (() => {
               <div class="gb-avatar">${p.name.charAt(0).toUpperCase()}</div>
               <div class="gb-info">
                 <div class="gb-name">${p.name}</div>
-                <div class="gb-meta">${timeAgo(p.date)} · ${p.seats} tiket · ${p.category}</div>
+                <div class="gb-meta">${timeAgo(p.date)} · ${p.category}</div>
               </div>
-              <a class="gb-contact" href="${buildContactHref(p.contact)}" target="_blank" rel="noopener">Hubungi →</a>
             </div>
             ${p.note ? `<div class="gb-note">${p.note}</div>` : ''}
+            <div class="gb-contacts-row">${buildContactDisplay(p.contact)}</div>
           </div>`).join('')
       : `<div class="gb-empty">Belum ada yang cari teman nonton. Jadilah yang pertama! 🎉</div>`;
 
@@ -672,16 +695,13 @@ const GroupBuying = (() => {
       : `<form class="gb-form" onsubmit="GroupBuying.handleSubmit(event,'${concertId}')">
           <div class="gb-form-row">
             <input class="gb-input" name="name" type="text" placeholder="Nama kamu *" maxlength="30" required />
-            <input class="gb-input gb-input-sm" name="seats" type="number" placeholder="Jml tiket *" min="1" max="10" required />
+            <input class="gb-input" name="category" type="text" placeholder="Kategori tiket (CAT 1, VIP...)" maxlength="30" />
           </div>
           <div class="gb-form-row">
-            <input class="gb-input" name="category" type="text" placeholder="Kategori (CAT 1, VIP...)" maxlength="30" />
-            <input class="gb-input" name="contact" type="text" placeholder="No WA / @instagram *" maxlength="60" required />
+            <input class="gb-input" name="contact" type="text" placeholder="No WA atau @instagram *" maxlength="60" required />
+            <input class="gb-input" name="note" type="text" placeholder="Catatan (opsional)" maxlength="150" />
           </div>
-          <div class="gb-form-row">
-            <input class="gb-input" name="note" type="text" placeholder="Catatan tambahan (opsional)" maxlength="150" />
-            <button class="gb-submit" type="submit">Post</button>
-          </div>
+          <button class="gb-submit" type="submit">Post</button>
         </form>`;
 
     return `
@@ -701,7 +721,6 @@ const GroupBuying = (() => {
     const f = e.target;
     const result = add(concertId, {
       name:     f.querySelector('[name="name"]')?.value,
-      seats:    f.querySelector('[name="seats"]')?.value,
       category: f.querySelector('[name="category"]')?.value,
       contact:  f.querySelector('[name="contact"]')?.value,
       note:     f.querySelector('[name="note"]')?.value,
@@ -882,10 +901,34 @@ const TicketMarket = (() => {
   }
 
   function buildContactHref(contact) {
+    if (!contact) return '#';
     const digits = contact.replace(/\D/g, '');
-    if (contact.startsWith('http')) return contact;
-    if (digits.length >= 8) return `https://wa.me/${digits}`;
-    return `https://instagram.com/${contact.replace('@','')}`;
+    if (contact.trim().startsWith('http')) return contact.trim();
+    if (digits.length >= 8) {
+      let num = digits;
+      if (num.startsWith('0')) num = '62' + num.slice(1);
+      else if (!num.startsWith('62')) num = '62' + num;
+      return `https://wa.me/${num}`;
+    }
+    return `https://instagram.com/${contact.replace('@','').trim()}`;
+  }
+
+  function buildContactDisplay(contact) {
+    if (!contact) return '';
+    const digits = contact.replace(/\D/g, '');
+    const isPhone = digits.length >= 8 && !contact.trim().startsWith('http');
+    const isIG    = contact.trim().startsWith('@') || (!isPhone && digits.length < 8);
+    if (isPhone) return `<a class="gb-contact-inline" href="${buildContactHref(contact)}" target="_blank" rel="noopener">📱 ${contact}</a>`;
+    if (isIG)    return `<a class="gb-contact-inline" href="https://instagram.com/${contact.replace('@','')}" target="_blank" rel="noopener">📷 ${contact}</a>`;
+    return `<a class="gb-contact-inline" href="${contact}" target="_blank" rel="noopener">🔗 ${contact}</a>`;
+  }
+
+  function formatRpDisplay(price) {
+    if (!price) return '';
+    const num = parseInt(price.replace(/\D/g, ''));
+    if (!num) return price;
+    if (num >= 1000000) return `Rp ${(num/1000000).toFixed(1).replace('.0','')} jt`;
+    return `Rp ${num.toLocaleString('id-ID')}`;
   }
 
   function render(concertId) {
@@ -901,19 +944,25 @@ const TicketMarket = (() => {
 
     function renderItems(items) {
       if (!items.length) return `<div class="tm-empty">Belum ada listing.</div>`;
-      return items.map(p => `
-        <div class="tm-item">
+      return items.map(p => {
+        const priceDisplay = formatRpDisplay(p.price);
+        const sold = p.sold;
+        return `
+        <div class="tm-item${sold ? ' tm-item-sold' : ''}">
           <div class="tm-item-top">
-            <span class="tm-type-badge tm-type-${p.type}">${p.type === 'jual' ? 'JUAL' : 'BELI'}</span>
+            <span class="tm-type-badge tm-type-${p.type}">${p.type === 'jual' ? 'JUAL' : 'BELI'}${sold ? ' ✓' : ''}</span>
             <div class="tm-info">
-              <span class="tm-name">${p.name}</span>
-              <span class="tm-meta">${p.category} · ${p.qty} tiket${p.price ? ` · ${p.price}` : ''}</span>
+              <span class="tm-name">${p.name}${sold ? ' <em style="color:#4ade80;font-size:0.75rem">(${p.type === "jual" ? "Terjual" : "Ditemukan"})</em>' : ''}</span>
+              <span class="tm-meta">${p.category} · ${p.qty} tiket${priceDisplay ? ` · <strong>${priceDisplay}</strong>` : ''}</span>
             </div>
-            <a class="gb-contact" href="${buildContactHref(p.contact)}" target="_blank" rel="noopener">Hubungi →</a>
           </div>
           ${p.note ? `<div class="gb-note">${p.note}</div>` : ''}
-          <div class="tm-time">${timeAgo(p.date)}</div>
-        </div>`).join('');
+          <div class="tm-item-bottom">
+            ${sold ? `<span class="tm-sold-label">${p.type === 'jual' ? '✅ Tiket Terjual' : '✅ Tiket Ditemukan'}</span>` : buildContactDisplay(p.contact)}
+            ${!sold && p.uid === getUID() ? `<button class="tm-mark-sold" onclick="TicketMarket.markSold('${concertId}','${p.uid}')">✓ ${p.type === 'jual' ? 'Tandai Terjual' : 'Tandai Ditemukan'}</button>` : ''}
+            <span class="tm-time">${timeAgo(p.date)}</span>
+          </div>
+        </div>`}).join('');
     }
 
     const formHtml = disabled
@@ -970,21 +1019,28 @@ const TicketMarket = (() => {
     document.querySelectorAll(`#tm_${concertId} .tm-tab`).forEach(b => b.classList.remove('active'));
     btnEl.classList.add('active');
     const list = document.getElementById(`tmlist_${concertId}`);
-    if (list) list.innerHTML = items.length
-      ? items.map(p => `
-          <div class="tm-item">
-            <div class="tm-item-top">
-              <span class="tm-type-badge tm-type-${p.type}">${p.type === 'jual' ? 'JUAL' : 'BELI'}</span>
-              <div class="tm-info">
-                <span class="tm-name">${p.name}</span>
-                <span class="tm-meta">${p.category} · ${p.qty} tiket${p.price ? ` · ${p.price}` : ''}</span>
-              </div>
-              <a class="gb-contact" href="${buildContactHref(p.contact)}" target="_blank" rel="noopener">Hubungi →</a>
+    if (!list) return;
+    if (!items.length) { list.innerHTML = `<div class="tm-empty">Belum ada listing.</div>`; return; }
+    list.innerHTML = items.map(p => {
+      const priceDisplay = formatRpDisplay(p.price);
+      const sold = p.sold;
+      return `
+        <div class="tm-item${sold ? ' tm-item-sold' : ''}">
+          <div class="tm-item-top">
+            <span class="tm-type-badge tm-type-${p.type}">${p.type === 'jual' ? 'JUAL' : 'BELI'}${sold ? ' ✓' : ''}</span>
+            <div class="tm-info">
+              <span class="tm-name">${p.name}</span>
+              <span class="tm-meta">${p.category} · ${p.qty} tiket${priceDisplay ? ` · <strong>${priceDisplay}</strong>` : ''}</span>
             </div>
-            ${p.note ? `<div class="gb-note">${p.note}</div>` : ''}
-            <div class="tm-time">${timeAgo(p.date)}</div>
-          </div>`).join('')
-      : `<div class="tm-empty">Belum ada listing.</div>`;
+          </div>
+          ${p.note ? `<div class="gb-note">${p.note}</div>` : ''}
+          <div class="tm-item-bottom">
+            ${sold ? `<span class="tm-sold-label">${p.type === 'jual' ? '✅ Terjual' : '✅ Ditemukan'}</span>` : buildContactDisplay(p.contact)}
+            ${!sold && p.uid === getUID() ? `<button class="tm-mark-sold" onclick="TicketMarket.markSold('${concertId}','${p.uid}')">✓ ${p.type === 'jual' ? 'Tandai Terjual' : 'Tandai Ditemukan'}</button>` : ''}
+            <span class="tm-time">${timeAgo(p.date)}</span>
+          </div>
+        </div>`;
+    }).join('');
   }
 
   function handleSubmit(e, concertId) {
@@ -1006,7 +1062,17 @@ const TicketMarket = (() => {
     showToast(type === 'jual' ? '🎫 Tiket berhasil di-listing!' : '🔍 Pencarian tiket berhasil diposting!', 'success', 2500);
   }
 
-  return { render, handleSubmit, switchTab };
+  function markSold(concertId, uid) {
+    const all = getAll();
+    const posts = all[concertId] || [];
+    const p = posts.find(x => x.uid === uid);
+    if (p) { p.sold = true; saveAll(all); }
+    const section = document.getElementById(`tm_${concertId}`);
+    if (section) section.outerHTML = render(concertId);
+    showToast('✅ Status diperbarui!', 'success', 2000);
+  }
+
+  return { render, handleSubmit, switchTab, markSold };
 })();
 window.TicketMarket = TicketMarket;
 
