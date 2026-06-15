@@ -1,0 +1,60 @@
+{
+  "name": "ConcertID — Jadwal Konser Internasional",
+  "short_name": "ConcertID",
+  "description": "Jadwal lengkap konser musisi internasional di Indonesia 2025–2027. Venue, tanggal, harga tiket, confirmed vs rumor.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#a855f7",
+  "orientation": "portrait-primary",
+  "lang": "id",
+  "scope": "/",
+  "categories": ["entertainment", "music"],
+  "icons": [
+    {
+      "src": "/favicon-16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "ConcertID — Halaman Utama"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Konser Confirmed",
+      "short_name": "Confirmed",
+      "description": "Lihat konser yang sudah dikonfirmasi",
+      "url": "/?filter=confirmed",
+      "icons": [{ "src": "/favicon-32.png", "sizes": "32x32" }]
+    },
+    {
+      "name": "K-Pop",
+      "short_name": "K-Pop",
+      "description": "Konser K-Pop",
+      "url": "/?filter=kpop",
+      "icons": [{ "src": "/favicon-32.png", "sizes": "32x32" }]
+    }
+  ]
+}

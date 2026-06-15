@@ -7,6 +7,13 @@
   <meta name="description" content="Jadwal lengkap konser musisi internasional di Indonesia 2025–2027. Venue, tanggal, harga tiket, confirmed vs rumor — terlengkap se-Indonesia." />
   <link rel="canonical" href="https://www.list-concert-tour.web.id" />
   <meta name="robots" content="index, follow" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ConcertID" />
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.list-concert-tour.web.id" />
@@ -502,6 +509,15 @@
         fbCard.innerHTML = FeedbackForm.render();
       }
     });
+
+    // Register Service Worker (PWA)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('[PWA] SW registered:', reg.scope))
+          .catch(err => console.warn('[PWA] SW failed:', err));
+      });
+    }
   </script>
 </body>
 </html>

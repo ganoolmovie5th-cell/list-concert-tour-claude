@@ -35,6 +35,7 @@
 | 📊 Analytics Dashboard | Dashboard admin untuk melihat engagement |
 | 🔄 Auto-monitor Harian | Scraper otomatis via GitHub Actions setiap hari pukul 01:00 WIB |
 | 🏷️ JSON-LD Schema | Structured data Event schema untuk semua konser (SEO Google Events) |
+| 📲 PWA | Progressive Web App — install di homescreen, offline support, cache assets |
 
 ---
 
