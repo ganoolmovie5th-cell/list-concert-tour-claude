@@ -20,6 +20,68 @@ Website jadwal konser internasional di Indonesia 2025–2027. Single-page app (S
 
 ---
 
+## Commit Convention (WAJIB setiap commit)
+
+**Setiap commit di repo ini HARUS menyertakan update:**
+
+1. **`README.md`** — update bagian yang relevan (fitur baru, perubahan konfigurasi, dll)
+2. **`.kiro/steering/project-context.md`** — update catatan teknis, keputusan desain, atau hal penting
+
+**Format commit message:**
+```
+<type>: <deskripsi singkat>
+
+Files: <file yang diubah selain README & steering>
+```
+
+**Type:**
+- `feat` — fitur baru
+- `fix` — bug fix
+- `perf` — performance
+- `a11y` — accessibility
+- `seo` — SEO
+- `sync` — sync data mobile
+- `chore` — maintenance
+- `docs` — hanya dokumentasi
+
+**Contoh commit yang BENAR:**
+```
+fix(a11y): tambah aria-label unik per konser, fix heading h4→h3
+
+Files: app.js, app.min.js, features.js, features.min.js, README.md, .kiro/steering/project-context.md
+```
+
+---
+
+## Auto-Sync ke Mobile (WAJIB saat ada perubahan di web)
+
+**Setiap kali ada perubahan berikut di web, langsung sync ke mobile dalam commit yang sama atau commit berikutnya:**
+
+| Perubahan di Web | Yang Harus Disync ke Mobile | File Mobile |
+|---|---|---|
+| Tambah/edit/hapus konser di `app.js` | CONCERTS array | `src/data/concerts.ts` |
+| Tambah/edit gambar di `ARTIST_IMAGES` | ARTIST_IMAGES | `src/data/concerts.ts` |
+| Edit social media handles | ARTIST_SOCIALS | `src/data/concerts.ts` |
+| Edit/tambah setlist | SETLISTS | `src/data/concerts.ts` |
+| Edit Spotify artist IDs | SPOTIFY_ARTISTS | `src/data/concerts.ts` |
+| Tambah/edit venue di `index.html` | Venue list | `src/screens/MoreScreen.tsx` |
+| Update Supabase URL/key | Supabase config | `src/lib/supabase.ts` |
+| Update fallback localStorage keys | AsyncStorage keys | `src/hooks/useSocialFeatures.ts` |
+| Update copyright year | Footer text | `src/constants/strings.ts` |
+| Fix bug di Supabase query | Query identik | hook yang relevan di `src/hooks/` |
+
+**Cara sync ke mobile:**
+```bash
+# Setelah commit web, langsung update mobile
+cd /projects/sandbox/list-concert-tour-mobile-claude
+# Edit file yang perlu disync
+git add <file> README.md .kiro/steering/project-context.md
+git commit -m "sync: <deskripsi perubahan dari web>"
+# Push keduanya
+```
+
+---
+
 ## Source of Truth
 
 - **`app.js`** = source of truth data konser (CONCERTS array, 37 entries)
