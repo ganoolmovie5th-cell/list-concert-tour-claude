@@ -1654,9 +1654,69 @@ function applyUTMToLinks() {
 }
 
 /* ============================================
+   SEO — JSON-LD Event Schema Injection
+   ============================================ */
+function injectEventSchemas() {
+  // Create schema array untuk semua concerts
+  const schemas = CONCERTS.map(c => ({
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    'name': c.artist + ' — ' + c.tour,
+    'description': c.description,
+    'image': c.id && ARTIST_IMAGES[c.id] ? 'https://www.list-concert-tour.web.id' + ARTIST_IMAGES[c.id] : 'https://www.list-concert-tour.web.id/og-image.png',
+    'startDate': c.rawDate.toISOString().split('T')[0],
+    'endDate': c.dates.length > 1 
+      ? new Date(c.rawDate.getTime() + (c.dates.length - 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      : c.rawDate.toISOString().split('T')[0],
+    'eventStatus': isPast(c) ? 'EventEnded' : c.confirmStatus === 'rumor' ? 'EventScheduled' : 'EventScheduled',
+    'eventAttendanceMode': 'OfflineEventAttendanceMode',
+    'location': {
+      '@type': 'Place',
+      'name': c.venue,
+      'address': {
+        '@type': 'PostalAddress',
+        'addressLocality': c.city,
+        'addressCountry': 'ID'
+      }
+    },
+    'organizer': {
+      '@type': 'Organization',
+      'name': c.promotor || 'Unknown Promoter'
+    },
+    'offers': c.priceMin > 0 ? [{
+      '@type': 'Offer',
+      'url': c.ticketUrl,
+      'price': c.priceMin,
+      'priceCurrency': 'IDR',
+      'availability': isPast(c) ? 'OutOfStock' : 'InStock',
+      'validFrom': new Date().toISOString()
+    }] : [],
+    'url': 'https://www.list-concert-tour.web.id?concert=' + c.id,
+    'performer': c.lineup ? c.lineup.map(a => ({
+      '@type': 'Person',
+      'name': a
+    })) : []
+  }));
+
+  // Inject sebagai script tag
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.innerHTML = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    'name': 'ConcertID — Jadwal Konser Internasional di Indonesia',
+    'description': 'Jadwal lengkap konser musisi internasional di Indonesia 2025–2027',
+    'url': 'https://www.list-concert-tour.web.id',
+    'hasPart': schemas
+  });
+  document.head.appendChild(script);
+}
+
+/* ============================================
    INIT
    ============================================ */
 document.addEventListener('DOMContentLoaded', () => {
+  injectEventSchemas();
   updateStats();
   updateWishlistCount();
   renderCards(CONCERTS);
