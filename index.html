@@ -32,7 +32,7 @@
   <!-- Google Search Console Verification -->
   <meta name="google-site-verification" content="vYW6K-GibQ8TI8DyuJCQshHWd_kpe1PBIJms-KrrDHo" />
 
-  <!-- Google Analytics GA4 -->
+  <!-- Google Analytics GA4 — async, non-blocking -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DFKHWJ3TJZ"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -41,16 +41,21 @@
     gtag('config', 'G-DFKHWJ3TJZ');
   </script>
 
+  <!-- Preconnect untuk resource kritis -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-  <!-- EmailJS untuk Kritik & Saran -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <!-- Font hanya Inter weight yang dipakai, Syne hanya 2 weight -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <!-- CSS utama — minified -->
+  <link rel="stylesheet" href="style.min.css" />
+  <!-- EmailJS — defer karena tidak kritis untuk render -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
-    (function() {
-      emailjs.init({ publicKey: 'Ph1AuCpm4gbC6zMw6' });
-    })();
+    window.addEventListener('load', function() {
+      if (typeof emailjs !== 'undefined') {
+        emailjs.init({ publicKey: 'Ph1AuCpm4gbC6zMw6' });
+      }
+    });
   </script>
 </head>
 <body>
@@ -72,7 +77,7 @@
   <nav class="navbar" id="navbar">
     <div class="container nav-inner">
       <a href="/" class="logo">
-        <img src="logo.svg" alt="ConcertID" class="logo-img" />
+        <img src="logo.svg" alt="ConcertID" class="logo-img" width="120" height="30" />
       </a>
       <div class="nav-links">
         <a href="#concerts">Konser</a>
@@ -368,7 +373,7 @@
     <div class="container footer-inner">
       <div class="footer-logo">
         <a href="/" class="logo">
-          <img src="logo.svg" alt="ConcertID" class="logo-img logo-img-footer" />
+          <img src="logo.svg" alt="ConcertID" class="logo-img logo-img-footer" width="112" height="28" />
         </a>
         <p>Jadwal konser internasional terlengkap di Indonesia</p>
       </div>
@@ -449,14 +454,14 @@
   <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="supabase.js"></script>
-  <script src="app.js"></script>
-  <script src="reviews.js"></script>
-  <script src="features.js"></script>
-  <script src="features2.js"></script>
-  <script src="features3.js"></script>
-  <script src="features4.js"></script>
-  <script>
+  <script defer src="supabase.min.js"></script>
+  <script defer src="app.min.js"></script>
+  <script defer src="reviews.min.js"></script>
+  <script defer src="features.min.js"></script>
+  <script defer src="features2.min.js"></script>
+  <script defer src="features3.min.js"></script>
+  <script defer src="features4.min.js"></script>
+  <script defer>
     // Inisialisasi Kritik & Saran setelah DOM ready
     document.addEventListener('DOMContentLoaded', () => {
       const fbCard = document.getElementById('fbCard');
