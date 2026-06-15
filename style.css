@@ -2,7 +2,7 @@
 :root {
   --bg: #09090b; --bg2: #111114; --bg3: #18181c;
   --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.15);
-  --text: #f4f4f5; --text-muted: #8a8a95; --text-sub: #b4b4bc;
+  --text: #f4f4f5; --text-muted: #9ca3af; --text-sub: #c4c4cc;
   --accent: #a855f7; --accent2: #ec4899; --accent3: #3b82f6;
   --green: #22c55e; --rumor: #f59e0b;
   --radius: 16px; --radius-sm: 10px;
@@ -63,7 +63,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 .filter-section { padding: 16px 0 0; position: sticky; top: var(--navbar-h); z-index: 90; background: var(--bg); border-bottom: 1px solid var(--border); }
 .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 16px; scrollbar-width: none; }
 .filter-bar::-webkit-scrollbar { display: none; }
-.filter-btn { flex-shrink: 0; padding: 8px 20px; border-radius: 99px; border: 1px solid var(--border); background: transparent; color: var(--text-sub); font-size: 0.85rem; font-weight: 500; font-family: var(--font); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.filter-btn { flex-shrink: 0; padding: 8px 20px; border-radius: 99px; border: 1px solid var(--border); background: transparent; color: var(--text); font-size: 0.85rem; font-weight: 500; font-family: var(--font); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
 .filter-btn:hover { border-color: var(--border-hover); color: var(--text); }
 .filter-btn.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
 .filter-confirmed.active { background: rgba(34,197,94,0.2); border-color: #22c55e; color: #4ade80; }
@@ -81,8 +81,12 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 /* CONCERT CARD */
 .concert-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: transform 0.2s,border-color 0.2s,box-shadow 0.2s; will-change: transform; contain: layout style; }
 .concert-card:hover { transform: translateY(-4px); border-color: var(--border-hover); box-shadow: var(--shadow); }
-.concert-card.past { opacity: 0.6; }
-.concert-card.past:hover { opacity: 0.85; }
+.concert-card.past { background: var(--bg2); border-color: rgba(255,255,255,0.04); }
+.concert-card.past .card-artist,
+.concert-card.past .card-tour,
+.concert-card.past .meta-text,
+.concert-card.past .meta-text strong { color: #6b7280; }
+.concert-card.past:hover { border-color: rgba(255,255,255,0.08); }
 .concert-card.rumor-card { border-color: rgba(245,158,11,0.2); }
 .concert-card.rumor-card:hover { border-color: rgba(245,158,11,0.4); box-shadow: 0 8px 32px rgba(245,158,11,0.1); }
 .card-header { position: relative; height: 180px; overflow: hidden; background: var(--bg2); }
@@ -112,7 +116,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 .meta-text strong { color: var(--text); font-weight: 600; }
 .card-price { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.15); border-radius: var(--radius-sm); margin-bottom: 16px; }
 .card-price-rumor { background: rgba(245,158,11,0.08) !important; border-color: rgba(245,158,11,0.15) !important; }
-.price-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.price-label { font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
 .price-range { font-size: 0.9rem; font-weight: 700; color: #c084fc; }
 .card-price-rumor .price-range { color: #fbbf24; }
 .card-footer { display: flex; gap: 10px; }
@@ -281,14 +285,14 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 /* ── 4. HARGA VISUAL (progress bar) ── */
 .price-visual { margin-bottom: 14px; }
 .price-visual-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.price-visual-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.price-visual-label { font-size: 0.72rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
 .price-visual-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
 .badge-affordable { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
 .badge-premium { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
 .badge-luxury { background: rgba(234,179,8,0.15); color: #facc15; border: 1px solid rgba(234,179,8,0.3); }
 .price-bars { display: flex; flex-direction: column; gap: 4px; }
 .price-bar-row { display: flex; align-items: center; gap: 8px; }
-.price-bar-name { font-size: 0.7rem; color: var(--text-muted); width: 80px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.price-bar-name { font-size: 0.7rem; color: var(--text-sub); width: 80px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .price-bar-track { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
 .price-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #a855f7, #ec4899); transition: width 0.6s ease; }
 .price-bar-val { font-size: 0.68rem; font-weight: 700; color: #c084fc; width: 68px; flex-shrink: 0; text-align: right; }
