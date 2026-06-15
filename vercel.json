@@ -2,17 +2,8 @@
   "buildCommand": null,
   "outputDirectory": ".",
   "framework": null,
-  "cleanUrls": true,
+  "cleanUrls": false,
   "trailingSlash": false,
-  "routes": [
-    {
-      "src": "/images/(.+\\.(?:jpeg|jpg|png|gif|webp|svg|ico))",
-      "dest": "/images/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=86400, must-revalidate"
-      }
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -29,9 +20,9 @@
       ]
     },
     {
-      "source": "/index.html",
+      "source": "/images/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=86400" }
+        { "key": "Cache-Control", "value": "public, max-age=86400, must-revalidate" }
       ]
     }
   ]
