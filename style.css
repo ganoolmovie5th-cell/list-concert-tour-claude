@@ -117,8 +117,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 .card-price { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.15); border-radius: var(--radius-sm); margin-bottom: 16px; }
 .card-price-rumor { background: rgba(245,158,11,0.08) !important; border-color: rgba(245,158,11,0.15) !important; }
 .price-label { font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
-.price-range { font-size: 0.9rem; font-weight: 700; color: #c084fc; }
-.card-price-rumor .price-range { color: #fbbf24; }
+.price-range { font-size: 0.9rem; font-weight: 700; color: #d8b4fe; }
+.card-price-rumor .price-range { color: #fde68a; }
 .card-footer { display: flex; gap: 10px; }
 .btn { flex: 1; padding: 10px 16px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; font-family: var(--font); cursor: pointer; text-align: center; text-decoration: none; transition: all 0.2s; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .btn-primary { background: linear-gradient(135deg, #a855f7, #ec4899); color: white; }
@@ -265,8 +265,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 /* ── 1. COUNTDOWN TIMER ── */
 .countdown-wrap { display: flex; gap: 8px; justify-content: center; margin: 12px 0 4px; }
 .cd-box { background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.25); border-radius: 8px; padding: 6px 10px; text-align: center; min-width: 48px; }
-.cd-num { display: block; font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; color: #c084fc; line-height: 1; }
-.cd-label { display: block; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.cd-num { display: block; font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; color: #d8b4fe; line-height: 1; }
+.cd-label { display: block; font-size: 0.6rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
 .cd-sep { display: flex; align-items: center; color: rgba(168,85,247,0.4); font-size: 1.1rem; font-weight: 700; padding-bottom: 10px; }
 .countdown-past { font-size: 0.78rem; color: var(--text-muted); text-align: center; margin: 8px 0 4px; font-style: italic; }
 
@@ -287,7 +287,9 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 .price-visual-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .price-visual-label { font-size: 0.72rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
 .price-visual-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
-.badge-affordable { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+.badge-affordable { background: rgba(34,197,94,0.2); color: #86efac; border: 1px solid rgba(34,197,94,0.4); }
+.badge-premium { background: rgba(168,85,247,0.2); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.4); }
+.badge-luxury { background: rgba(234,179,8,0.2); color: #fde68a; border: 1px solid rgba(234,179,8,0.4); }
 .badge-premium { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
 .badge-luxury { background: rgba(234,179,8,0.15); color: #facc15; border: 1px solid rgba(234,179,8,0.3); }
 .price-bars { display: flex; flex-direction: column; gap: 4px; }
@@ -295,7 +297,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 .price-bar-name { font-size: 0.7rem; color: var(--text-sub); width: 80px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .price-bar-track { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
 .price-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #a855f7, #ec4899); transition: width 0.6s ease; }
-.price-bar-val { font-size: 0.68rem; font-weight: 700; color: #c084fc; width: 68px; flex-shrink: 0; text-align: right; }
+.price-bar-val { font-size: 0.68rem; font-weight: 700; color: #d8b4fe; width: 68px; flex-shrink: 0; text-align: right; }
 
 /* ── 5. SHARE PANEL ── */
 .share-panel { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg3); border-top: 1px solid var(--border); border-radius: 20px 20px 0 0; padding: 24px; z-index: 1000; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); max-width: 520px; margin: 0 auto; }
