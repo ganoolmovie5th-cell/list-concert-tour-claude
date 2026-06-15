@@ -609,6 +609,12 @@ const SpotifyIntegration = (() => {
     'fforever-jakarta-2026':         null,
     'perses-jakarta-2026':           null,
     'hammersonic-2026':              null,
+    'kard-jakarta-2026':             '4oLXCfbOUwHOPxiJGobWZu',
+    'the-sounds-project-2026':       null,
+    'babymonster-jakarta-2026':      '3kN4V6lLsOy2rFuPFiITfl',
+    'nancy-ajram-jakarta-2027':      '0zTHiLLhSKPPByLxZz6pJD',
+    'metallica-jakarta-rumor':       '2ye2Wgw4gimLv2eAKyk1NB',
+    'gnr-jakarta-rumor':             '3qm84nBOXUEQ2vnTfUTTFC',
   };
 
   function getSpotifyId(concertId) {

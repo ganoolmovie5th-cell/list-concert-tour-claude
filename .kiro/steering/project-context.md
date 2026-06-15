@@ -84,7 +84,7 @@ git commit -m "sync: <deskripsi perubahan dari web>"
 
 ## Source of Truth
 
-- **`app.js`** = source of truth data konser (CONCERTS array, 37 entries)
+- **`app.js`** = source of truth data konser (CONCERTS array, 40 entries per Juni 2026)
 - **Mobile `concerts.ts`** selalu sync dari `app.js` — jangan edit data konser di mobile secara manual
 - **Images** tersimpan di `/images/[id].jpeg` — dipakai langsung oleh web, mobile pakai URL `https://www.list-concert-tour.web.id/images/[id].jpeg`
 

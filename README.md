@@ -12,7 +12,7 @@
 
 | Fitur | Keterangan |
 |---|---|
-| 🗓️ Jadwal Lengkap | 37 konser 2025–2027: artis, tanggal, venue, jam, dan harga tiket |
+| 🗓️ Jadwal Lengkap | 40 konser 2025–2027: artis, tanggal, venue, jam, dan harga tiket |
 | ✅ / 🔮 Status | Label jelas **Confirmed** (resmi) vs **Rumor** (belum dikonfirmasi) |
 | 🔍 Search & Filter | Cari berdasarkan artis/venue/kota; filter genre, status, dan wishlist |
 | 🔍 Advanced Search | Filter harga (slider), bulan, kota/area, dan status konser |
