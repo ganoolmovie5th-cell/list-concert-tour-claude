@@ -1,18 +1,30 @@
 # ConcertID — Project Context & Conventions
 
 ## Overview
-Website jadwal konser internasional di Indonesia 2025–2027.
+Website jadwal konser internasional di Indonesia 2025–2027. Single-page app (SPA).
 - **Live:** https://www.list-concert-tour.web.id
 - **Repo:** ganoolmovie5th-cell/list-concert-tour-claude
-- **Hosting:** Vercel (static site + serverless function)
+- **Mobile Repo:** ganoolmovie5th-cell/list-concert-tour-mobile-claude
+- **Hosting:** Vercel (static + serverless)
 - **Database:** Supabase (project: list-concert-tour-web-n-mobile-claude)
 
 ---
 
-## Git Workflow
+## Aturan Penting
+
 - **Selalu push langsung ke `main`** — tidak perlu buat PR
-- Gunakan `push_to_remote` tool dengan `remote_branch_name: "main"` dan `force_with_lease: true`
-- Sebelum push update tracking ref: `echo "<last_remote_sha>" > .git/refs/remotes/origin/main`
+- **Website tetap 1 page (SPA)** — jangan buat halaman/URL baru
+- Gunakan `kiro_powers github push_to_remote` dengan `remote_branch_name: "main"`
+- Baca file seminimal mungkin — hanya yang relevan dengan task
+- Setelah edit CSS/JS, regenerate `.min` files via: `python3 /projects/sandbox/minify.py`
+
+---
+
+## Source of Truth
+
+- **`app.js`** = source of truth data konser (CONCERTS array, 37 entries)
+- **Mobile `concerts.ts`** selalu sync dari `app.js` — jangan edit data konser di mobile secara manual
+- **Images** tersimpan di `/images/[id].jpeg` — dipakai langsung oleh web, mobile pakai URL `https://www.list-concert-tour.web.id/images/[id].jpeg`
 
 ---
 
@@ -20,18 +32,36 @@ Website jadwal konser internasional di Indonesia 2025–2027.
 
 | File | Fungsi |
 |---|---|
-| `app.js` | Data konser (CONCERTS array) + render cards, modal, filter, wishlist, share |
+| `index.html` | Single-page utama — critical CSS inline, fonts non-blocking |
+| `app.js` | Data konser (37 entries) + render + filter + JSON-LD schema inject |
+| `app.min.js` | Minified (auto-generated via minify.py) |
 | `style.css` | Semua styling — dark/light mode, responsive |
-| `supabase.js` | Supabase client: `DB.select/insert/update/delete`, `Storage.upload`, `getDeviceUID()` |
+| `style.min.css` | Minified CSS (auto-generated) |
+| `supabase.js` | Supabase REST client: `DB.*`, `Storage.upload`, `getDeviceUID()` |
 | `reviews.js` | Review & Rating — Supabase primary, localStorage fallback |
-| `features.js` | Going/Interested, Sort, Google Calendar, Social Media, Diskusi, UGC/Foto Fans |
-| `features2.js` | Calendar View, Advanced Search, Harga Alert, Spotify Integration |
+| `features.js` | Going/Interested, Sort, Google Calendar, Diskusi, UGC/Foto Fans |
+| `features2.js` | Calendar View, Advanced Search, Harga Alert, Spotify |
 | `features3.js` | I18n, TicketAlert, PriceConverter, BeenThere, GroupBuying, TicketMarket, FeedbackForm |
 | `features4.js` | Setlist.fm, NewConcertNotif, TipsArticle |
 | `supabase_schema.sql` | Schema 6 tabel — jalankan di Supabase SQL Editor |
 | `api/subscribe.js` | Vercel Serverless — proxy Mailchimp API v3 (CommonJS) |
-| `index.html` | Script loading order wajib: **supabase.js** → app.js → reviews.js → features.js → features2.js → features3.js → features4.js |
-| `vercel.json` | CSP headers — include `crtqxgsruywurdlcsjfp.supabase.co` di connect-src |
+| `vercel.json` | Security headers (CSP, COOP, HSTS) + Cache headers |
+| `sitemap.xml` | Sitemap — 1 URL saja (homepage) |
+
+### Script loading order di `index.html` (wajib urutan ini):
+```
+supabase.min.js → app.min.js → reviews.min.js → features.min.js → features2.min.js → features3.min.js → features4.min.js
+```
+
+---
+
+## Performance (index.html)
+
+- **Critical CSS** di-inline di `<style>` dalam `<head>` — above-the-fold styles
+- **Full CSS** load via `<link rel="stylesheet" href="style.min.css">` — blocking tapi ok karena critical sudah inline
+- **Google Fonts** load via `media="print" onload` trick — non-blocking
+- **EmailJS** load via `defer` attribute
+- **Semua JS** di akhir `<body>` — tidak blocking render
 
 ---
 
@@ -39,55 +69,27 @@ Website jadwal konser internasional di Indonesia 2025–2027.
 
 **Project URL:** `https://crtqxgsruywurdlcsjfp.supabase.co`  
 **Publishable Key:** `sb_publishable_G9oVhoD74guR61dZ755SYw_QwcrRKmc`  
-**Auth:** Anonymous — pakai device UID dari localStorage (`cid_uid`)
+**Auth:** Anonymous — device UID dari localStorage (`cid_uid`)
 
 ### Tabel
 | Tabel | Dipakai oleh |
 |---|---|
-| `concert_votes` | SocialFeatures (Going/Interested) |
-| `discussions` | Discussion (Diskusi/Komentar) |
-| `reviews` | ConcertReviews (Review & Rating) |
-| `ticket_market` | TicketMarket (Forum Jual Beli) |
-| `group_buying` | GroupBuying (Cari Teman Nonton) |
-| `fan_photos` | UGC (Foto dari Fans) |
+| `concert_votes` | features.js — Going/Interested |
+| `discussions` | features.js — Diskusi/Komentar |
+| `reviews` | reviews.js — Review & Rating |
+| `ticket_market` | features3.js — Forum Jual Beli |
+| `group_buying` | features3.js — Cari Teman Nonton |
+| `fan_photos` | features.js — Foto dari Fans |
 
 ### Storage
 - Bucket: `fan-photos` (Public)
 - Upload: `Storage.upload(bucket, path, blob)` — wajib set `Content-Type` pada blob
-- Sudah dihandle di `supabase.js` — ambil `file.type || 'image/jpeg'`
-
-### Strategi
-- **Supabase = primary** — sync antar semua device & platform (web & mobile)
-- **localStorage = fallback** — tetap berfungsi jika offline/error
-
-### Catatan Teknis Supabase
 - `Storage.upload` pakai `fetch` langsung (bukan `_fetch`) karena butuh `Content-Type` custom
-- `_fetch` (REST API) selalu set `Content-Type: application/json`
-- Going/Interested past konser: fetch Supabase async, fallback ke dummy jika count = 0
 
----
-
-## Environment Variables (Vercel Dashboard)
-
-| Variable | Nilai |
-|---|---|
-| `MAILCHIMP_API_KEY` | API key Mailchimp |
-| `MAILCHIMP_LIST_ID` | Audience ID Mailchimp |
-| `MAILCHIMP_SERVER` | Prefix saja, contoh: `us20` (BUKAN URL lengkap) |
-
----
-
-## EmailJS — Kritik & Saran
-- Service ID: `service_lq3pvsq` | Template ID: `template_w8grsoa`
-- Foto dikirim sebagai field **`photo_data`** (base64 murni, tanpa prefix)
-- Field **`has_photo`**: `'ya'` atau `'tidak'`
-- **Template EmailJS sudah di-save dan berfungsi dengan benar**
-- Template bagian foto:
-  ```html
-  {{#if has_photo}}
-  <img src="data:image/jpeg;base64,{{photo_data}}" style="max-width:500px;" />
-  {{/if}}
-  ```
+### Catatan Teknis
+- Going/Interested: query pakai **`select=type,device_uid`** — wajib agar `myVote` terbaca
+- Fallback localStorage keys: `cid_going`, `cid_interest`, `cid_myvote` (identik dengan mobile)
+- Past konser: fetch Supabase async, fallback dummy jika count = 0
 
 ---
 
@@ -95,7 +97,7 @@ Website jadwal konser internasional di Indonesia 2025–2027.
 
 | Key | Dipakai oleh |
 |---|---|
-| `cid_uid` | Semua — device UID persistent (owner check) |
+| `cid_uid` | Semua — device UID persistent |
 | `cid_reviews` | reviews.js — fallback review |
 | `cid_discussions` | features.js — fallback diskusi |
 | `cid_ugc` | features.js — fallback foto fans |
@@ -104,18 +106,59 @@ Website jadwal konser internasional di Indonesia 2025–2027.
 | `cid_group_buying` | features3.js — fallback GroupBuying |
 | `cid_ticket_alerts` | features3.js — TicketAlert budget |
 | `cid_harga_alert` | features2.js — Harga Alert budget |
-| `cid_fb_rl` | features3.js — rate limit Kritik & Saran |
 | `cid_lang` | features3.js — bahasa (id/en) |
 | `cid_wishlist` | app.js — wishlist konser |
 
 ---
 
-## Keputusan Desain Penting
+## Security Headers (vercel.json)
 
-### uid per posting (TicketMarket & GroupBuying)
-- `post_uid` = `genPostUID()` — unik setiap post baru
-- `owner_uid` = `getDeviceUID()` — device UID persistent, untuk cek kepemilikan
-- Hapus/edit hanya bisa oleh pemilik: `p.ownerUid === getDeviceUID()`
+- **CSP `connect-src`:** google-analytics.com, analytics.google.com, region1.google-analytics.com, stats.g.doubleclick.net, www.google.com, api.emailjs.com, api.setlist.fm, crtqxgsruywurdlcsjfp.supabase.co, cloudflareinsights.com
+- **CSP `script-src`:** 'self' 'unsafe-inline' googletagmanager.com, cdn.jsdelivr.net, static.cloudflareinsights.com
+- **COOP:** same-origin-allow-popups
+- **HSTS:** max-age=63072000; includeSubDomains; preload
+- Cache images: `public, max-age=31536000, immutable`
+
+---
+
+## Environment Variables (Vercel Dashboard)
+
+| Variable | Keterangan |
+|---|---|
+| `MAILCHIMP_API_KEY` | API key Mailchimp |
+| `MAILCHIMP_LIST_ID` | Audience ID Mailchimp |
+| `MAILCHIMP_SERVER` | Prefix saja, contoh: `us20` |
+
+---
+
+## GitHub Secrets (Scraper)
+
+| Secret | Keterangan |
+|---|---|
+| `GMAIL_APP_PASSWORD` | Gmail App Password 16 karakter |
+| `ADMIN_EMAIL` | Email tujuan laporan |
+
+---
+
+## EmailJS — Kritik & Saran
+
+- Service ID: `service_lq3pvsq` | Template ID: `template_w8grsoa`
+- Public key: `Ph1AuCpm4gbC6zMw6`
+- Foto: field `photo_data` (base64 murni, tanpa prefix `data:image/...`)
+- Field `has_photo`: `'ya'` atau `'tidak'`
+
+---
+
+## SEO
+
+- **JSON-LD Event Schema** — auto-inject via `injectEventSchemas()` di `app.js` saat DOMContentLoaded
+- **Sitemap:** 1 URL saja (`https://www.list-concert-tour.web.id`) — jangan tambah URL baru
+- **Google Search Console** sudah terverifikasi
+- **GA4:** `G-DFKHWJ3TJZ`
+
+---
+
+## Keputusan Desain Penting
 
 ### openModal patch chain (urutan wajib)
 1. `app.js` — render dasar + inject maps/share/price
@@ -123,30 +166,24 @@ Website jadwal konser internasional di Indonesia 2025–2027.
 3. `features3.js` — inject setlist, price converter, ticket alert
 4. `features4.js` — inject setlist.fm live
 
-### Advanced Search
-- `AdvancedSearch.setVisible(true)` wajib dipanggil sebelum `apply()` dari luar (HargaAlert)
-- `reset()` mempertahankan state open/close panel
+### Heading hierarchy (accessibility)
+- `h1` → hero title (hanya 1 di halaman)
+- `h2` → section headers (Jadwal Konser, Highlights, Panduan, Venue, Tentang, dll)
+- `h3` → sub-section di dalam modal/panel (Diskusi, Review, Setlist, dll)
+- Jangan skip level — `h4` sudah diganti `h3` di semua features*.js
 
-### TicketMarket tabs
-- Setelah markSold/delete, tab yang aktif dipertahankan
-- `switchTab()` sekarang async (fetch dari Supabase)
-
-### CSP (vercel.json)
-- `frame-src`: google.com, maps.google.com, open.spotify.com
-- `connect-src`: api.emailjs.com, api.setlist.fm, crtqxgsruywurdlcsjfp.supabase.co
-- `form-action`: self (Mailchimp via serverless)
-
----
-
-## Mobile App
-- Belum ada detail stack mobile — perlu konfirmasi dari user
-- Supabase URL & key sama untuk web dan mobile
-- Data sync otomatis karena semua pakai Supabase sebagai primary storage
+### Contrast colors (WCAG AA)
+- `--text-muted: #9ca3af` — untuk teks sekunder
+- `--text-sub: #c4c4cc` — untuk teks tertier
+- `#d8b4fe` — warna aksen ungu (bukan `#c084fc` yang terlalu gelap)
+- `#86efac` — warna hijau affordable badge
+- `#fde68a` — warna kuning rumor/luxury
 
 ---
 
 ## Hal yang TIDAK Perlu Dilakukan
 - Jangan buat PR — push langsung ke main
-- Jangan deploy ulang tanpa test
+- Jangan buat halaman/URL baru — website tetap 1 page SPA
+- Jangan tambah URL ke sitemap.xml kecuali homepage
+- Jangan deploy ulang tanpa test lokal dulu
 - Jangan baca seluruh repo — baca file yang relevan saja
-- Jangan batch banyak task dalam 1 request
