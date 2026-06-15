@@ -3,7 +3,8 @@
 > Sumber informasi terpercaya untuk jadwal konser musisi internasional di Indonesia 2025–2027.  
 > Lengkap dengan label **Confirmed ✅** vs **Rumor 🔮** agar kamu tidak tertipu.
 
-🌐 **Live:** [list-concert-tour.web.id](https://www.list-concert-tour.web.id)
+🌐 **Live:** [list-concert-tour.web.id](https://www.list-concert-tour.web.id)  
+📱 **Mobile:** [list-concert-tour-mobile-claude](https://github.com/ganoolmovie5th-cell/list-concert-tour-mobile-claude)
 
 ---
 
@@ -11,7 +12,7 @@
 
 | Fitur | Keterangan |
 |---|---|
-| 🗓️ Jadwal Lengkap | Data konser 2025–2027: artis, tanggal, venue, jam, dan harga tiket |
+| 🗓️ Jadwal Lengkap | 37 konser 2025–2027: artis, tanggal, venue, jam, dan harga tiket |
 | ✅ / 🔮 Status | Label jelas **Confirmed** (resmi) vs **Rumor** (belum dikonfirmasi) |
 | 🔍 Search & Filter | Cari berdasarkan artis/venue/kota; filter genre, status, dan wishlist |
 | 🔍 Advanced Search | Filter harga (slider), bulan, kota/area, dan status konser |
@@ -22,7 +23,7 @@
 | 🗓️ Google Calendar | Tambah konser langsung ke Google Calendar |
 | 🗺️ Venue Maps | Embed Google Maps untuk setiap venue |
 | 🎵 Spotify Preview | Preview musik artis langsung di modal detail |
-| 🎟️ Going / Interested | Vote kehadiran & ketertarikan — **sync Supabase**, past konser tampil angka real |
+| 🎟️ Going / Interested | Vote kehadiran & ketertarikan — **sync Supabase real-time** |
 | ⭐ Review & Rating | Sistem ulasan & rating — **sync Supabase** |
 | 💬 Diskusi | Komentar publik per konser — **sync Supabase** |
 | 🛒 Forum Jual Beli Tiket | Listing jual/cari tiket antar fans — **sync Supabase** |
@@ -33,6 +34,7 @@
 | 📬 Kritik & Saran | Form feedback dengan lampiran foto (via EmailJS) |
 | 📊 Analytics Dashboard | Dashboard admin untuk melihat engagement |
 | 🔄 Auto-monitor Harian | Scraper otomatis via GitHub Actions setiap hari pukul 01:00 WIB |
+| 🏷️ JSON-LD Schema | Structured data Event schema untuk semua konser (SEO Google Events) |
 
 ---
 
@@ -40,15 +42,18 @@
 
 ```
 list-concert-tour-claude/
-├── index.html              # Halaman utama
-├── app.js                  # Data konser & logika utama
+├── index.html              # Single-page app utama
+├── app.js                  # Data konser (37 entries) & logika utama + JSON-LD schema
+├── app.min.js              # Minified version (auto-generated)
 ├── style.css               # Styling (dark/light mode, responsive)
-├── supabase.js             # Supabase client (DB + Storage + getDeviceUID)
+├── style.min.css           # Minified CSS (auto-generated)
+├── supabase.js             # Supabase REST client (DB + Storage + getDeviceUID)
 ├── reviews.js              # Review & Rating — Supabase primary
 ├── features.js             # Going/Interested, Diskusi, Foto Fans — Supabase primary
 ├── features2.js            # Calendar View, Advanced Search, Harga Alert, Spotify
 ├── features3.js            # GroupBuying, TicketMarket, FeedbackForm — Supabase primary
 ├── features4.js            # Setlist.fm, NewConcertNotif, Tips & Artikel, Bahasa
+├── *.min.js                # Minified JS files (auto-generated)
 ├── supabase_schema.sql     # Schema SQL — jalankan di Supabase SQL Editor
 ├── api/
 │   └── subscribe.js        # Vercel Serverless — proxy Mailchimp Newsletter
@@ -56,11 +61,13 @@ list-concert-tour-claude/
 ├── scraper.py              # Scraper Python untuk monitoring data konser
 ├── email_reporter.py       # Kirim laporan scraper via Gmail SMTP
 ├── requirements.txt        # Dependensi Python scraper
-├── vercel.json             # Konfigurasi Vercel + CSP headers
-├── images/                 # Foto artis/konser
+├── sitemap.xml             # Sitemap (1 URL homepage)
+├── robots.txt              # Robots directives
+├── vercel.json             # Konfigurasi Vercel + Security/CSP headers + Cache
+├── images/                 # Foto artis/konser (juga digunakan oleh mobile app)
 └── .github/
     └── workflows/
-        └── scrape.yml      # GitHub Actions: monitor harian
+        └── scrape.yml      # GitHub Actions: monitor harian 01:00 WIB
 ```
 
 ---
@@ -102,10 +109,12 @@ Buka `http://localhost:8080`.
 ### Strategi Data
 - **Supabase = primary** — sync antar semua device & platform (web & mobile)
 - **localStorage = fallback** — tetap berfungsi jika offline/koneksi gagal
+- **Fallback keys:** `cid_going`, `cid_interest`, `cid_myvote` (identik dengan mobile)
 
 ### Catatan Teknis
 - Upload foto wajib set `Content-Type` header (`image/jpeg` dst) — sudah dihandle di `supabase.js`
-- Going/Interested past konser: tampil angka real dari Supabase, fallback ke angka dummy jika belum ada vote
+- Going/Interested: query pakai `select=type,device_uid` agar `myVote` terbaca dengan benar
+- Past konser: tampil angka real dari Supabase, fallback ke angka dummy jika belum ada vote
 
 ---
 
@@ -134,32 +143,15 @@ Buka `http://localhost:8080`.
 - Foto dikirim sebagai field **`photo_data`** (base64 murni, tanpa prefix `data:image/...`)
 - Field **`has_photo`**: `'ya'` atau `'tidak'`
 
-Template EmailJS bagian foto (sudah di-save & berfungsi):
-```html
-{{#if has_photo}}
-<img src="data:image/jpeg;base64,{{photo_data}}"
-     style="max-width:500px;width:100%;border-radius:8px;" />
-{{/if}}
-```
-
----
-
-## 🎫 Forum Jual Beli Tiket & Cari Teman Nonton
-
-- Data tersimpan di **Supabase** — sync antar semua device
-- Kontak ditampilkan sebagai emoji saja (💬 WA, 📷 IG) — nomor tidak diekspos
-- Pemilik post bisa edit ✏️ dan hapus 🗑️ per posting individual
-- `post_uid` unik per posting, `owner_uid` = device UID untuk cek kepemilikan
-
 ---
 
 ## 🛠️ Tech Stack
 
 | Layer | Teknologi |
 |---|---|
-| Frontend | HTML5, CSS3, Vanilla JavaScript |
-| Font | Inter + Syne via Google Fonts |
-| Analytics | Google Analytics 4 (GA4) |
+| Frontend | HTML5, CSS3, Vanilla JavaScript (Single Page App) |
+| Font | Inter + Syne via Google Fonts (non-blocking load) |
+| Analytics | Google Analytics 4 (GA4) + Cloudflare Insights |
 | Database | Supabase (PostgreSQL) |
 | Storage | Supabase Storage (foto fans) |
 | Local Cache | `localStorage` (wishlist, harga alert, preferensi) |
@@ -167,9 +159,24 @@ Template EmailJS bagian foto (sudah di-save & berfungsi):
 | Email | EmailJS (kritik & saran + foto) |
 | Maps | Google Maps Embed |
 | Music | Spotify Embed, Setlist.fm API |
+| SEO | JSON-LD Event Schema (auto-inject via JS), sitemap.xml |
 | Scraper | Python 3.12 + requests + BeautifulSoup4 |
 | CI/CD | GitHub Actions |
-| Hosting | Vercel |
+| Hosting | Vercel (static + serverless) |
+| Security | CSP, HSTS, COOP, X-Frame-Options, Referrer-Policy |
+
+---
+
+## 📊 PageSpeed / Lighthouse (Juni 2026)
+
+| Kategori | Score |
+|---|---|
+| Performance | ~70–75 |
+| Accessibility | 96+ |
+| Best Practices | 92+ |
+| SEO | 92+ |
+
+> **Note:** Performance score dipengaruhi banyaknya data konser (37 cards). CLS = 0.002, TBT = 70ms.
 
 ---
 
@@ -177,15 +184,18 @@ Template EmailJS bagian foto (sudah di-save & berfungsi):
 
 ```javascript
 {
-  id: 'unique-concert-id',
+  id: 'unique-concert-id',          // kebab-case, unik
   artist: 'Nama Artis',
   tour: 'Nama Tur',
   genre: 'kpop|pop|rock|jazz|indie',
+  emoji: '🎵',
   dates: ['DD Bulan YYYY'],
   rawDate: new Date('YYYY-MM-DD'),
+  time: '19:00 WIB',
   venue: 'Nama Venue',
   city: 'Kota, Provinsi',
   promotor: 'Nama Promotor',
+  ticketPlatform: 'tiket.com',
   ticketUrl: 'https://...',
   priceRange: 'Rp X – Rp Y',
   priceMin: 0, priceMax: 0,
@@ -194,8 +204,20 @@ Template EmailJS bagian foto (sudah di-save & berfungsi):
   hot: true|false,
   description: '...',
   sources: ['domain.com'],
+  lineup: ['Artis 1'],              // opsional
+  rumorDetail: '...',               // opsional, hanya untuk rumor
 }
 ```
+
+> **Source of truth:** `app.js` di repo ini. Mobile app (`concerts.ts`) selalu mengikuti data di sini.
+
+---
+
+## 🖼️ Images
+
+Foto artis tersimpan di `/images/[concert-id].jpeg`.  
+Mobile app mengambil gambar langsung dari URL web:  
+`https://www.list-concert-tour.web.id/images/[id].jpeg`
 
 ---
 
