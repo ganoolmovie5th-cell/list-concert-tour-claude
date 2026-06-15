@@ -187,3 +187,18 @@ supabase.min.js → app.min.js → reviews.min.js → features.min.js → featur
 - Jangan tambah URL ke sitemap.xml kecuali homepage
 - Jangan deploy ulang tanpa test lokal dulu
 - Jangan baca seluruh repo — baca file yang relevan saja
+
+---
+
+## Sync dengan Mobile (saat update data konser)
+
+Ketika CONCERTS array di `app.js` diupdate, sync ke mobile:
+
+| Item | File Mobile | Cara |
+|---|---|---|
+| CONCERTS | `src/data/concerts.ts` | Copy + format TypeScript |
+| ARTIST_IMAGES | `src/data/concerts.ts` | URL: `https://www.list-concert-tour.web.id/images/[id].jpeg` |
+| ARTIST_SOCIALS | `src/data/concerts.ts` | Pastikan handles konsisten |
+| SETLISTS | `src/data/concerts.ts` | Copy paste |
+| SPOTIFY_ARTISTS | `src/data/concerts.ts` | Copy paste |
+| Venue list (MoreScreen) | `src/screens/MoreScreen.tsx` | Harus identik dengan venues di `index.html` |
