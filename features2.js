@@ -241,7 +241,7 @@ const AdvancedSearch = (() => {
     return `
       <div class="adv-search-panel" id="advSearchPanel">
         <div class="adv-search-header">
-          <h4>🔍 Advanced Search</h4>
+          <h3>🔍 Advanced Search</h3>
           <button class="adv-reset" onclick="AdvancedSearch.reset()">Reset</button>
         </div>
         <div class="adv-search-body">
@@ -477,7 +477,7 @@ const HargaAlert = (() => {
     return `
       <div class="ha-panel" id="haPanel">
         <div class="ha-panel-header">
-          <h4>💰 Harga Alert</h4>
+          <h3>💰 Harga Alert</h3>
           <button class="ha-close" onclick="HargaAlert.closePanel()">✕</button>
         </div>
         <p class="ha-desc">Set budget maksimal kamu. Kami akan tunjukkan konser yang sesuai.</p>

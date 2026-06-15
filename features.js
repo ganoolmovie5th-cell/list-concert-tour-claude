@@ -396,7 +396,7 @@ const Discussion = (() => {
     return `
       <div class="disc-section" id="disc_${concertId}">
         <div class="disc-header">
-          <h4>💬 Diskusi <span class="disc-count"></span></h4>
+          <h3>💬 Diskusi <span class="disc-count"></span></h3>
         </div>
         ${formHtml}
         <div class="disc-list" id="disclist_${concertId}">
@@ -578,7 +578,7 @@ const UGC = (() => {
     return `
       <div class="ugc-section" id="ugc_${concertId}">
         <div class="ugc-header">
-          <h4>📸 Foto dari Fans</h4>
+          <h3>📸 Foto dari Fans</h3>
           <span class="ugc-count"></span>
         </div>
         ${past ? `
