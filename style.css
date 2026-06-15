@@ -815,17 +815,34 @@ html.light .sort-select option { background: #fff; }
 
 /* ── DOWNLOAD APP SECTION ── */
 .download-section { padding: 64px 0; background: var(--bg2); }
-.dl-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px; max-width: 640px; margin: 0 auto; }
-.dl-icon { font-size: 3rem; }
-.dl-text h2 { font-family: var(--font-display); font-size: clamp(1.4rem,3vw,2rem); font-weight: 800; margin-bottom: 8px; }
-.dl-text p { color: var(--text-sub); font-size: 0.95rem; }
-.dl-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; width: 100%; }
-.dl-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: var(--radius-sm); font-size: 0.95rem; font-weight: 600; text-decoration: none; transition: opacity 0.2s,transform 0.2s; cursor: pointer; border: none; }
-.dl-btn:hover { opacity: 0.85; transform: translateY(-2px); }
-.dl-btn-android { background: linear-gradient(135deg,#22c55e,#16a34a); color: white; }
-.dl-btn-pwa { background: linear-gradient(135deg,#a855f7,#ec4899); color: white; }
-.dl-note { font-size: 0.78rem; color: var(--text-muted); max-width: 480px; line-height: 1.5; }
-.dl-note strong { color: var(--text-sub); }
+.dl-card {
+  max-width: 480px; margin: 0 auto;
+  background: linear-gradient(135deg, rgba(61,220,132,0.08), rgba(61,220,132,0.03));
+  border: 1px solid rgba(61,220,132,0.2);
+  border-radius: 24px; padding: 40px 36px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 20px;
+}
+.dl-logo-wrap { background: rgba(61,220,132,0.1); border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+.dl-android-logo { width: 44px; height: 44px; }
+.dl-text h2 { font-family: var(--font-display); font-size: clamp(1.4rem,3vw,1.9rem); font-weight: 800; margin-bottom: 8px; }
+.gradient-text-green { background: linear-gradient(135deg,#3ddc84,#22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.dl-text p { color: var(--text-sub); font-size: 0.95rem; line-height: 1.6; }
+.dl-btn-main {
+  display: inline-flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #3ddc84, #22c55e);
+  color: #0a1a0f; text-decoration: none;
+  padding: 14px 28px; border-radius: 99px;
+  font-weight: 700; transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 4px 20px rgba(61,220,132,0.3);
+  width: 100%; max-width: 300px; justify-content: center;
+}
+.dl-btn-main:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(61,220,132,0.4); }
+.dl-btn-text { display: flex; flex-direction: column; text-align: left; }
+.dl-btn-sub { font-size: 0.72rem; font-weight: 600; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.5px; }
+.dl-btn-title { font-size: 1rem; font-weight: 800; line-height: 1.2; }
+.dl-note { font-size: 0.75rem; color: var(--text-muted); max-width: 360px; line-height: 1.5; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15); padding: 10px 14px; border-radius: 10px; }
+.dl-note strong { color: #fbbf24; }
 
 /* ── NEWSLETTER SECTION ── */
 .newsletter-section { padding: 40px 0; }
