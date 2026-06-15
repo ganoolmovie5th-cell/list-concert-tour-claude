@@ -83,9 +83,8 @@
     .no-result.hidden{display:none}
   </style>
 
-  <!-- Full CSS — load async, non-blocking -->
-  <link rel="preload" as="style" href="style.min.css" onload="this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="style.min.css" /></noscript>
+  <!-- Full CSS — blocking tapi tidak masalah karena critical CSS sudah inline di atas -->
+  <link rel="stylesheet" href="style.min.css" />
 
   <!-- EmailJS — defer, tidak kritis -->
   <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" onload="emailjs.init({publicKey:'Ph1AuCpm4gbC6zMw6'})"></script>
