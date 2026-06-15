@@ -1,10 +1,10 @@
-// Last auto-updated: 10 Jun 2026 09:00 WIB
+// Last auto-updated: 15 Jun 2026 09:00 WIB
 /* ============================================
    KonserIndo — Concert Data & App Logic
    Data: Tempo.co, Billboard, NME, Bandwagon Asia,
    JamBase, tiket.com, loket.com, Weverse, Soompi,
    RRI.co.id, CNBCIndonesia, KapanLagi
-   Last updated: June 9, 2026
+   Last updated: June 15, 2026
    ============================================ */
 
 const TODAY = new Date(); // selalu tanggal hari ini
