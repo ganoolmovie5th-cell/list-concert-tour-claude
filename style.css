@@ -2,7 +2,7 @@
 :root {
   --bg: #09090b; --bg2: #111114; --bg3: #18181c;
   --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.15);
-  --text: #f4f4f5; --text-muted: #71717a; --text-sub: #a1a1aa;
+  --text: #f4f4f5; --text-muted: #8a8a95; --text-sub: #b4b4bc;
   --accent: #a855f7; --accent2: #ec4899; --accent3: #3b82f6;
   --green: #22c55e; --rumor: #f59e0b;
   --radius: 16px; --radius-sm: 10px;
