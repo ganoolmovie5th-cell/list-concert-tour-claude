@@ -9,6 +9,7 @@
 | Platform | Feature | Purpose | Email Used | Status |
 |----------|---------|---------|-----------|--------|
 | **Web** | Newsletter Mailchimp | User subscribe untuk notif konser baru | Mailchimp (managed) | ✅ Active |
+| **Web** | Feedback Form | User kirim kritik/saran/report data | EmailJS → `listconcerttour@gmail.com` | ⚠️ Active tapi outdated |
 | **Backend** | Scraper Report | Admin laporan harian hasil scraping | `ganoolmovie5th@gmail.com` (Gmail) | ✅ Active |
 
 ---
@@ -23,23 +24,15 @@
 
 ### 🔗 Flow
 ```
-User di website
+User di website → Input email → Click "Daftar Gratis"
   ↓
-Input email di newsletter form (footer)
-  ↓
-Click "Daftar Gratis"
-  ↓
-POST /api/subscribe.js (Vercel serverless function)
+POST /api/subscribe.js (Vercel serverless)
   ↓
 Validasi email format
   ↓
-Call Mailchimp API v3: POST /lists/{LIST_ID}/members
+Call Mailchimp API → add_member
   ↓
-Mailchimp: add_member atau update status → "subscribed"
-  ↓
-Response: "success" atau "already_subscribed"
-  ↓
-User dapat welcome email dari Mailchimp
+Mailchimp send welcome email
 ```
 
 ### 📝 Implementation Details
@@ -49,69 +42,30 @@ User dapat welcome email dari Mailchimp
 **Required Env Vars (Vercel Dashboard):**
 ```
 MAILCHIMP_API_KEY   — dari Mailchimp Account > Extras > API keys
-                      Format: xxxxxxxxxxxxxxxx-us20
 MAILCHIMP_LIST_ID   — dari Mailchimp Audience > Settings > Audience ID
-                      Format: xxxxxxxxxxxxxxxx
 MAILCHIMP_SERVER    — server prefix (opsional)
-                      Contoh: us20, us5, eu1, dll
 ```
-
-**Frontend UI Elements:**
-- Newsletter section di footer (`.newsletter-section`)
-- Input field: `#nlMcEmail` (placeholder: email@kamu.com)
-- Subscribe button: `#nlMcBtn` (text: "Daftar Gratis")
-- Labels: di `features3.js` i18n strings
-  - `nl_title`: "Jangan Ketinggalan Konser!"
-  - `nl_sub`: "Daftar gratis dan dapatkan update konser terbaru langsung di inbox kamu."
-  - `nl_placeholder`: "email@kamu.com"
-  - `nl_btn`: "Daftar Gratis"
-
-**Backend Logic:**
-- Validate email format: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
-- Call Mailchimp API dengan Basic Auth
-- Handle responses:
-  - `200/201`: Success
-  - `400 + "Member Exists"`: Already subscribed (return success)
-  - Lainnya: Error message
-
-**Email yang diterima User:**
-- Welcome email dari Mailchimp (customizable di Mailchimp dashboard)
-- Campaign emails saat admin send (manual dari Mailchimp)
 
 ---
 
 ## 2️⃣ Scraper Report — GMAIL SMTP (Backend)
 
 ### ▶️ Feature Purpose
-- **Admin** (kamu) receive harian laporan hasil scraping
-- Email berisi:
-  - Summary: berapa potensi konser baru, berapa update
-  - Detail table: artis, tanggal, venue, sumber, reliability
-  - Links: GitHub untuk manual edit
+- **Admin** receive harian laporan hasil scraping
+- Email berisi: summary, detail table, links ke GitHub
+- Schedule: Tiap hari jam 01:00 WIB
 
 ### 🔗 Flow
 ```
-01:00 WIB (GitHub Actions trigger)
+01:00 WIB → Job 1 scraper.py jalankan
   ↓
-[JOB 1] scraper.py jalankan
-  ├─ Scrape 7 sumber
-  ├─ Generate scraper_report.html
-  └─ Trigger email_reporter.py
-  
+Generate scraper_report.html
   ↓
-[email_reporter.py] jalan
-  ├─ Baca env vars: GMAIL_APP_PASSWORD, ADMIN_EMAIL
-  ├─ Load scraper_report.html
-  ├─ Connect ke Gmail SMTP (smtp.gmail.com:465)
-  ├─ Authenticate dengan App Password
-  ├─ Send email via SMTP
-  └─ Log success/error
-  
+email_reporter.py jalan
   ↓
-Admin receive email di inbox (ganoolmovie5th@gmail.com)
-  ├─ Subject: [ConcertID] Laporan Scraper — {date} | X Potensi Baru · Y Update
-  ├─ Body: Beautiful HTML table dengan konser baru & update
-  └─ CTA: Links ke GitHub untuk review
+Connect ke Gmail SMTP → send email
+  ↓
+Admin receive di ganoolmovie5th@gmail.com
 ```
 
 ### 📝 Implementation Details
@@ -121,159 +75,149 @@ Admin receive email di inbox (ganoolmovie5th@gmail.com)
 **Required Env Vars (GitHub Secrets):**
 ```
 GMAIL_APP_PASSWORD  — App Password dari ganoolmovie5th@gmail.com
-                      Setup: Google Account > Security > App passwords
-                      Format: 16-char password (tanpa spasi)
-                      Example: abcdefghijklmnop
-
-ADMIN_EMAIL         — (optional) Override recipient email
-                      Default: ganoolmovie5th@gmail.com
-                      Jika ingin ke email lain, set di GitHub Secrets
+ADMIN_EMAIL         — (optional) recipient email
 ```
 
-**Email Configuration:**
+**Email Config:**
 ```python
 SENDER_EMAIL = "ganoolmovie5th@gmail.com"
 ADMIN_EMAIL  = os.environ.get("ADMIN_EMAIL", "ganoolmovie5th@gmail.com")
-APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
-
-# Gmail SMTP
-smtp.gmail.com:465 (SSL)
+# Gmail SMTP: smtp.gmail.com:465 (SSL)
 ```
 
-**Email Content:**
-- Format: Multipart (plain text + HTML)
-- Subject: `[ConcertID] Laporan Scraper Harian — {date} | {n_new} Potensi Baru · {n_upd} Update`
-- Body HTML: Cantik dark theme, include:
-  - Stats card: total, potensi baru, update
-  - Alert box: "Review diperlukan — data belum diverifikasi"
-  - Section 1: Potensi konser baru (highlight purple)
-  - Section 2: Update konser existing (highlight yellow)
-  - CTA buttons: Edit app.js, Lihat Actions Log
+---
 
-**Error Handling:**
-- `SMTPAuthenticationError`: GMAIL_APP_PASSWORD salah/tidak di-set
-- Koneksi error: Log ke stdout (visible di GitHub Actions log)
+## 3️⃣ Feedback Form — EMAILJS (Web Platform - OUTDATED EMAIL)
+
+### ▶️ Feature Purpose
+- User kirim kritik, saran, report data salah di halaman
+- UI: "📬 Kritik & Saran" form
+- Kirim via EmailJS (3rd party email service)
+- Tujuan: `listconcerttour@gmail.com` (**SUSPENDED**)
+
+### ⚠️ Current Status
+- **Status:** ✅ Masih berfungsi (EmailJS active)
+- **Problem:** Recipient email `listconcerttour@gmail.com` suspended
+- **Email bounces:** Feedback forms tidak sampai ke manapun
+
+### 🔗 Flow
+```
+User → Fill form (name, email, type, message, photo)
+  ↓
+Submit form
+  ↓
+JavaScript call EmailJS API
+  ↓
+EmailJS forward ke: listconcerttour@gmail.com (❌ SUSPENDED)
+  ↓
+Email bounces (account doesn't exist)
+```
+
+### 📝 Implementation Details
+
+**File:** `features3.js` (class `FeedbackForm`)
+
+**EmailJS Configuration (hardcoded):**
+```javascript
+const result = await emailjs.send(
+  'service_lq3pvsq',     // Service ID
+  'template_w8grsoa',    // Template ID
+  payload
+);
+```
+
+**Current Email Recipient:**
+- Configured di EmailJS dashboard: `listconcerttour@gmail.com`
+- **PROBLEM:** Account suspended by Google
+
+### 🔧 How to Fix
+
+1. **Access EmailJS Dashboard:**
+   - Go to https://dashboard.emailjs.com
+   - Find Email Template ID: `template_w8grsoa`
+
+2. **Update Email Recipient:**
+   - Change recipient from `listconcerttour@gmail.com` → `ganoolmovie5th@gmail.com`
+   - Save template
+
+3. **Test:**
+   - Go to website
+   - Click "📬 Kritik & Saran"
+   - Submit feedback form
+   - Verify email received at `ganoolmovie5th@gmail.com`
+
+---
+
+## 🔐 All Email Accounts Used
+
+### ✅ Currently Active:
+
+| Email | Service | Used For | Config | Status |
+|---|---|---|---|---|
+| `ganoolmovie5th@gmail.com` | Gmail SMTP | Scraper reports | GitHub Secrets | ✅ Active |
+| `ganoolmovie5th@gmail.com` | Mailchimp | Newsletter | Vercel env | ✅ Active |
+| Mailchimp Account | Mailchimp API | Newsletter delivery | API Key | ✅ Active |
+| EmailJS Account | EmailJS API | Feedback form | Service/Template ID | ✅ Active |
+
+### ❌ Disabled/Outdated:
+
+| Email | Service | Reason | Fix Status |
+|---|---|---|---|
+| `listconcerttour@gmail.com` | Gmail SMTP (scraper) | Suspended by Google | ✅ Replaced |
+| `listconcerttour@gmail.com` | EmailJS (feedback) | Suspended by Google | ⏳ Needs EmailJS update |
 
 ---
 
 ## 📋 Setup Checklist
 
 ### ✅ Mailchimp (Newsletter) — LIVE
-- [ ] Mailchimp account created
-- [ ] Audience created
-- [ ] API key generated
-- [ ] List ID copied
-- [ ] Env vars set di Vercel:
-  - `MAILCHIMP_API_KEY` = ✅
-  - `MAILCHIMP_LIST_ID` = ✅
-  - `MAILCHIMP_SERVER` = ✅ (optional)
-- [ ] Test: Subscribe dari website → check Mailchimp dashboard
+- [x] Mailchimp account created
+- [x] Audience + API key + List ID
+- [x] Vercel env vars set
+- [x] Test: Subscribe dari website ✅
 
 ### ✅ Gmail Scraper Report — LIVE
-- [ ] Gmail account: ganoolmovie5th@gmail.com
-- [ ] App Password generated (Security > App passwords)
-- [ ] GitHub Secrets set:
-  - `GMAIL_APP_PASSWORD` = ✅
-  - `ADMIN_EMAIL` = ✅ (optional, default: ganoolmovie5th@gmail.com)
-- [ ] Test: Trigger Actions manual → check email
+- [x] Gmail account: ganoolmovie5th@gmail.com
+- [x] App Password generated
+- [x] GitHub Secrets set
+- [x] Test: Trigger Actions manual ✅
 
-### ⏳ Yang Belum Ada
-- Ticket alert email — dihapus dari roadmap
-
----
-
-## 🔐 Secrets Management
-
-### GitHub Secrets (for scraper report)
-```
-GMAIL_APP_PASSWORD  → ganoolmovie5th@gmail.com App Password
-ADMIN_EMAIL         → (optional) recipient email
-```
-
-### Vercel Env Vars (for newsletter)
-```
-MAILCHIMP_API_KEY   → API key dari Mailchimp
-MAILCHIMP_LIST_ID   → List ID dari Mailchimp
-MAILCHIMP_SERVER    → Server prefix (opsional)
-```
-
-### Best Practices
-- ✅ Never commit secrets ke GitHub
-- ✅ Rotate App Password setiap 3-6 bulan
-- ✅ Use separate email accounts untuk berbagai service (don't use personal email)
-- ✅ Log sensitive operations (tidak log password, tapi log success/failure)
+### ⏳ EmailJS Feedback Form — NEEDS UPDATE
+- [ ] Access EmailJS dashboard
+- [ ] Update template recipient: `listconcerttour@gmail.com` → `ganoolmovie5th@gmail.com`
+- [ ] Test: Submit feedback form dari website
+- [ ] Verify email di ganoolmovie5th@gmail.com
 
 ---
 
 ## 🧪 Testing
 
-### Test Mailchimp Newsletter
+### Test Newsletter (Mailchimp)
 ```bash
-# Di browser console
 fetch('/api/subscribe', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ email: 'test@example.com' })
 })
-.then(r => r.json())
-.then(d => console.log(d))
 ```
 
-### Test Scraper Report Email
-```bash
-# Di GitHub Actions
-1. Go to Actions
-2. Select "🎵 Daily Concert Monitor & Auto-PR"
-3. Run workflow manual
-4. Check email inbox (ganoolmovie5th@gmail.com)
-```
+### Test Scraper Report (Gmail)
+1. Go to Actions → 🎵 Daily Concert Monitor
+2. Run workflow manual
+3. Check email: ganoolmovie5th@gmail.com
+
+### Test Feedback Form (EmailJS)
+1. Go to website
+2. Scroll ke footer → Click "📬 Kritik & Saran"
+3. Fill form → Submit
+4. Should receive email (after EmailJS update)
 
 ---
 
-## 📈 Monitoring & Logs
+## ⚠️ Important Notes
 
-### Mailchimp
-- Monitor di Mailchimp dashboard:
-  - Audience > All contacts → lihat subscribers
-  - Campaigns → lihat delivery rate
-  - Reports → engagement metrics
+- **EmailJS update:** Manual via dashboard (bukan code change)
+- **No code changes needed** untuk fix EmailJS — cukup update di dashboard
+- **Backup:** Both Gmail dan Mailchimp account sudah active, redundansi coverage
+- **Future:** Consider centralize ke 1 email provider untuk simplicity
 
-### Gmail Scraper Report
-- Check email inbox: ganoolmovie5th@gmail.com
-- GitHub Actions logs:
-  - Repo → Actions → 🎵 Daily Concert Monitor → Run history
-  - Click run → scroll ke step "📧 Send email report"
-  - Log akan show:
-    - ✅ "Email laporan berhasil dikirim!" (success)
-    - ❌ "Autentikasi Gmail gagal!" (auth error)
-
----
-
-## 🚨 Troubleshooting
-
-| Issue | Cause | Fix |
-|-------|-------|-----|
-| Newsletter subscribe gagal | Mailchimp env vars tidak set di Vercel | Set di Vercel dashboard → redeploy |
-| Scraper email tidak dikirim | GMAIL_APP_PASSWORD tidak di-set | Set di GitHub Secrets |
-| Email auth gagal | Wrong App Password | Regenerate di Google Account Security |
-| Email masuk spam | Sender reputation | Warm up: send sedikit email dulu |
-| API subscribe 500 error | Missing MAILCHIMP_API_KEY atau LIST_ID | Verify di Vercel env vars |
-
----
-
-## 📚 References
-
-- Mailchimp API Docs: https://mailchimp.com/developer/marketing/api/
-- Gmail App Passwords: https://myaccount.google.com/apppasswords
-- GitHub Secrets: https://docs.github.com/en/actions/security-guides/encrypted-secrets
-
----
-
-## 🔄 Future Enhancements
-
-- [ ] Ticket price drop alerts → email notification
-- [ ] Concert near your city → email alert
-- [ ] Friend joined your wishlist → email notification
-- [ ] Unsubscribe link di semua email
-- [ ] Email preference center (frequency, content type)
-- [ ] Analytics: track email open rate, click rate
