@@ -1,4 +1,4 @@
-name: 🎵 Daily Concert Monitor
+name: 🎵 Daily Concert Monitor & Auto-PR
 
 # ── Triggers ─────────────────────────────────────────────────────────────────
 on:
@@ -10,51 +10,44 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Dry run (scrape tapi tidak kirim email)"
+        description: "Dry run (scrape + auto_updater, tapi tidak buat PR & tidak kirim email)"
         required: false
         default: "false"
 
 # ── Permissions ───────────────────────────────────────────────────────────────
-# READ-ONLY — scraper tidak menulis ke repo sama sekali
 permissions:
-  contents: read
+  contents: write       # perlu untuk commit & push branch baru
+  pull-requests: write  # perlu untuk buat PR
 
-# ── Job ───────────────────────────────────────────────────────────────────────
+# ── Jobs ──────────────────────────────────────────────────────────────────────
 jobs:
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 1: Scrape & Email Report (sama seperti sebelumnya)
+  # ────────────────────────────────────────────────────────────────────────────
   monitor-and-report:
-    name: Scrape & Email Report
+    name: 🕷️ Scrape & Email Report
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      # 1. Checkout repo (read-only)
       - name: ⬇️ Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      # 2. Setup Python
       - name: 🐍 Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
 
-      # 3. Install dependencies
       - name: 📦 Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+        run: pip install --upgrade pip && pip install -r requirements.txt
 
-      # 4. Run monitoring scraper
-      #    → Hanya generate scraper_report.json + scraper_report.html
-      #    → TIDAK menulis ke app.js
-      #    → TIDAK push ke main
       - name: 🕷️ Run monitoring scraper
         run: python scraper.py
 
-      # 5. Kirim laporan via email
-      #    → Skip jika dry_run = true
       - name: 📧 Send email report
         if: github.event.inputs.dry_run != 'true'
         run: python email_reporter.py
@@ -62,8 +55,7 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
 
-      # 6. Upload report sebagai artifact (bisa didownload dari Actions)
-      - name: 📎 Upload report artifact
+      - name: 📎 Upload scraper report artifact
         uses: actions/upload-artifact@v4
         with:
           name: scraper-report-${{ github.run_number }}
@@ -72,15 +64,176 @@ jobs:
             scraper_report.html
           retention-days: 30
 
-      # 7. Summary
       - name: 📊 Job Summary
         run: |
-          echo "## 🎵 ConcertID Monitor Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Scraper selesai** — laporan dikirim ke admin email" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "🕐 **Waktu run:** $(TZ='Asia/Jakarta' date '+%d %b %Y %H:%M WIB')" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "⚠️ **app.js TIDAK diubah** — review laporan dulu sebelum update manual" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📎 **Artifact:** scraper-report-${{ github.run_number }} (tersedia 30 hari)" >> $GITHUB_STEP_SUMMARY
+          echo "## 🕷️ Scraper Report" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Scraper selesai — laporan dikirim ke email admin" >> $GITHUB_STEP_SUMMARY
+          echo "🕐 **Waktu:** $(TZ='Asia/Jakarta' date '+%d %b %Y %H:%M WIB')" >> $GITHUB_STEP_SUMMARY
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 2: Auto Updater — filter HIGH confidence → update app.js → buat PR
+  # ────────────────────────────────────────────────────────────────────────────
+  auto-update-pr:
+    name: 🤖 Auto Update app.js & Create PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: monitor-and-report  # jalankan setelah job 1 selesai
+
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: 📦 Install dependencies
+        run: pip install --upgrade pip && pip install -r requirements.txt
+
+      # Jalankan ulang scraper untuk generate scraper_report.json di job ini
+      # (artifact antar job tidak di-share otomatis kecuali via upload/download)
+      - name: 🕷️ Re-run scraper (generate report untuk auto_updater)
+        run: python scraper.py
+
+      # Jalankan auto_updater — inject konser baru HIGH confidence ke app.js
+      - name: 🤖 Run auto_updater
+        id: updater
+        run: |
+          python auto_updater.py
+          # Cek apakah ada perubahan di app.js
+          if git diff --quiet app.js; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "Tidak ada perubahan pada app.js"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "app.js berubah — akan buat PR"
+          fi
+
+      # Baca summary untuk isi PR description
+      - name: 📋 Read update summary
+        id: summary
+        if: steps.updater.outputs.changed == 'true'
+        run: |
+          # Baca added_count dari summary JSON
+          ADDED=$(python3 -c "import json; d=json.load(open('auto_update_summary.json')); print(d.get('added_count', 0))")
+          MSG=$(python3 -c "import json; d=json.load(open('auto_update_summary.json')); print(d.get('message', ''))")
+          # Buat list artis untuk PR description
+          ARTISTS=$(python3 -c "
+          import json
+          d = json.load(open('auto_update_summary.json'))
+          lines = []
+          for item in d.get('added', []):
+              artist = item.get('artist','?')
+              source = item.get('source','?')
+              date   = item.get('date','TBA')
+              venue  = item.get('venue','TBA')
+              url    = item.get('url','')
+              lines.append(f'- **{artist}** | {date} | {venue} | [{source}]({url})')
+          print('\n'.join(lines))
+          ")
+          echo "added_count=$ADDED" >> $GITHUB_OUTPUT
+          echo "message=$MSG" >> $GITHUB_OUTPUT
+          # Simpan artists list ke file karena bisa multi-line
+          echo "$ARTISTS" > /tmp/artists_list.txt
+
+      # Setup git identity
+      - name: 🔧 Setup git config
+        if: steps.updater.outputs.changed == 'true'
+        run: |
+          git config user.name "ConcertID Bot"
+          git config user.email "bot@list-concert-tour.web.id"
+
+      # Buat branch baru & commit
+      - name: 🌿 Create branch & commit
+        id: branch
+        if: steps.updater.outputs.changed == 'true'
+        run: |
+          DATE=$(TZ='Asia/Jakarta' date '+%Y%m%d-%H%M')
+          BRANCH="auto-update/concerts-${DATE}"
+          git checkout -b "$BRANCH"
+          git add app.js auto_update_summary.json
+          git commit -m "feat(auto): tambah ${{ steps.summary.outputs.added_count }} konser baru (HIGH confidence) — $DATE"
+          git push origin "$BRANCH"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+      # Buat PR ke main
+      - name: 📬 Create Pull Request
+        if: steps.updater.outputs.changed == 'true' && github.event.inputs.dry_run != 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const artistsList = fs.readFileSync('/tmp/artists_list.txt', 'utf8').trim();
+            const addedCount  = '${{ steps.summary.outputs.added_count }}';
+            const branch      = '${{ steps.branch.outputs.branch }}';
+            const date        = new Date().toLocaleDateString('id-ID', {
+              timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric'
+            });
+
+            const body = `## 🤖 Auto-Update Konser — ${date}
+
+            > **${addedCount} konser baru** terdeteksi dari sumber HIGH confidence (tiket.com, loket.com, Songkick, Bandwagon Asia).
+            > Data sudah di-inject ke \`app.js\`. **Review sebelum merge.**
+
+            ---
+
+            ### 🎵 Konser yang ditambahkan:
+
+            ${artistsList || '_Tidak ada artis_'}
+
+            ---
+
+            ### ✅ Checklist sebelum merge:
+            - [ ] Verifikasi nama artis sudah benar
+            - [ ] Cek tanggal & venue sudah akurat
+            - [ ] Tambahkan gambar artis ke folder \`/images/\` jika belum ada
+            - [ ] Update \`confirmStatus\` jika perlu (rumor → confirmed)
+            - [ ] Edit detail lain yang perlu diperbaiki (harga tiket, deskripsi, dll)
+
+            ---
+
+            > ⚠️ Data ini auto-generated. Selalu verifikasi ke sumber asli sebelum merge ke main.
+            > 🤖 Generated by ConcertID Auto-Scraper`;
+
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              title: `🤖 Auto: Tambah ${addedCount} konser baru — ${date}`,
+              body:  body,
+              head:  branch,
+              base:  'main',
+            });
+
+            // Tambah label jika tersedia
+            try {
+              await github.rest.issues.addLabels({
+                owner:  context.repo.owner,
+                repo:   context.repo.repo,
+                issue_number: pr.data.number,
+                labels: ['auto-update', 'needs-review'],
+              });
+            } catch (e) {
+              console.log('Label tidak tersedia, skip:', e.message);
+            }
+
+            console.log(`✅ PR dibuat: ${pr.data.html_url}`);
+            return pr.data.html_url;
+
+      # Summary akhir
+      - name: 📊 Job Summary
+        run: |
+          echo "## 🤖 Auto Updater Report" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.updater.outputs.changed }}" == "true" ]; then
+            echo "✅ **${{ steps.summary.outputs.added_count }} konser baru** ditambahkan ke app.js" >> $GITHUB_STEP_SUMMARY
+            echo "🌿 **Branch:** \`${{ steps.branch.outputs.branch }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "📬 **PR** sudah dibuat — tunggu review kamu sebelum merge ke main" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ Tidak ada konser baru yang lolos filter HIGH confidence hari ini" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "🕐 **Waktu:** $(TZ='Asia/Jakarta' date '+%d %b %Y %H:%M WIB')" >> $GITHUB_STEP_SUMMARY
