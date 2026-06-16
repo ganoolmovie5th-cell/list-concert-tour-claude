@@ -9,7 +9,7 @@
 | Platform | Feature | Purpose | Email Used | Status |
 |----------|---------|---------|-----------|--------|
 | **Web** | Newsletter Mailchimp | User subscribe untuk notif konser baru | Mailchimp (managed) | ✅ Active |
-| **Web** | Feedback Form | User kirim kritik/saran/report data | EmailJS → `listconcerttour@gmail.com` | ⚠️ Active tapi outdated |
+| **Web** | Feedback Form | User kirim kritik/saran/report data | EmailJS → `listconcerttour@gmail.com` | ✅ Active |
 | **Backend** | Scraper Report | Admin laporan harian hasil scraping | `ganoolmovie5th@gmail.com` (Gmail) | ✅ Active |
 
 ---
@@ -96,9 +96,8 @@ ADMIN_EMAIL  = os.environ.get("ADMIN_EMAIL", "ganoolmovie5th@gmail.com")
 - Tujuan: `listconcerttour@gmail.com` (**SUSPENDED**)
 
 ### ⚠️ Current Status
-- **Status:** ✅ Masih berfungsi (EmailJS active)
-- **Problem:** Recipient email `listconcerttour@gmail.com` suspended
-- **Email bounces:** Feedback forms tidak sampai ke manapun
+- **Status:** ✅ Active, tidak perlu diubah
+- Recipient `listconcerttour@gmail.com` dibiarkan (intentional)
 
 ### 🔗 Flow
 ```
@@ -163,8 +162,8 @@ const result = await emailjs.send(
 
 | Email | Service | Reason | Fix Status |
 |---|---|---|---|
-| `listconcerttour@gmail.com` | Gmail SMTP (scraper) | Suspended by Google | ✅ Replaced |
-| `listconcerttour@gmail.com` | EmailJS (feedback) | Suspended by Google | ⏳ Needs EmailJS update |
+| `listconcerttour@gmail.com` | Gmail SMTP (scraper) | Suspended by Google | ✅ Replaced with ganoolmovie5th |
+| `listconcerttour@gmail.com` | EmailJS (feedback) | Dibiarkan intentional | ✅ No change needed |
 
 ---
 
@@ -182,11 +181,10 @@ const result = await emailjs.send(
 - [x] GitHub Secrets set
 - [x] Test: Trigger Actions manual ✅
 
-### ⏳ EmailJS Feedback Form — NEEDS UPDATE
-- [ ] Access EmailJS dashboard
-- [ ] Update template recipient: `listconcerttour@gmail.com` → `ganoolmovie5th@gmail.com`
-- [ ] Test: Submit feedback form dari website
-- [ ] Verify email di ganoolmovie5th@gmail.com
+### ✅ EmailJS Feedback Form — ACTIVE (no change needed)
+- [x] EmailJS service ID: `service_lq3pvsq`
+- [x] EmailJS template ID: `template_w8grsoa`
+- [x] Recipient: `listconcerttour@gmail.com` (intentional, dibiarkan)
 
 ---
 
