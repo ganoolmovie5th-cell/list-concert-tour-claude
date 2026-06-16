@@ -37,19 +37,14 @@ Files: <file yang diubah selain README & steering>
 **Type:**
 - `feat` — fitur baru
 - `fix` — bug fix
+- `remove` — hapus fitur/kode
 - `perf` — performance
 - `a11y` — accessibility
 - `seo` — SEO
 - `sync` — sync data mobile
 - `chore` — maintenance
 - `docs` — hanya dokumentasi
-
-**Contoh commit yang BENAR:**
-```
-fix(a11y): tambah aria-label unik per konser, fix heading h4→h3
-
-Files: app.js, app.min.js, features.js, features.min.js, README.md, .kiro/steering/project-context.md
-```
+- `ci` — perubahan GitHub Actions / workflow
 
 ---
 
@@ -70,21 +65,11 @@ Files: app.js, app.min.js, features.js, features.min.js, README.md, .kiro/steeri
 | Update copyright year | Footer text | `src/constants/strings.ts` |
 | Fix bug di Supabase query | Query identik | hook yang relevan di `src/hooks/` |
 
-**Cara sync ke mobile:**
-```bash
-# Setelah commit web, langsung update mobile
-cd /projects/sandbox/list-concert-tour-mobile-claude
-# Edit file yang perlu disync
-git add <file> README.md .kiro/steering/project-context.md
-git commit -m "sync: <deskripsi perubahan dari web>"
-# Push keduanya
-```
-
 ---
 
 ## Source of Truth
 
-- **`app.js`** = source of truth data konser (CONCERTS array, 43 entries per Juni 2026)
+- **`app.js`** = source of truth data konser (CONCERTS array, 43+ entries per Juni 2026)
 - **Mobile `concerts.ts`** selalu sync dari `app.js` — jangan edit data konser di mobile secara manual
 - **Images** tersimpan di `/images/[id].jpeg` — dipakai langsung oleh web, mobile pakai URL `https://www.list-concert-tour.web.id/images/[id].jpeg`
 
@@ -95,10 +80,11 @@ git commit -m "sync: <deskripsi perubahan dari web>"
 | File | Fungsi |
 |---|---|
 | `index.html` | Single-page utama — critical CSS inline, fonts non-blocking |
-| `app.js` | Data konser (37 entries) + render + filter + JSON-LD schema inject |
+| `app.js` | Data konser (43+ entries) + render + filter + JSON-LD schema inject |
 | `app.min.js` | Minified (auto-generated via minify.py) |
 | `style.css` | Semua styling — dark/light mode, responsive |
 | `style.min.css` | Minified CSS (auto-generated) |
+| `sw.js` | Service Worker — Stale-While-Revalidate, auto-reload on update |
 | `supabase.js` | Supabase REST client: `DB.*`, `Storage.upload`, `getDeviceUID()` |
 | `reviews.js` | Review & Rating — Supabase primary, localStorage fallback |
 | `features.js` | Going/Interested, Sort, Google Calendar, Diskusi, UGC/Foto Fans |
@@ -107,8 +93,12 @@ git commit -m "sync: <deskripsi perubahan dari web>"
 | `features4.js` | Setlist.fm, NewConcertNotif, TipsArticle |
 | `supabase_schema.sql` | Schema 6 tabel — jalankan di Supabase SQL Editor |
 | `api/subscribe.js` | Vercel Serverless — proxy Mailchimp API v3 (CommonJS) |
+| `scraper.py` | Scrape 7 sumber, deduplicate, klasifikasi, generate report |
+| `auto_updater.py` | Filter HIGH confidence → inject ke app.js → output summary JSON |
+| `email_reporter.py` | Kirim laporan HTML ke admin via Gmail SMTP |
 | `vercel.json` | Security headers (CSP, COOP, HSTS) + Cache headers |
 | `sitemap.xml` | Sitemap — 1 URL saja (homepage) |
+| `.github/workflows/scrape.yml` | 2 jobs: Job 1 scrape+email, Job 2 auto-update PR |
 
 ### Script loading order di `index.html` (wajib urutan ini):
 ```
@@ -117,10 +107,81 @@ supabase.min.js → app.min.js → reviews.min.js → features.min.js → featur
 
 ---
 
+## Service Worker (sw.js)
+
+Strategy per resource type:
+- **HTML, CSS, JS** → Stale-While-Revalidate: sajikan cache, fetch background, auto-reload jika berubah
+- **Images (`/images/`)** → Cache First: gambar jarang berubah
+- **Cross-origin** → Skip (Supabase, GA, dll)
+
+Auto-reload flow:
+```
+SW detect perubahan file → postMessage SW_UPDATED → index.html listener → window.location.reload()
+```
+
+SW update flow (tab lama):
+```
+SW baru installed → index.html kirim SKIP_WAITING → SW baru aktif → controllerchange → reload
+reg.update() tiap 60 detik (agar tab lama tetap dapat update)
+```
+
+Cache names: `concertid-static-v16`, `concertid-images-v16`
+
+---
+
+## Semi-Auto Scraper (Opsi A)
+
+**Schedule:** Tiap hari **01:00 WIB** (`cron: "0 18 * * *"` UTC)
+
+### Flow
+```
+Job 1: scraper.py
+  ├─ Scrape 7 sumber (Bandwagon, Tempo, Jakarta Post, Songkick, JamBase, tiket.com, Loket)
+  ├─ Deduplicate & classify (new_potential, updates, irrelevant)
+  ├─ Generate scraper_report.json + HTML
+  ├─ Kirim email laporan ke admin (ganoolmovie5th@gmail.com)
+  └─ Upload artifact scraper_report.json
+
+Job 2: auto_updater.py (setelah Job 1)
+  ├─ Download artifact scraper_report.json dari Job 1
+  ├─ Filter: reliability=HIGH + source ∈ {tiket.com, loket.com, songkick.com, bandwagon.asia}
+  ├─ Generate JS concert entries
+  ├─ Inject ke app.js (sebelum penutup CONCERTS array)
+  ├─ Commit ke branch auto-update/concerts-YYYYMMDD-HHMM
+  └─ Create PR otomatis ke main (dengan checklist review)
+```
+
+### HIGH Confidence Sources
+`tiket.com` · `loket.com` · `songkick.com` · `bandwagon.asia`
+
+### confirmStatus Logic
+- tiket.com / loket.com / songkick.com / bandwagon.asia → `"confirmed"`
+- Lainnya → `"rumor"`
+
+### Branch Naming
+`auto-update/concerts-YYYYMMDD-HHMM`
+
+### Manual Trigger
+Actions → 🎵 Daily Concert Monitor & Auto-PR → Run workflow
+
+---
+
+## Email Systems
+
+| Feature | Service | Email | Config |
+|---|---|---|---|
+| Newsletter | Mailchimp API | Mailchimp managed | Vercel env vars |
+| Scraper Report | Gmail SMTP | `ganoolmovie5th@gmail.com` | GitHub Secrets |
+| Kritik & Saran | EmailJS | `listconcerttour@gmail.com` | Hardcoded (intentional) |
+
+**EmailJS:** Service `service_lq3pvsq`, Template `template_w8grsoa` — recipient `listconcerttour@gmail.com` dibiarkan (intentional, tidak perlu diubah)
+
+---
+
 ## Performance (index.html)
 
 - **Critical CSS** di-inline di `<style>` dalam `<head>` — above-the-fold styles
-- **Full CSS** load via `<link rel="stylesheet" href="style.min.css">` — blocking tapi ok karena critical sudah inline
+- **Full CSS** load via `<link rel="stylesheet" href="style.min.css">`
 - **Google Fonts** load via `media="print" onload` trick — non-blocking
 - **EmailJS** load via `defer` attribute
 - **Semua JS** di akhir `<body>` — tidak blocking render
@@ -196,8 +257,8 @@ supabase.min.js → app.min.js → reviews.min.js → features.min.js → featur
 
 | Secret | Keterangan |
 |---|---|
-| `GMAIL_APP_PASSWORD` | Gmail App Password 16 karakter |
-| `ADMIN_EMAIL` | Email tujuan laporan |
+| `GMAIL_APP_PASSWORD` | App Password dari `ganoolmovie5th@gmail.com` |
+| `ADMIN_EMAIL` | Email tujuan laporan (default: `ganoolmovie5th@gmail.com`) |
 
 ---
 
@@ -207,6 +268,7 @@ supabase.min.js → app.min.js → reviews.min.js → features.min.js → featur
 - Public key: `Ph1AuCpm4gbC6zMw6`
 - Foto: field `photo_data` (base64 murni, tanpa prefix `data:image/...`)
 - Field `has_photo`: `'ya'` atau `'tidak'`
+- Recipient: `listconcerttour@gmail.com` — **dibiarkan intentional, jangan diubah**
 
 ---
 
@@ -224,32 +286,38 @@ supabase.min.js → app.min.js → reviews.min.js → features.min.js → featur
 ### openModal patch chain (urutan wajib)
 1. `app.js` — render dasar + inject maps/share/price
 2. `features.js` — inject going/interested, spotify, review, diskusi, UGC
-3. `features3.js` — inject setlist, price converter, ticket alert
+3. `features3.js` — inject setlist, price converter
 4. `features4.js` — inject setlist.fm live
 
 ### Heading hierarchy (accessibility)
 - `h1` → hero title (hanya 1 di halaman)
 - `h2` → section headers (Jadwal Konser, Highlights, Panduan, Venue, Tentang, dll)
 - `h3` → sub-section di dalam modal/panel (Diskusi, Review, Setlist, dll)
-- Jangan skip level — `h4` sudah diganti `h3` di semua features*.js
+- Jangan skip level
 
 ### Contrast colors (WCAG AA)
 - `--text-muted: #9ca3af` — untuk teks sekunder
 - `--text-sub: #c4c4cc` — untuk teks tertier
-- `#d8b4fe` — warna aksen ungu (bukan `#c084fc` yang terlalu gelap)
+- `#d8b4fe` — warna aksen ungu
 - `#86efac` — warna hijau affordable badge
 - `#fde68a` — warna kuning rumor/luxury
+
+### Fitur yang Dihapus
+- **TicketAlert** (features3.js) — dihapus Juni 2026, localStorage-only, tidak ada email backend
 
 ---
 
 ## PWA & Download App
 
-- **PWA:** `manifest.json` + `sw.js` (Cache First / Network First) — install ke homescreen via browser
-- **Section Download:** 2 card side by side (Android | iOS) di `index.html` — tetap 1 page SPA
+- **PWA:** `manifest.json` + `sw.js` (Stale-While-Revalidate) — install ke homescreen via browser
+- **Auto-reload:** SW detect perubahan file → postMessage → reload otomatis (tidak perlu incognito)
+- **Section Download:** 2 card side by side (Android | iOS) di `index.html`
   - Android: badge "✅ Available", tombol download APK aktif
-  - iOS: badge "Coming Soon", tombol disabled, note subscribe newsletter
+  - iOS: badge "Coming Soon", tombol disabled
 - **APK:** hosted di GitHub Releases `list-concert-tour-mobile-claude` → `ConcertID.apk`
-- **Auto-build APK:** GitHub Actions `.github/workflows/build-apk.yml` di mobile repo — trigger setiap push ke main, butuh secret `EXPO_TOKEN`
+- **Auto-build APK:** GitHub Actions `.github/workflows/build-apk.yml` di mobile repo
+
+---
 
 ## Hal yang TIDAK Perlu Dilakukan
 - Jangan buat PR — push langsung ke main
