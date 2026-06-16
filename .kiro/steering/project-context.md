@@ -243,6 +243,15 @@ supabase.min.js → app.min.js → reviews.min.js → features.min.js → featur
 
 ---
 
+## PWA & Download App
+
+- **PWA:** `manifest.json` + `sw.js` (Cache First / Network First) — install ke homescreen via browser
+- **Section Download:** 2 card side by side (Android | iOS) di `index.html` — tetap 1 page SPA
+  - Android: badge "✅ Available", tombol download APK aktif
+  - iOS: badge "Coming Soon", tombol disabled, note subscribe newsletter
+- **APK:** hosted di GitHub Releases `list-concert-tour-mobile-claude` → `ConcertID.apk`
+- **Auto-build APK:** GitHub Actions `.github/workflows/build-apk.yml` di mobile repo — trigger setiap push ke main, butuh secret `EXPO_TOKEN`
+
 ## Hal yang TIDAK Perlu Dilakukan
 - Jangan buat PR — push langsung ke main
 - Jangan buat halaman/URL baru — website tetap 1 page SPA
