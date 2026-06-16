@@ -103,7 +103,7 @@ git commit -m "sync: <deskripsi perubahan dari web>"
 | `reviews.js` | Review & Rating — Supabase primary, localStorage fallback |
 | `features.js` | Going/Interested, Sort, Google Calendar, Diskusi, UGC/Foto Fans |
 | `features2.js` | Calendar View, Advanced Search, Harga Alert, Spotify |
-| `features3.js` | I18n, TicketAlert, PriceConverter, BeenThere, GroupBuying, TicketMarket, FeedbackForm |
+| `features3.js` | I18n, PriceConverter, BeenThere, GroupBuying, TicketMarket, FeedbackForm |
 | `features4.js` | Setlist.fm, NewConcertNotif, TipsArticle |
 | `supabase_schema.sql` | Schema 6 tabel — jalankan di Supabase SQL Editor |
 | `api/subscribe.js` | Vercel Serverless — proxy Mailchimp API v3 (CommonJS) |
@@ -166,7 +166,6 @@ supabase.min.js → app.min.js → reviews.min.js → features.min.js → featur
 | `cid_going` / `cid_interest` / `cid_myvote` | features.js — fallback Going/Interested |
 | `cid_ticket_market` | features3.js — fallback TicketMarket |
 | `cid_group_buying` | features3.js — fallback GroupBuying |
-| `cid_ticket_alerts` | features3.js — TicketAlert budget |
 | `cid_harga_alert` | features2.js — Harga Alert budget |
 | `cid_lang` | features3.js — bahasa (id/en) |
 | `cid_wishlist` | app.js — wishlist konser |

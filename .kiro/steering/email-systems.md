@@ -10,7 +10,6 @@
 |----------|---------|---------|-----------|--------|
 | **Web** | Newsletter Mailchimp | User subscribe untuk notif konser baru | Mailchimp (managed) | ✅ Active |
 | **Backend** | Scraper Report | Admin laporan harian hasil scraping | `ganoolmovie5th@gmail.com` (Gmail) | ✅ Active |
-| **Backend** | Auto-Updater PR | System notifications (future) | N/A (PR only) | 🔄 N/A |
 
 ---
 
@@ -157,22 +156,6 @@ smtp.gmail.com:465 (SSL)
 
 ---
 
-## 3️⃣ Ticket Alert (Future Feature)
-
-### ▶️ Planned
-- User dapat set alert untuk konser tertentu
-- Saat ada update (harga turun, tiket open, dll) → send email
-- **Current Status:** Feature UI ada (`TicketAlert`), tapi backend belum full implement
-- Email service: TBD (bisa pakai SendGrid, Mailgun, atau Firebase)
-
-### 📝 Current Implementation
-- LocalStorage-based (client-side only, tidak ada email backend yet)
-- `isSubscribed(id)` → check localStorage
-- `toggle(concertId)` → add/remove dari alerts
-- UI: "🔔 Set Alert" button per konser
-
----
-
 ## 📋 Setup Checklist
 
 ### ✅ Mailchimp (Newsletter) — LIVE
@@ -194,11 +177,8 @@ smtp.gmail.com:465 (SSL)
   - `ADMIN_EMAIL` = ✅ (optional, default: ganoolmovie5th@gmail.com)
 - [ ] Test: Trigger Actions manual → check email
 
-### ⏳ Ticket Alert Email — TODO
-- [ ] Decide email service (SendGrid? Mailgun? Firebase?)
-- [ ] Setup backend API endpoint
-- [ ] Implement email template
-- [ ] Test end-to-end
+### ⏳ Yang Belum Ada
+- Ticket alert email — dihapus dari roadmap
 
 ---
 
