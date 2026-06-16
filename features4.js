@@ -280,13 +280,6 @@ const NewConcertNotif = (() => {
         </div>
         <p class="ha-desc">Konser yang baru ditambahkan ke ConcertID.</p>
         <div class="ha-list">${items}</div>
-        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);text-align:center;">
-          <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;">Mau dapat notifikasi email saat ada konser baru?</p>
-          <button onclick="NewConcertNotif.closePanel();document.querySelector('.newsletter-section')?.scrollIntoView({behavior:'smooth'})"
-            style="font-size:0.8rem;padding:7px 16px;border-radius:99px;border:1px solid rgba(168,85,247,0.3);background:rgba(168,85,247,0.1);color:#c084fc;cursor:pointer;font-family:var(--font);font-weight:600;">
-            📧 Subscribe Newsletter
-          </button>
-        </div>
       </div>`;
 
     overlay.classList.add('open');
@@ -412,7 +405,7 @@ const TipsArticle = (() => {
         </div>
 
         <div class="tips-highlight">
-          💡 <strong>Pro Tip:</strong> Daftarkan email di newsletter ConcertID untuk dapat notifikasi pertama saat tiket baru dibuka!
+          💡 <strong>Pro Tip:</strong> Bookmark halaman ini dan cek rutin untuk update konser terbaru!
         </div>
       `,
     },
