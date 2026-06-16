@@ -63,6 +63,7 @@ jobs:
             scraper_report.json
             scraper_report.html
           retention-days: 30
+          if-no-files-found: warn
 
       - name: 📊 Job Summary
         run: |
@@ -95,10 +96,12 @@ jobs:
       - name: 📦 Install dependencies
         run: pip install --upgrade pip && pip install -r requirements.txt
 
-      # Jalankan ulang scraper untuk generate scraper_report.json di job ini
-      # (artifact antar job tidak di-share otomatis kecuali via upload/download)
-      - name: 🕷️ Re-run scraper (generate report untuk auto_updater)
-        run: python scraper.py
+      # Download artifact scraper_report.json dari Job 1 (hemat waktu, hasil konsisten)
+      - name: 📥 Download scraper report dari Job 1
+        uses: actions/download-artifact@v4
+        with:
+          name: scraper-report-${{ github.run_number }}
+          path: .
 
       # Jalankan auto_updater — inject konser baru HIGH confidence ke app.js
       - name: 🤖 Run auto_updater
@@ -141,12 +144,14 @@ jobs:
           # Simpan artists list ke file karena bisa multi-line
           echo "$ARTISTS" > /tmp/artists_list.txt
 
-      # Setup git identity
+      # Setup git identity + auth via GITHUB_TOKEN
       - name: 🔧 Setup git config
         if: steps.updater.outputs.changed == 'true'
         run: |
           git config user.name "ConcertID Bot"
           git config user.email "bot@list-concert-tour.web.id"
+          # Setup remote dengan token untuk push
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
       # Buat branch baru & commit
       - name: 🌿 Create branch & commit
