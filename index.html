@@ -565,22 +565,50 @@
 
     // Register Service Worker (PWA)
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('[PWA] SW registered:', reg.scope))
-          .catch(err => console.warn('[PWA] SW failed:', err));
+      window.addEventListener('load', async () => {
+        try {
+          const reg = await navigator.serviceWorker.register('/sw.js');
+          console.log('[PWA] SW registered:', reg.scope);
+
+          // Deteksi SW baru tersedia
+          const onUpdateFound = () => {
+            const newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', () => {
+              // SW baru sudah installed & siap — minta dia skip waiting lalu reload
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          };
+
+          reg.addEventListener('updatefound', onUpdateFound);
+
+          // Cek update setiap 60 detik (agar tab lama juga dapat update)
+          setInterval(() => reg.update(), 60 * 1000);
+
+          // Saat controller berubah (SW baru aktif) → reload halaman
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+              refreshing = true;
+              window.location.reload();
+            }
+          });
+
+        } catch (err) {
+          console.warn('[PWA] SW failed:', err);
+        }
       });
 
-      // Auto-reload saat SW mendeteksi ada update konten
+      // Fallback: pesan dari SW jika konten berubah
       navigator.serviceWorker.addEventListener('message', event => {
         if (event.data && event.data.type === 'SW_UPDATED') {
-          // Hanya reload jika file utama yang berubah (bukan gambar)
           const updatedUrl = event.data.url || '';
           const isMainAsset = updatedUrl.match(/\.(html|css|js)$/) || updatedUrl.endsWith('/');
           if (isMainAsset && !document.hidden) {
             window.location.reload();
           } else if (isMainAsset) {
-            // Tab sedang tidak aktif — reload saat user kembali
             document.addEventListener('visibilitychange', function onVisible() {
               if (!document.hidden) {
                 document.removeEventListener('visibilitychange', onVisible);

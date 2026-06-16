@@ -35,8 +35,17 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_STATIC)
       .then(cache => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting())
+    // Sengaja TIDAK skipWaiting di sini —
+    // biar page yang request skipWaiting lewat message,
+    // sehingga reload terjadi secara terkontrol
   );
+});
+
+// ── Message — terima perintah dari halaman ───
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // ── Activate — hapus cache lama ──────────────
