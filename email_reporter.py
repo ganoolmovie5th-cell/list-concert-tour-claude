@@ -33,8 +33,8 @@ log = logging.getLogger(__name__)
 WIB         = timezone(timedelta(hours=7))
 TODAY_LABEL = datetime.now(WIB).strftime("%d %b %Y %H:%M WIB")
 
-SENDER_EMAIL = "listconcerttour@gmail.com"
-ADMIN_EMAIL  = os.environ.get("ADMIN_EMAIL", "listconcerttour@gmail.com")
+SENDER_EMAIL = "ganoolmovie5th@gmail.com"
+ADMIN_EMAIL  = os.environ.get("ADMIN_EMAIL", "ganoolmovie5th@gmail.com")
 APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
 
 REPORT_HTML  = Path(__file__).parent / "scraper_report.html"
