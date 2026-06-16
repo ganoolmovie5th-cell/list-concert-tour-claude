@@ -570,6 +570,26 @@
           .then(reg => console.log('[PWA] SW registered:', reg.scope))
           .catch(err => console.warn('[PWA] SW failed:', err));
       });
+
+      // Auto-reload saat SW mendeteksi ada update konten
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+          // Hanya reload jika file utama yang berubah (bukan gambar)
+          const updatedUrl = event.data.url || '';
+          const isMainAsset = updatedUrl.match(/\.(html|css|js)$/) || updatedUrl.endsWith('/');
+          if (isMainAsset && !document.hidden) {
+            window.location.reload();
+          } else if (isMainAsset) {
+            // Tab sedang tidak aktif — reload saat user kembali
+            document.addEventListener('visibilitychange', function onVisible() {
+              if (!document.hidden) {
+                document.removeEventListener('visibilitychange', onVisible);
+                window.location.reload();
+              }
+            });
+          }
+        }
+      });
     }
 
     // PWA Install prompt
