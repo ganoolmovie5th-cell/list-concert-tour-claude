@@ -187,6 +187,22 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); line
 .footer { background: var(--bg); border-top: 1px solid var(--border); padding: 60px 0 0; }
 .footer-inner { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; padding-bottom: 48px; }
 .footer-logo .logo { margin-bottom: 12px; display: inline-flex; }
+
+/* ── QUICK NAV ── */
+.quick-nav { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 0; }
+.quick-nav-links { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.quick-nav-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 99px;
+  font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
+  text-decoration: none; border: 1px solid var(--border);
+  transition: all 0.18s; white-space: nowrap;
+}
+.quick-nav-link:hover { color: var(--text); border-color: var(--accent); background: rgba(168,85,247,0.08); }
+@media (max-width: 600px) {
+  .quick-nav-links { gap: 6px; }
+  .quick-nav-link { font-size: 0.75rem; padding: 5px 11px; }
+}
 .footer-logo p { font-size: 0.82rem; color: var(--text-muted); }
 .footer-links { display: flex; flex-direction: column; gap: 10px; }
 .footer-links h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 4px; }

@@ -151,7 +151,7 @@
   <nav class="navbar" id="navbar">
     <div class="container nav-inner">
       <a href="/" class="logo">
-        <img src="logo.svg" alt="ConcertID" class="logo-img" width="120" height="30" />
+        <img src="logo.svg" alt="ConcertID" class="logo-img" width="120" height="30" loading="lazy" />
       </a>
       <div class="nav-links">
         <a href="#concerts">Konser</a>
@@ -206,6 +206,19 @@
       <div class="scroll-arrow">↓</div>
     </div>
   </section>
+
+  <!-- QUICK NAV — internal links for SEO & UX -->
+  <nav class="quick-nav" aria-label="Navigasi cepat">
+    <div class="container">
+      <div class="quick-nav-links">
+        <a href="#concerts" class="quick-nav-link">🎵 Jadwal Konser</a>
+        <a href="#upcoming" class="quick-nav-link">🔥 Paling Ditunggu</a>
+        <a href="#venues"   class="quick-nav-link">📍 Venue Populer</a>
+        <a href="#download" class="quick-nav-link">📱 Download App</a>
+        <a href="#about"    class="quick-nav-link">ℹ️ Tentang Kami</a>
+      </div>
+    </div>
+  </nav>
 
   <!-- FILTER BAR -->
   <main id="main-content">
@@ -503,14 +516,16 @@
     <div class="container footer-inner">
       <div class="footer-logo">
         <a href="/" class="logo">
-          <img src="logo.svg" alt="ConcertID" class="logo-img logo-img-footer" width="112" height="28" />
+          <img src="logo.svg" alt="ConcertID" class="logo-img logo-img-footer" width="112" height="28" loading="lazy" />
         </a>
         <p>Jadwal konser internasional terlengkap di Indonesia</p>
       </div>
       <div class="footer-links">
         <h4>Navigasi</h4>
         <a href="#concerts">Semua Konser</a>
-        <a href="#upcoming">Mendatang</a>
+        <a href="#upcoming">Paling Ditunggu</a>
+        <a href="#venues">Venue Populer</a>
+        <a href="#download">Download App</a>
         <a href="#about">Tentang Kami</a>
       </div>
       <div class="footer-links">

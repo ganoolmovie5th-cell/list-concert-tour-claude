@@ -1165,6 +1165,7 @@ function renderCards(list) {
       <div class="concert-card${past?' past':''}${rumor?' rumor-card':''}" onclick="openModal('${c.id}')">
         <div class="card-header${img?' has-photo':''}" ${cardBgStyle}>
           ${!img ? `<div class="card-bg-emoji">${c.emoji}</div>` : ''}
+          ${img ? `<img src="${img}" alt="${c.artist}" loading="lazy" width="1" height="1" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true" />` : ''}
           <div class="card-overlay"></div>
           <div class="card-badges">
             <span class="badge badge-genre-${c.genre}">${genreLabel(c.genre)}</span>
