@@ -52,6 +52,7 @@ Files: <file yang diubah selain README & steering>
 
 - **Juni 2026:** Tambah internal links untuk SEO di `index.html` (paths: `/jadwal`, `/artis`, `/venue`, `/kategori`, plus footer `/tentang`, `/sumber-data`, `/kontak`).
 - **Juni 2026:** Update `robots.txt` untuk disallow `manifest.json` + `/*.json$` dan set sitemap ke homepage.
+- **Juni 2026:** Tambah H5/H6 minor headings untuk audit di `index.html`.
 
 ---
 

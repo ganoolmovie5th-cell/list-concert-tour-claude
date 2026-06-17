@@ -39,6 +39,7 @@
 | 📲 PWA | Progressive Web App — install di homescreen, offline support, auto-reload saat ada update |
 | 🔗 Internal Links | Tambahan internal links untuk SEO (paths: `/jadwal`, `/artis`, `/venue`, `/kategori`) |
 | 🤖 Robots.txt | Disallow `manifest.json` + `/*.json$` dan set sitemap homepage |
+| 🏷️ Headings | Tambah H5/H6 minor headings untuk audit (Detail Informasi / Fasilitas Venue) |
 
 ---
 
