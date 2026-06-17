@@ -38,6 +38,7 @@
 | 🏷️ JSON-LD Schema | Structured data Event schema untuk semua konser (SEO Google Events) |
 | 📲 PWA | Progressive Web App — install di homescreen, offline support, auto-reload saat ada update |
 | 🔗 Internal Links | Tambahan internal links untuk SEO (paths: `/jadwal`, `/artis`, `/venue`, `/kategori`) |
+| 🤖 Robots.txt | Disallow `manifest.json` + `/*.json$` dan set sitemap homepage |
 
 ---
 
