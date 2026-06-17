@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /manifest.json
+Disallow: /*.json$
 
-Sitemap: https://www.list-concert-tour.web.id/sitemap.xml
+Sitemap: https://list-concert-tour.web.id/sitemap.xml

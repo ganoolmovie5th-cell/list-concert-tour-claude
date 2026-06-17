@@ -1796,48 +1796,141 @@ function applyUTMToLinks() {
    SEO — JSON-LD Event Schema Injection
    ============================================ */
 function injectEventSchemas() {
-  // Create schema array untuk semua concerts
-  const schemas = CONCERTS.map(c => ({
-    '@context': 'https://schema.org',
-    '@type': 'Event',
-    'name': c.artist + ' — ' + c.tour,
-    'description': c.description,
-    'image': c.id && ARTIST_IMAGES[c.id] ? 'https://www.list-concert-tour.web.id' + ARTIST_IMAGES[c.id] : 'https://www.list-concert-tour.web.id/og-image.png',
-    'startDate': c.rawDate.toISOString().split('T')[0],
-    'endDate': c.dates.length > 1 
-      ? new Date(c.rawDate.getTime() + (c.dates.length - 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-      : c.rawDate.toISOString().split('T')[0],
-    'eventStatus': isPast(c) ? 'EventEnded' : c.confirmStatus === 'rumor' ? 'EventScheduled' : 'EventScheduled',
-    'eventAttendanceMode': 'OfflineEventAttendanceMode',
-    'location': {
-      '@type': 'Place',
-      'name': c.venue,
-      'address': {
-        '@type': 'PostalAddress',
-        'addressLocality': c.city,
-        'addressCountry': 'ID'
-      }
-    },
-    'organizer': {
-      '@type': 'Organization',
-      'name': c.promotor || 'Unknown Promoter'
-    },
-    'offers': c.priceMin > 0 ? [{
-      '@type': 'Offer',
-      'url': c.ticketUrl,
-      'price': c.priceMin,
-      'priceCurrency': 'IDR',
-      'availability': isPast(c) ? 'OutOfStock' : 'InStock',
-      'validFrom': new Date().toISOString()
-    }] : [],
-    'url': 'https://www.list-concert-tour.web.id?concert=' + c.id,
-    'performer': c.lineup ? c.lineup.map(a => ({
-      '@type': 'Person',
-      'name': a
-    })) : []
-  }));
+  const BASE_URL = 'https://list-concert-tour.web.id';
 
-  // Inject sebagai script tag
+  // Helper: build ISO datetime string dari rawDate + time string "19:00 WIB"
+  function toISODateTime(date, timeStr) {
+    if (!date || isNaN(date.getTime())) return null;
+    const d = date.toISOString().split('T')[0]; // YYYY-MM-DD
+    if (!timeStr || timeStr === 'TBA') return d;
+    // Extract "HH:MM" dari "19:00 WIB" / "19.00 WIB" / "19:00"
+    const m = timeStr.match(/(\d{1,2})[:.h](\d{2})/);
+    if (!m) return d;
+    const hh = m[1].padStart(2, '0');
+    const mm = m[2];
+    // WIB = UTC+7 → offset +07:00
+    return `${d}T${hh}:${mm}:00+07:00`;
+  }
+
+  // Helper: endDate = startDate + (jumlah hari - 1) + end time (estimasi +3 jam)
+  function endDateTime(rawDate, dates, timeStr) {
+    const extraDays = Math.max(0, dates.length - 1);
+    const endDate = new Date(rawDate.getTime() + extraDays * 86400000);
+    const start = toISODateTime(endDate, timeStr);
+    if (!start || !start.includes('T')) return endDate.toISOString().split('T')[0];
+    // Tambah 3 jam untuk estimasi durasi konser
+    const endDt = new Date(endDate);
+    const m = timeStr && timeStr.match(/(\d{1,2})[:.h](\d{2})/);
+    if (m) {
+      endDt.setHours(parseInt(m[1]) + 3, parseInt(m[2]));
+      const d = endDate.toISOString().split('T')[0];
+      const hh = String(endDt.getHours()).padStart(2, '0');
+      const mm = String(endDt.getMinutes()).padStart(2, '0');
+      return `${d}T${hh}:${mm}:00+07:00`;
+    }
+    return endDate.toISOString().split('T')[0];
+  }
+
+  // Map eventStatus ke full schema.org URL
+  function eventStatusUrl(c) {
+    if (isPast(c)) return 'https://schema.org/EventEnded';
+    if (c.confirmStatus === 'rumor') return 'https://schema.org/EventScheduled';
+    return 'https://schema.org/EventScheduled';
+  }
+
+  // Build performer array — MusicGroup untuk artis utama, Person untuk support act
+  function buildPerformers(c) {
+    const performers = [];
+    // Artis utama selalu MusicGroup
+    performers.push({ '@type': 'MusicGroup', 'name': c.artist });
+    // Lineup tambahan (support acts) jika ada
+    if (c.lineup && c.lineup.length > 0) {
+      c.lineup.forEach(a => {
+        if (normalize(a) !== normalize(c.artist)) {
+          performers.push({ '@type': 'MusicGroup', 'name': a });
+        }
+      });
+    }
+    return performers;
+  }
+
+  // Build image array
+  function buildImage(c) {
+    const imgPath = ARTIST_IMAGES[c.id];
+    const img = imgPath
+      ? BASE_URL + '/images/' + c.id + '.jpeg'
+      : BASE_URL + '/og-image.png';
+    return [img];
+  }
+
+  // Create schema array untuk semua concerts
+  const schemas = CONCERTS.map(c => {
+    const startISO = toISODateTime(c.rawDate, c.time);
+    const endISO   = endDateTime(c.rawDate, c.dates, c.time);
+
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'Event',
+      'name': c.artist + (c.tour && c.tour !== c.artist ? ' — ' + c.tour : ''),
+      'description': c.description || (c.artist + ' live in Indonesia'),
+      'image': buildImage(c),
+      'url': BASE_URL + '?concert=' + c.id,
+      'startDate': startISO,
+      'endDate': endISO,
+      'eventStatus': eventStatusUrl(c),
+      'eventAttendanceMode': 'https://schema.org/OfflineEventAttendanceMode',
+      'location': {
+        '@type': 'Place',
+        'name': c.venue,
+        'address': {
+          '@type': 'PostalAddress',
+          'addressLocality': c.city ? c.city.split(',')[0].trim() : 'Jakarta',
+          'addressRegion': c.city ? (c.city.split(',')[1] || '').trim() : 'DKI Jakarta',
+          'addressCountry': 'ID'
+        }
+      },
+      'organizer': {
+        '@type': 'Organization',
+        'name': c.promotor || 'TBA'
+      },
+      'performer': buildPerformers(c),
+    };
+
+    // Offers — hanya jika ada harga & ada ticketUrl
+    if (c.priceMin > 0 && c.ticketUrl) {
+      schema['offers'] = c.ticketCategories && c.ticketCategories.length > 1
+        ? c.ticketCategories
+            .filter(t => t.price && t.price.includes('Rp'))
+            .map(t => {
+              const priceNum = parseInt((t.price || '').replace(/[^0-9]/g, '')) || c.priceMin;
+              return {
+                '@type': 'Offer',
+                'name': t.name,
+                'url': c.ticketUrl,
+                'price': priceNum,
+                'priceCurrency': 'IDR',
+                'availability': isPast(c)
+                  ? 'https://schema.org/OutOfStock'
+                  : 'https://schema.org/InStock',
+                'validFrom': new Date().toISOString()
+              };
+            })
+        : [{
+            '@type': 'Offer',
+            'url': c.ticketUrl,
+            'price': c.priceMin,
+            'priceCurrency': 'IDR',
+            'availability': isPast(c)
+              ? 'https://schema.org/OutOfStock'
+              : 'https://schema.org/InStock',
+            'validFrom': new Date().toISOString()
+          }];
+    }
+
+    return schema;
+  });
+
+  // Inject sebagai CollectionPage yang wraps semua Event schemas
   const script = document.createElement('script');
   script.type = 'application/ld+json';
   script.innerHTML = JSON.stringify({
@@ -1845,7 +1938,7 @@ function injectEventSchemas() {
     '@type': 'CollectionPage',
     'name': 'ConcertID — Jadwal Konser Internasional di Indonesia',
     'description': 'Jadwal lengkap konser musisi internasional di Indonesia 2025–2027',
-    'url': 'https://www.list-concert-tour.web.id',
+    'url': BASE_URL,
     'hasPart': schemas
   });
   document.head.appendChild(script);
