@@ -5,14 +5,12 @@
               Network First untuk data dinamis
    ============================================ */
 
-const CACHE_VERSION = 'v17';
+const CACHE_VERSION = 'v18';
 const CACHE_STATIC = `concertid-static-${CACHE_VERSION}`;
 const CACHE_IMAGES = `concertid-images-${CACHE_VERSION}`;
 
-// Assets yang di-cache saat install
+// Assets yang di-cache saat install (JS/CSS only — HTML pakai network-first)
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
   '/style.min.css',
   '/app.min.js',
   '/supabase.min.js',
@@ -76,13 +74,20 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Static assets & HTML — Stale-While-Revalidate
-  // Tampil cepat dari cache, fetch update di background, lalu reload otomatis
+  // HTML pages (/, /index.html, /about, dll) — Network First
+  // Selalu ambil versi terbaru dari server. Cache hanya sebagai fallback offline.
   if (
-    url.pathname.match(/\.(css|js|svg|ico|png|webp|woff2?)$/) ||
     url.pathname === '/' ||
-    url.pathname === '/index.html'
+    url.pathname === '/index.html' ||
+    url.pathname.match(/\.(html)$/) ||
+    !url.pathname.match(/\.\w+$/)   // clean URLs tanpa ekstensi
   ) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  // Static assets (JS, CSS, SVG, fonts, dll) — Stale-While-Revalidate
+  if (url.pathname.match(/\.(css|js|svg|ico|png|webp|woff2?)$/)) {
     event.respondWith(staleWhileRevalidate(request, CACHE_STATIC));
     return;
   }

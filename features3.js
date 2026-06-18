@@ -501,9 +501,9 @@ const GroupBuying = (() => {
       return rows.map(r => ({
         uid:      r.post_uid,
         ownerUid: r.owner_uid,
-        name:     r.name,
+        name:     r.name     || 'Anonim',
         category: r.category || 'Semua kategori',
-        contact:  r.contact,
+        contact:  r.contact  || '',
         ig:       r.ig || '',
         note:     r.note || '',
         date:     r.created_at,
@@ -572,15 +572,17 @@ const GroupBuying = (() => {
 
   function renderCard(p, concertId) {
     const isOwner = p.ownerUid === getDeviceUID();
-    const waHref  = buildWaHref(p.contact);
+    const name    = p.name    || 'Anonim';
+    const contact = p.contact || '';
+    const waHref  = contact ? buildWaHref(contact) : null;
     const igHref  = p.ig ? `https://instagram.com/${p.ig}` : null;
     return `
       <div class="gb-item" id="gbi_${p.uid}">
         <div class="gb-item-top">
-          <div class="gb-avatar">${p.name.charAt(0).toUpperCase()}</div>
+          <div class="gb-avatar">${name.charAt(0).toUpperCase()}</div>
           <div class="gb-info">
-            <div class="gb-name">${p.name}</div>
-            <div class="gb-meta">${timeAgo(p.date)} · ${p.category}</div>
+            <div class="gb-name">${name}</div>
+            <div class="gb-meta">${timeAgo(p.date)} · ${p.category || 'Semua kategori'}</div>
           </div>
           <div class="gb-contact-emojis">
             ${waHref ? `<a class="gb-contact-emoji" href="${waHref}" target="_blank" rel="noopener" title="Chat WhatsApp">💬</a>` : ''}
