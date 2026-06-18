@@ -2,7 +2,7 @@
   "buildCommand": null,
   "outputDirectory": ".",
   "framework": null,
-  "cleanUrls": false,
+  "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
     {
@@ -25,5 +25,12 @@
         { "key": "Cache-Control", "value": "public, max-age=86400, must-revalidate" }
       ]
     }
+  ],
+  "rewrites": [
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/contact", "destination": "/contact.html" },
+    { "source": "/konser", "destination": "/konser.html" },
+    { "source": "/jadwal", "destination": "/jadwal.html" },
+    { "source": "/rumor", "destination": "/rumor.html" }
   ]
 }
