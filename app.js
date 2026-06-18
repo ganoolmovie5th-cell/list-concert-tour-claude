@@ -1842,6 +1842,8 @@ function injectEventSchemas() {
   // Build performer array — MusicGroup untuk artis utama, Person untuk support act
   function buildPerformers(c) {
     const performers = [];
+    // Helper: normalize string untuk perbandingan
+    function normalize(s) { return (s || '').toLowerCase().trim().replace(/\s+/g, ' '); }
     // Artis utama selalu MusicGroup
     performers.push({ '@type': 'MusicGroup', 'name': c.artist });
     // Lineup tambahan (support acts) jika ada
@@ -1949,7 +1951,7 @@ function injectEventSchemas() {
    INIT
    ============================================ */
 document.addEventListener('DOMContentLoaded', () => {
-  injectEventSchemas();
+  try { injectEventSchemas(); } catch(e) { console.warn('[ConcertID] injectEventSchemas error:', e); }
   updateStats();
   updateWishlistCount();
   renderCards(CONCERTS);
