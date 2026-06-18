@@ -16,54 +16,49 @@ Website jadwal konser internasional di Indonesia 2025–2027. Single-page app (S
 - **Website tetap 1 page (SPA)** — jangan buat halaman/URL baru
 - Gunakan `kiro_powers github push_to_remote` dengan `remote_branch_name: "main"`
 - Baca file seminimal mungkin — hanya yang relevan dengan task
-- Setelah edit CSS/JS, regenerate `.min` files via: `python3 /projects/sandbox/minify.py`
+- Setelah edit JS: `npx terser <file>.js --compress --output <file>.min.js` (**TANPA --mangle**)
+- Setelah edit CSS: `npx clean-css-cli -o style.min.css style.css`
+- **JANGAN** pakai Python minifier atau terser dengan `--mangle` — akan break global function names
 
 ---
 
 ## Commit Convention (WAJIB setiap commit)
 
-**Setiap commit di repo ini HARUS menyertakan update:**
+Setiap commit HARUS update `README.md` + `.kiro/steering/project-context.md`.
 
-1. **`README.md`** — update bagian yang relevan (fitur baru, perubahan konfigurasi, dll)
-2. **`.kiro/steering/project-context.md`** — update catatan teknis, keputusan desain, atau hal penting
-
-**Format commit message:**
 ```
 <type>: <deskripsi singkat>
 
 Files: <file yang diubah selain README & steering>
 ```
 
-**Type:**
-- `feat` — fitur baru
-- `fix` — bug fix
-- `remove` — hapus fitur/kode
-- `perf` — performance
-- `a11y` — accessibility
-- `seo` — SEO
-- `sync` — sync data mobile
-- `chore` — maintenance
-- `docs` — hanya dokumentasi
-- `ci` — perubahan GitHub Actions / workflow
+**Type:** `feat` `fix` `remove` `perf` `a11y` `seo` `sync` `chore` `docs` `ci`
 
 ---
 
 ## Catatan Perubahan Penting (ringkas)
 
-- **Juni 2026:** Tambah internal links untuk SEO di `index.html`.
-- **Juni 2026:** Update `robots.txt` untuk disallow `manifest.json` + `/*.json$`.
-- **Juni 2026:** Tambah H5/H6 minor headings untuk audit di `index.html`.
 - **Juni 2026:** Tambah Playwright E2E smoke tests + GitHub Actions workflow.
-- **Juni 2026 (fitur baru):** Social Proof Going Count on Cards — `app.js` (fungsi `initGoingCountOnCards`): fetch semua `concert_votes` dalam 1 call, inject `.going-count-badge` ke setiap card. CSS baru di `style.css`.
-- **Juni 2026 (fitur baru):** Venue Seat Map — `app.js` (fungsi `renderSeatMapHtml`, object `VENUE_SEAT_MAPS`): inject denah+tips kategori kursi ke modal konser untuk 7 venue utama. Patched via `patchModalWithNewFeatures`.
-- **Juni 2026 (fitur baru):** Concert Playlist Auto-Generate — `app.js` (fungsi `renderPlaylistHtml`): inject tombol "Buka Playlist di Spotify" ke modal konser. Patched via `patchModalWithNewFeatures`.
-- **Juni 2026 (fitur baru):** In-App Chat for Group Buying — `features3.js` (`InAppChat` object): real-time chat per GB post, polling 10s, Supabase table `gb_chat`. Perlu run SQL: `CREATE TABLE gb_chat (id bigserial primary key, msg_uid text unique, post_uid text not null, sender_uid text, sender_name text, message text, created_at timestamptz default now());`
+- **Juni 2026 (feat):** Social Proof Going Count on Cards — `app.js` (`initGoingCountOnCards`): fetch semua `concert_votes` dalam 1 call, inject `.going-count-badge` ke setiap card.
+- **Juni 2026 (feat):** Venue Seat Map — `app.js` (`VENUE_SEAT_MAPS`, `renderSeatMapHtml`): denah + tips kategori kursi di modal, 7 venue utama.
+- **Juni 2026 (feat):** Concert Playlist — `app.js` (`renderPlaylistHtml`): tombol Buka Playlist Spotify di modal.
+- **Juni 2026 (feat):** In-App Chat — `features3.js` (`InAppChat`): chat per Group Buying post, polling 10s.
+- **Juni 2026 (fix):** `normalize()` function hilang dari source → `injectEventSchemas()` throw → `renderCards()` tidak pernah dipanggil → website blank. Fix: tambah `normalize()` di `buildPerformers()` + try-catch `injectEventSchemas`.
+- **Juni 2026 (fix):** `patchGroupBuyingWithChat` tidak `return` HTML → `GroupBuying.render()` return `undefined` → `innerHTML = undefined` → text "undefined" muncul di halaman. Root cause sebenarnya dari bug "undefined" berbulan-bulan.
+- **Juni 2026 (fix):** `GroupBuying.fetchPosts` & `TicketMarket.fetchPosts`: tambah fallback `r.name||'Anonim'`, `r.contact||''`, `r.type||'jual'` di mapRow.
+- **Juni 2026 (fix):** DOMContentLoaded: `renderCards(CONCERTS)` → `applyFilters()` agar konser muncul tersortir sejak load pertama.
+- **Juni 2026 (fix):** `renderCards` noResult: pesan kontekstual — wishlist kosong tampilkan "❤️ Wishlist kamu masih kosong..." bukan pesan generic.
+- **Juni 2026 (fix):** `renderHighlights`: prioritaskan `hot:true` dulu, tambah null guard, show 6 items.
+- **Juni 2026 (fix):** ServiceWorker `v17→v18`: HTML pages (`/`, `/*.html`) → Network First strategy. Hapus `/` dan `/index.html` dari STATIC_ASSETS. Fix: user tidak perlu buka browser baru untuk lihat perubahan.
+- **Juni 2026 (fix):** `vercel.json`: tambah `Cache-Control: no-store` untuk `/` dan `/*.html` (Cloudflare tidak cache HTML). Tambah 6 route redirect files (`artis.html`, `venue.html`, `kategori.html`, `tentang.html`, `sumber-data.html`, `kontak.html`).
+- **Juni 2026 (remove):** Hapus `<nav class="quick-nav">` (5 anchor links) dari `index.html`.
+- **Juni 2026 (remove):** Hapus `nav-links` tambahan dari navbar: Jadwal Lengkap, Daftar Artis, Venue Populer, Kategori Konser.
+- **Juni 2026 (remove):** Hapus `footer-mini-links` (Tentang/Sumber Data/Kontak) dan kolom "Internal" di footer.
+- **Juni 2026 (fix):** Minifikasi: selalu pakai `terser --compress` (tanpa `--mangle`) + `clean-css`. Pernah break website karena mangle.
 
 ---
 
 ## Auto-Sync ke Mobile (WAJIB saat ada perubahan di web)
-
-**Setiap kali ada perubahan berikut di web, langsung sync ke mobile dalam commit yang sama atau commit berikutnya:**
 
 | Perubahan di Web | Yang Harus Disync ke Mobile | File Mobile |
 |---|---|---|
@@ -74,43 +69,45 @@ Files: <file yang diubah selain README & steering>
 | Edit Spotify artist IDs | SPOTIFY_ARTISTS | `src/data/concerts.ts` |
 | Tambah/edit venue di `index.html` | Venue list | `src/screens/MoreScreen.tsx` |
 | Update Supabase URL/key | Supabase config | `src/lib/supabase.ts` |
-| Update fallback localStorage keys | AsyncStorage keys | `src/hooks/useSocialFeatures.ts` |
-| Update copyright year | Footer text | `src/constants/strings.ts` |
-| Fix bug di Supabase query | Query identik | hook yang relevan di `src/hooks/` |
+| Fix bug Supabase query | Query identik | hook relevan di `src/hooks/` |
 
 ---
 
 ## Source of Truth
 
-- **`app.js`** = source of truth data konser (CONCERTS array, 44 entries per Juni 2026)
-- **Mobile `concerts.ts`** selalu sync dari `app.js` — jangan edit data konser di mobile secara manual
-- **Images** tersimpan di `/images/[id].jpeg` — dipakai langsung oleh web, mobile pakai URL `https://www.list-concert-tour.web.id/images/[id].jpeg`
+- **`app.js`** = source of truth data konser (**44 entries** per Juni 2026)
+- **Mobile `concerts.ts`** selalu sync dari `app.js`
+- **Images** tersimpan di `/images/[id].jpeg` — mobile pakai URL `https://www.list-concert-tour.web.id/images/[id].jpeg`
 
 ---
 
-## Supabase Tables Baru (butuh SQL run)
+## Minifikasi (WAJIB cara ini)
+
+```bash
+# JS — WAJIB tanpa --mangle agar global function names tidak berubah
+npx terser app.js --compress --output app.min.js
+npx terser features.js --compress --output features.min.js
+# dst untuk features2, features3, features4
+
+# CSS
+npx clean-css-cli -o style.min.css style.css
+```
+
+---
+
+## Supabase Tables
 
 ```sql
 -- In-App Chat untuk Group Buying
 CREATE TABLE IF NOT EXISTS gb_chat (
-  id          bigserial PRIMARY KEY,
-  msg_uid     text UNIQUE,
-  post_uid    text NOT NULL,
-  sender_uid  text,
-  sender_name text,
-  message     text,
-  created_at  timestamptz DEFAULT now()
+  id bigserial PRIMARY KEY, msg_uid text UNIQUE, post_uid text NOT NULL,
+  sender_uid text, sender_name text, message text, created_at timestamptz DEFAULT now()
 );
 
 -- Concert Check-in (mobile only)
 CREATE TABLE IF NOT EXISTS concert_checkins (
-  id             bigserial PRIMARY KEY,
-  concert_id     text NOT NULL,
-  device_uid     text NOT NULL,
-  checked_in_at  timestamptz,
-  lat            float8,
-  lng            float8,
-  verified       boolean DEFAULT false,
+  id bigserial PRIMARY KEY, concert_id text NOT NULL, device_uid text NOT NULL,
+  checked_in_at timestamptz, lat float8, lng float8, verified boolean DEFAULT false,
   UNIQUE(concert_id, device_uid)
 );
 ```
@@ -121,28 +118,28 @@ CREATE TABLE IF NOT EXISTS concert_checkins (
 
 | File | Fungsi |
 |---|---|
-| `index.html` | Single-page utama — critical CSS inline, fonts non-blocking |
-| `app.js` | Data konser (43+ entries) + render + filter + JSON-LD schema inject |
-| `app.min.js` | Minified (auto-generated) |
-| `style.css` | Semua styling — dark/light mode, responsive |
-| `style.min.css` | Minified CSS (auto-generated) |
-| `sw.js` | Service Worker — Stale-While-Revalidate, auto-reload on update |
-| `supabase.js` | Supabase REST client: `DB.*`, `Storage.upload`, `getDeviceUID()` |
-| `reviews.js` | Review & Rating — Supabase primary, localStorage fallback |
-| `features.js` | Going/Interested, Sort, Google Calendar, Diskusi, UGC/Foto Fans |
-| `features2.js` | Calendar View, Advanced Search, Harga Alert, Spotify |
-| `features3.js` | I18n, PriceConverter, BeenThere, GroupBuying, TicketMarket, FeedbackForm |
-| `features4.js` | Setlist.fm, NewConcertNotif, TipsArticle |
-| `supabase_schema.sql` | Schema 6 tabel — jalankan di Supabase SQL Editor |
-| `api/subscribe.js` | Vercel Serverless — proxy Mailchimp API v3 (CommonJS) |
-| `scraper.py` | Scrape 7 sumber, deduplicate, klasifikasi, generate report |
-| `auto_updater.py` | Filter HIGH confidence → inject ke app.js → output summary JSON |
-| `email_reporter.py` | Kirim laporan HTML ke admin via Gmail SMTP |
-| `vercel.json` | Security headers (CSP, COOP, HSTS) + Cache headers |
-| `sitemap.xml` | Sitemap — 1 URL saja (homepage) |
-| `.github/workflows/scrape.yml` | 2 jobs: Job 1 scrape+email, Job 2 auto-update PR |
+| `index.html` | Single-page utama — critical CSS inline |
+| `app.js` | Data konser (44 entries) + render + filter + Going badge + Venue SeatMap + Playlist |
+| `style.css` | Semua styling termasuk `.going-count-badge`, `.seat-map-section`, `.playlist-section`, `.iap-*` |
+| `sw.js` | Service Worker v18 — Network First untuk HTML, Stale-While-Revalidate untuk JS/CSS |
+| `features.js` | Going/Interested, Sort, Diskusi, UGC — inject ke modal via `openModal` patch |
+| `features3.js` | GroupBuying, TicketMarket, InAppChat — **mapRow WAJIB punya fallback `\|\|'Anonim'`** |
+| `vercel.json` | Security headers + `no-store` untuk HTML + rewrites untuk semua routes |
+| `*.html` redirect files | `artis.html`, `venue.html`, `kategori.html`, `tentang.html`, `sumber-data.html`, `kontak.html` |
 
-### Script loading order di `index.html` (wajib urutan ini):
+### Script loading order (jangan ubah urutan):
 ```
 supabase.min.js → app.min.js → reviews.min.js → features.min.js → features2.min.js → features3.min.js → features4.min.js
 ```
+
+---
+
+## Bug Patterns yang Pernah Terjadi (jangan diulang)
+
+| Bug | Penyebab | Fix |
+|---|---|---|
+| Website blank | `normalize()` undefined → `injectEventSchemas` throw → block DOMContentLoaded | try-catch + define normalize() |
+| Text "undefined" di modal | `patchGroupBuyingWithChat` tidak `return html` | `const html = _origRender(...); return html;` |
+| Website tidak bisa diklik | Python minifier strip URL `//` | Pakai `npx terser --compress` |
+| Perubahan tidak terlihat | SW serve cached HTML | SW v18 network-first untuk HTML |
+| Global function hilang | terser `--mangle` rename global vars | Pakai `--compress` SAJA |

@@ -104,9 +104,19 @@ list-concert-tour-claude/
 
 ## 🆕 Update Juni 2026
 
-| Fitur Baru | Keterangan |
+### Fitur Baru
+| Fitur | Keterangan |
 |---|---|
-| 🎟️ Social Proof Going on Card | Going count tampil langsung di card — fetch all 44 konser dalam 1 DB call |
-| 🗺️ Venue Seat Map | Denah & tips kursi untuk 7 venue Jakarta di modal konser |
-| 🎵 Pre-Concert Playlist | Auto-link ke Spotify artis/playlist di modal konser |
+| 🎟️ Social Proof Going | Going count di setiap card, 1 DB call untuk semua 44 konser |
+| 🗺️ Venue Seat Map | Denah & tips kursi 7 venue Jakarta di modal konser |
+| 🎵 Pre-Concert Playlist | Link Spotify playlist artis di modal konser |
 | 💬 In-App Chat | Real-time chat per post Cari Teman Nonton (Supabase `gb_chat`, polling 10s) |
+
+### Bug Fixes
+| Fix | Keterangan |
+|---|---|
+| Website blank | `normalize()` undefined crash DOMContentLoaded |
+| Text "undefined" di modal | `patchGroupBuyingWithChat` tidak return HTML — fixed |
+| Filter awal kosong | `applyFilters()` di DOMContentLoaded — sorted dari awal |
+| Caching Cloudflare | SW v18 Network First + `Cache-Control: no-store` untuk HTML |
+| Navbar bersih | Hapus Jadwal Lengkap, Daftar Artis, Venue Populer, Kategori Konser |
