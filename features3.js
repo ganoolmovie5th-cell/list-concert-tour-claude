@@ -1429,9 +1429,7 @@ window.InAppChat = InAppChat;
   if (!_origRender) return;
 
   GroupBuying.render = function(concertId) {
-    _origRender.call(GroupBuying, concertId);
-
-    // Tambah atribut data-gb-uid & tombol Chat ke setiap post
+    const html = _origRender.call(GroupBuying, concertId);
     setTimeout(() => {
       const container = document.querySelector('.gb-posts');
       if (!container) return;
@@ -1450,5 +1448,6 @@ window.InAppChat = InAppChat;
         }
       });
     }, 300);
+    return html;
   };
 })();
