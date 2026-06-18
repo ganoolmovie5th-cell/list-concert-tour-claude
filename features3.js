@@ -841,15 +841,17 @@ const TicketMarket = (() => {
 
   function renderCard(p, concertId) {
     const priceDisplay = formatRpDisplay(p.price);
+    const name         = p.name    || 'Anonim';
+    const type         = p.type    || 'jual';
     const isOwner      = p.ownerUid === getDeviceUID();
-    const soldLabel    = p.type === 'jual' ? 'Terjual' : 'Ditemukan';
+    const soldLabel    = type === 'jual' ? 'Terjual' : 'Ditemukan';
     return `
       <div class="tm-item${p.sold ? ' tm-item-sold' : ''}" id="tmi_${p.uid}">
         <div class="tm-item-top">
-          <span class="tm-type-badge tm-type-${p.type}">${p.type === 'jual' ? 'JUAL' : 'BELI'}${p.sold ? ' ✓' : ''}</span>
+          <span class="tm-type-badge tm-type-${type}">${type === 'jual' ? 'JUAL' : 'BELI'}${p.sold ? ' ✓' : ''}</span>
           <div class="tm-info">
-            <span class="tm-name">${p.name}${p.sold ? ` <em style="color:#4ade80;font-size:0.75rem">(${soldLabel})</em>` : ''}</span>
-            <span class="tm-meta">${p.category} · ${p.qty} tiket${priceDisplay ? ` · <strong>${priceDisplay}</strong>` : ''}</span>
+            <span class="tm-name">${name}${p.sold ? ` <em style="color:#4ade80;font-size:0.75rem">(${soldLabel})</em>` : ''}</span>
+            <span class="tm-meta">${p.category || 'TBA'} · ${p.qty || 1} tiket${priceDisplay ? ` · <strong>${priceDisplay}</strong>` : ''}</span>
           </div>
           ${buildContactEmoji(p.contact)}
         </div>
@@ -858,14 +860,14 @@ const TicketMarket = (() => {
           ${p.sold
             ? `<span class="tm-sold-label">✅ ${soldLabel}</span>`
             : isOwner
-              ? `<button class="tm-mark-sold" onclick="TicketMarket.markSold('${concertId}','${p.uid}','${p.type}')">✓ Tandai ${soldLabel}</button>`
+              ? `<button class="tm-mark-sold" onclick="TicketMarket.markSold('${concertId}','${p.uid}','${type}')">✓ Tandai ${soldLabel}</button>`
               : ''
           }
           <span class="tm-time">${timeAgo(p.date)}</span>
           ${isOwner && !p.sold ? `
             <div class="post-actions">
               <button class="post-btn-edit" onclick="TicketMarket.startEdit('${concertId}','${p.uid}')">✏️</button>
-              <button class="post-btn-del"  onclick="TicketMarket.deletePost('${concertId}','${p.uid}','${p.type}')">🗑️</button>
+              <button class="post-btn-del"  onclick="TicketMarket.deletePost('${concertId}','${p.uid}','${type}')">🗑️</button>
             </div>` : ''}
         </div>
       </div>`;
