@@ -1853,3 +1853,136 @@ html.light .tips-modal { background: var(--bg3); }
   .tips-footer { flex-direction: column; align-items: flex-start; }
   .tips-btn-close { width: 100%; text-align: center; }
 }
+
+
+
+/* ============================================================
+   NEW FEATURES STYLES: Going Count Badge, Seat Map,
+   Concert Playlist, In-App Chat
+   ============================================================ */
+
+/* Going Count Badge on Cards */
+.going-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--accent);
+  background: rgba(168, 85, 247, 0.12);
+  border-radius: 6px;
+  padding: 3px 8px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+/* Seat Map Section */
+.seat-map-section {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--surface-elevated, rgba(255,255,255,0.04));
+  border-radius: 14px;
+  border: 1px solid rgba(168,85,247,0.15);
+}
+.seat-map-section h4 { font-size: 1rem; margin: 0 0 8px; }
+.seat-map-desc { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 12px; }
+.seat-map-na { color: var(--text-subtle); font-size: 0.875rem; font-style: italic; }
+.seat-categories { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.seat-cat-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px; border-radius: 8px; border: 1px solid rgba(168,85,247,0.1); }
+.seat-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.seat-cat-row div { display: flex; flex-direction: column; gap: 3px; }
+.seat-cat-tips { font-size: 0.78rem; color: var(--text-muted); }
+.seat-tips { font-size: 0.82rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 10px; }
+.seat-tips div::before { content: ''; }
+.btn-maps-sm {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.8rem; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 8px;
+  padding: 6px 14px; text-decoration: none;
+  transition: background 0.2s;
+}
+.btn-maps-sm:hover { background: rgba(168,85,247,0.1); }
+
+/* Concert Playlist Section */
+.playlist-section {
+  margin: 16px 0;
+  padding: 16px;
+  background: rgba(29, 185, 84, 0.06);
+  border-radius: 14px;
+  border: 1px solid rgba(29,185,84,0.2);
+}
+.playlist-section h4 { font-size: 1rem; margin: 0 0 6px; color: #1DB954; }
+.playlist-section p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
+.btn-spotify-playlist {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #1DB954; color: #fff;
+  border-radius: 10px; padding: 10px 18px;
+  font-size: 0.875rem; font-weight: 600;
+  text-decoration: none; transition: background 0.2s;
+}
+.btn-spotify-playlist:hover { background: #1aa34a; }
+
+/* In-App Chat Panel */
+.iap-chat-panel {
+  background: var(--surface-elevated, #1a1025);
+  border-radius: 12px;
+  border: 1px solid rgba(168,85,247,0.25);
+  margin: 8px 0;
+  overflow: hidden;
+}
+.iap-chat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(168,85,247,0.12);
+  font-size: 0.85rem; font-weight: 600; color: var(--accent);
+}
+.iap-close {
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; font-size: 1rem; padding: 2px 6px;
+}
+.iap-chat-messages {
+  max-height: 220px; overflow-y: auto;
+  padding: 10px 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.iap-chat-empty { text-align: center; color: var(--text-subtle); font-size: 0.82rem; padding: 12px 0; }
+.iap-bubble {
+  max-width: 78%; padding: 8px 12px; border-radius: 12px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.iap-own {
+  align-self: flex-end;
+  background: var(--accent); color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.iap-other {
+  align-self: flex-start;
+  background: var(--surface, rgba(255,255,255,0.06));
+  border-bottom-left-radius: 4px;
+}
+.iap-sender { font-size: 0.7rem; font-weight: 700; color: var(--accent); }
+.iap-own .iap-sender { color: rgba(255,255,255,0.8); }
+.iap-text { font-size: 0.875rem; line-height: 1.4; }
+.iap-time { font-size: 0.65rem; opacity: 0.6; align-self: flex-end; }
+.iap-chat-footer {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border-top: 1px solid rgba(168,85,247,0.1);
+}
+.iap-input {
+  background: var(--input-bg, rgba(0,0,0,0.2));
+  border: 1px solid rgba(168,85,247,0.2);
+  border-radius: 8px; padding: 8px 10px;
+  color: var(--text); font-size: 0.85rem;
+  outline: none;
+}
+.iap-name { width: 90px; flex-shrink: 0; }
+.iap-msg  { flex: 1; }
+.iap-send-btn {
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 0.9rem; cursor: pointer; transition: background 0.2s;
+}
+.iap-send-btn:hover { background: var(--accent-dark, #7c3aed); }
+.iap-chat-btn {
+  font-size: 0.78rem; margin-left: auto;
+  padding: 4px 10px; border-radius: 6px;
+}

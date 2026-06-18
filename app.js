@@ -2026,3 +2026,238 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   } catch {}
 })();
+
+
+
+/* ============================================================
+   FEATURE: SOCIAL PROOF GOING COUNT ON CARDS
+   Fetch all vote counts in one call, then inject going badges
+   ============================================================ */
+(function initGoingCountOnCards() {
+  const KEY_GOING = 'cid_going';
+
+  async function fetchAllCounts() {
+    try {
+      const rows = await DB.select('concert_votes', 'select=concert_id,type');
+      const agg  = {};
+      for (const r of rows) {
+        if (!agg[r.concert_id]) agg[r.concert_id] = { going: 0, interested: 0 };
+        if (r.type === 'going')      agg[r.concert_id].going++;
+        if (r.type === 'interested') agg[r.concert_id].interested++;
+      }
+      return agg;
+    } catch {
+      // fallback localStorage
+      try {
+        const g  = JSON.parse(localStorage.getItem(KEY_GOING) || '{}');
+        const agg = {};
+        for (const [id, cnt] of Object.entries(g)) {
+          agg[id] = { going: cnt, interested: 0 };
+        }
+        return agg;
+      } catch { return {}; }
+    }
+  }
+
+  function fmtCount(n) { return n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : String(n); }
+
+  function injectGoingBadges(counts) {
+    CONCERTS.forEach(c => {
+      const cnt = counts[c.id];
+      if (!cnt || cnt.going < 1) return;
+      const card = document.querySelector(`.concert-card[onclick*="${c.id}"]`);
+      if (!card) return;
+      // Cek apakah badge sudah ada
+      if (card.querySelector('.going-count-badge')) return;
+      const footer = card.querySelector('.card-footer');
+      if (!footer) return;
+      const badge = document.createElement('div');
+      badge.className = 'going-count-badge';
+      badge.innerHTML = `🎟️ <strong>${fmtCount(cnt.going)}</strong> going`;
+      footer.insertBefore(badge, footer.firstChild);
+    });
+  }
+
+  // Patch renderCards untuk inject setelah render
+  const _orig = renderCards;
+  renderCards = function(list) {
+    _orig(list);
+    setTimeout(async () => {
+      const counts = await fetchAllCounts();
+      injectGoingBadges(counts);
+    }, 600);
+  };
+
+  // Inject ke cards yang sudah ada saat load
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(async () => {
+      const counts = await fetchAllCounts();
+      injectGoingBadges(counts);
+    }, 1000);
+  });
+})();
+
+/* ============================================================
+   FEATURE: VENUE SEAT MAP — inject ke modal
+   ============================================================ */
+const VENUE_SEAT_MAPS = {
+  'Gelora Bung Karno (GBK) Utama': {
+    desc: 'Stadion terbesar Indonesia. Kapasitas ~80.000. Panggung di area lapangan tengah.',
+    categories: [
+      { name: 'Pit / Floor GA', color: '#ef4444', tips: 'Area terdekat panggung, standing only. Datang 3 jam lebih awal.' },
+      { name: 'CAT 1 / Tribune A', color: '#f97316', tips: 'Tribune paling depan. Sisi tengah lebih baik dari pojok.' },
+      { name: 'CAT 2 / Tribune B', color: '#eab308', tips: 'Tribune tengah — balance antara jarak & view.' },
+      { name: 'CAT 3 / Tribune C', color: '#22c55e', tips: 'Tribune belakang. Bawa binoculars.' },
+      { name: 'CAT 4 / Tribune D', color: '#3b82f6', tips: 'Budget-friendly. Layar LED terlihat jelas.' },
+      { name: 'VIP', color: '#a855f7', tips: 'Area premium. Termasuk akses soundcheck & merch.' },
+    ],
+    tips: ['🚍 TransJakarta halte GBK / Polda Metro', '🅿️ Parkir terbatas — sangat disarankan naik transportasi umum', '💧 Bawa minum, antrean minuman panjang', '🎒 Tas max 30x30cm'],
+    mapsUrl: 'https://maps.google.com/?q=Stadion+Utama+GBK+Senayan+Jakarta',
+  },
+  'Indonesia Arena, GBK': {
+    desc: 'Indoor arena kapasitas 16.000. Akustik excellent untuk konser indoor.',
+    categories: [
+      { name: 'Floor GA', color: '#ef4444', tips: 'Area depan panggung, standing. Antri dari pagi untuk posisi depan.' },
+      { name: 'CAT 1', color: '#f97316', tips: 'Tribune bawah. Section C,D,E (tengah) terbaik.' },
+      { name: 'CAT 2', color: '#eab308', tips: 'Tribune bawah sisi kiri-kanan. Hindari section pojok.' },
+      { name: 'CAT 3', color: '#22c55e', tips: 'Tribune atas — perfect untuk lihat koreografi!' },
+      { name: 'VIP', color: '#a855f7', tips: 'Kursi premium. Biasanya termasuk lounge & merch.' },
+    ],
+    tips: ['🚍 TransJakarta halte GBK, jalan ~5 menit', '🎒 Strict bag policy — max 30x20cm', '🍔 Food court di dalam arena'],
+    mapsUrl: 'https://maps.google.com/?q=Indonesia+Arena+Senayan+Jakarta',
+  },
+  'Jakarta International Stadium (JIS)': {
+    desc: 'Stadion modern berkapasitas 82.000. Atap retractable. Fasilitas terbaik di Indonesia.',
+    categories: [
+      { name: 'Festival / Pit', color: '#ef4444', tips: 'Lapangan tengah, standing. Paling depan — datang lebih awal.' },
+      { name: 'Tribune A / VIP', color: '#a855f7', tips: 'Tribune depan premium. Row 1-10 optimal.' },
+      { name: 'Tribune B', color: '#f97316', tips: 'Tribune tengah. Section M,N,O (tengah) terbaik.' },
+      { name: 'Tribune C/D', color: '#eab308', tips: 'Tribune belakang/atas. Budget-friendly, layar HD terlihat jelas.' },
+    ],
+    tips: ['🚌 Bus JIS dari Kemayoran / Pulogadung', '🚫 Tidak ada MRT/LRT dekat — naik shuttle bus', '⛅ Outdoor dengan atap retractable — cek cuaca'],
+    mapsUrl: 'https://maps.google.com/?q=Jakarta+International+Stadium',
+  },
+  'ICE BSD City': {
+    desc: 'Convention center terbesar Asia Tenggara. Multi-hall, kapasitas hingga 50.000.',
+    categories: [
+      { name: 'Floor GA', color: '#ef4444', tips: 'Area depan panggung, standing.' },
+      { name: 'VIP', color: '#a855f7', tips: 'Area premium dengan kursi.' },
+      { name: 'Tribune', color: '#eab308', tips: 'Tribune samping/belakang. View panoramik.' },
+    ],
+    tips: ['🚗 Via Tol BSD Exit, Jl. BSD Raya Utama', '🅿️ Parkir luas tapi bisa padat — datang 2 jam lebih awal', '🌡️ Indoor dengan AC — bawa jaket tipis'],
+    mapsUrl: 'https://maps.google.com/?q=ICE+BSD+City+Tangerang',
+  },
+  'Pantai Carnaval Ancol': {
+    desc: 'Venue outdoor tepi laut. Nuansa festival unik. Kapasitas 30.000+.',
+    categories: [
+      { name: 'Festival GA', color: '#ef4444', tips: 'Area depan panggung. Angin laut bisa kencang.' },
+      { name: 'VIP Festival', color: '#a855f7', tips: 'Elevated platform. Bar VIP.' },
+    ],
+    tips: ['🚌 TransJakarta halte Ancol', '🌊 Venue tepi laut — bawa jaket tipis', '🎒 Bawa jas hujan untuk outdoor festival'],
+    mapsUrl: 'https://maps.google.com/?q=Pantai+Carnaval+Ancol+Jakarta',
+  },
+};
+
+function getSeatMapForVenue(venueName) {
+  if (VENUE_SEAT_MAPS[venueName]) return VENUE_SEAT_MAPS[venueName];
+  for (const [key, val] of Object.entries(VENUE_SEAT_MAPS)) {
+    if (venueName.toLowerCase().includes(key.toLowerCase().split(' ')[0])) return val;
+  }
+  return null;
+}
+
+function renderSeatMapHtml(concert) {
+  const sm = getSeatMapForVenue(concert.venue);
+  if (!sm) return `<div class="seat-map-section"><p class="seat-map-na">🗺️ Denah venue belum tersedia untuk ${concert.venue}</p></div>`;
+  return `
+    <div class="seat-map-section">
+      <h4>🗺️ Denah & Tips Venue</h4>
+      <p class="seat-map-desc">${sm.desc}</p>
+      <div class="seat-categories">
+        ${sm.categories.map(cat => `
+          <div class="seat-cat-row">
+            <span class="seat-dot" style="background:${cat.color}"></span>
+            <div>
+              <strong style="color:${cat.color}">${cat.name}</strong>
+              <span class="seat-cat-tips">💡 ${cat.tips}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="seat-tips">
+        <strong>Tips:</strong>
+        ${sm.tips.map(t => `<div>${t}</div>`).join('')}
+      </div>
+      <a href="${sm.mapsUrl}" target="_blank" rel="noopener" class="btn-maps-sm">📍 Buka di Google Maps</a>
+    </div>`;
+}
+
+/* ============================================================
+   FEATURE: CONCERT PLAYLIST AUTO-GENERATE
+   Add "Pre-Concert Playlist" button to modal
+   ============================================================ */
+function renderPlaylistHtml(concert) {
+  const spotifyArtistId = typeof SpotifyIntegration !== 'undefined'
+    ? SpotifyIntegration.getSpotifyId(concert.id)
+    : null;
+  const searchQuery = encodeURIComponent(concert.artist + ' playlist');
+  const playlistUrl = spotifyArtistId
+    ? `https://open.spotify.com/artist/${spotifyArtistId}/discography/album`
+    : `https://open.spotify.com/search/${searchQuery}`;
+  return `
+    <div class="playlist-section">
+      <h4>🎵 Pre-Concert Playlist</h4>
+      <p>Warm-up sebelum konser dengan lagu-lagu ${concert.artist}!</p>
+      <a href="${playlistUrl}" target="_blank" rel="noopener" class="btn-spotify-playlist">
+        <svg viewBox="0 0 24 24" fill="#1DB954" width="18" height="18"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+        Buka Playlist di Spotify
+      </a>
+    </div>`;
+}
+
+/* ============================================================
+   FEATURE: INJECT SEAT MAP + PLAYLIST KE MODAL
+   Patch openModal untuk tambah seat map & playlist section
+   ============================================================ */
+(function patchModalWithNewFeatures() {
+  if (typeof openModal === 'undefined') return;
+  const _origModal = openModal;
+
+  window.openModal = function(id) {
+    _origModal(id);
+    const c = CONCERTS.find(x => x.id === id);
+    if (!c) return;
+
+    setTimeout(() => {
+      const mc = document.getElementById('modalContent');
+      if (!mc) return;
+
+      // Inject Seat Map setelah maps section
+      if (!mc.querySelector('.seat-map-section')) {
+        const venueMapWrap = mc.querySelector('.venue-map-wrap');
+        const seatEl = document.createElement('div');
+        seatEl.innerHTML = renderSeatMapHtml(c);
+        if (venueMapWrap && venueMapWrap.nextSibling) {
+          mc.insertBefore(seatEl.firstElementChild || seatEl, venueMapWrap.nextSibling);
+        } else if (venueMapWrap) {
+          mc.appendChild(seatEl.firstElementChild || seatEl);
+        }
+      }
+
+      // Inject Playlist setelah Spotify section
+      if (!mc.querySelector('.playlist-section')) {
+        const spotifySection = mc.querySelector('.spotify-section');
+        const playlistEl = document.createElement('div');
+        playlistEl.innerHTML = renderPlaylistHtml(c);
+        if (spotifySection && spotifySection.nextSibling) {
+          mc.insertBefore(playlistEl.firstElementChild || playlistEl, spotifySection.nextSibling);
+        } else if (spotifySection) {
+          spotifySection.after(playlistEl.firstElementChild || playlistEl);
+        } else {
+          mc.appendChild(playlistEl.firstElementChild || playlistEl);
+        }
+      }
+    }, 200);
+  };
+  openModal = window.openModal;
+})();

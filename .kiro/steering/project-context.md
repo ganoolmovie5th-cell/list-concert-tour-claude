@@ -50,10 +50,14 @@ Files: <file yang diubah selain README & steering>
 
 ## Catatan Perubahan Penting (ringkas)
 
-- **Juni 2026:** Tambah internal links untuk SEO di `index.html` (paths: `/jadwal`, `/artis`, `/venue`, `/kategori`, plus footer `/tentang`, `/sumber-data`, `/kontak`).
-- **Juni 2026:** Update `robots.txt` untuk disallow `manifest.json` + `/*.json$` dan set sitemap ke homepage.
+- **Juni 2026:** Tambah internal links untuk SEO di `index.html`.
+- **Juni 2026:** Update `robots.txt` untuk disallow `manifest.json` + `/*.json$`.
 - **Juni 2026:** Tambah H5/H6 minor headings untuk audit di `index.html`.
 - **Juni 2026:** Tambah Playwright E2E smoke tests + GitHub Actions workflow.
+- **Juni 2026 (fitur baru):** Social Proof Going Count on Cards — `app.js` (fungsi `initGoingCountOnCards`): fetch semua `concert_votes` dalam 1 call, inject `.going-count-badge` ke setiap card. CSS baru di `style.css`.
+- **Juni 2026 (fitur baru):** Venue Seat Map — `app.js` (fungsi `renderSeatMapHtml`, object `VENUE_SEAT_MAPS`): inject denah+tips kategori kursi ke modal konser untuk 7 venue utama. Patched via `patchModalWithNewFeatures`.
+- **Juni 2026 (fitur baru):** Concert Playlist Auto-Generate — `app.js` (fungsi `renderPlaylistHtml`): inject tombol "Buka Playlist di Spotify" ke modal konser. Patched via `patchModalWithNewFeatures`.
+- **Juni 2026 (fitur baru):** In-App Chat for Group Buying — `features3.js` (`InAppChat` object): real-time chat per GB post, polling 10s, Supabase table `gb_chat`. Perlu run SQL: `CREATE TABLE gb_chat (id bigserial primary key, msg_uid text unique, post_uid text not null, sender_uid text, sender_name text, message text, created_at timestamptz default now());`
 
 ---
 
@@ -78,9 +82,38 @@ Files: <file yang diubah selain README & steering>
 
 ## Source of Truth
 
-- **`app.js`** = source of truth data konser (CONCERTS array, 43+ entries per Juni 2026)
+- **`app.js`** = source of truth data konser (CONCERTS array, 44 entries per Juni 2026)
 - **Mobile `concerts.ts`** selalu sync dari `app.js` — jangan edit data konser di mobile secara manual
 - **Images** tersimpan di `/images/[id].jpeg` — dipakai langsung oleh web, mobile pakai URL `https://www.list-concert-tour.web.id/images/[id].jpeg`
+
+---
+
+## Supabase Tables Baru (butuh SQL run)
+
+```sql
+-- In-App Chat untuk Group Buying
+CREATE TABLE IF NOT EXISTS gb_chat (
+  id          bigserial PRIMARY KEY,
+  msg_uid     text UNIQUE,
+  post_uid    text NOT NULL,
+  sender_uid  text,
+  sender_name text,
+  message     text,
+  created_at  timestamptz DEFAULT now()
+);
+
+-- Concert Check-in (mobile only)
+CREATE TABLE IF NOT EXISTS concert_checkins (
+  id             bigserial PRIMARY KEY,
+  concert_id     text NOT NULL,
+  device_uid     text NOT NULL,
+  checked_in_at  timestamptz,
+  lat            float8,
+  lng            float8,
+  verified       boolean DEFAULT false,
+  UNIQUE(concert_id, device_uid)
+);
+```
 
 ---
 

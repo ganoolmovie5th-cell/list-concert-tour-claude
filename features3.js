@@ -1252,3 +1252,199 @@ const FeedbackForm = (() => {
   return { render, handleSubmit, uploadPhoto, onAttach, removeAttach };
 })();
 window.FeedbackForm = FeedbackForm;
+
+
+
+/* ============================================================
+   FEATURE: IN-APP CHAT FOR GROUP BUYING
+   Real-time chat per group buying post — polling 10s
+   Supabase table: gb_chat (msg_uid, post_uid, sender_uid, sender_name, message, created_at)
+   ============================================================ */
+const InAppChat = (() => {
+  const LS_PREFIX   = 'cid_gb_chat_';
+  let _activePostUid = null;
+  let _pollInterval  = null;
+  let _myName        = '';
+
+  function genMsgUID() { return 'cm_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
+  function lsKey(uid)  { return LS_PREFIX + uid; }
+
+  function timeAgoChat(date) {
+    const diff = Date.now() - new Date(date).getTime();
+    const m = Math.floor(diff / 60000);
+    const h = Math.floor(m / 60);
+    if (h > 0) return `${h}j lalu`;
+    if (m > 0) return `${m}m lalu`;
+    return 'Baru';
+  }
+
+  async function fetchMessages(postUid) {
+    try {
+      const rows = await DB.select('gb_chat',
+        `post_uid=eq.${encodeURIComponent(postUid)}&order=created_at.asc&limit=100`);
+      const msgs = rows.map(r => ({
+        uid:        r.msg_uid || r.uid || genMsgUID(),
+        senderUid:  r.sender_uid,
+        senderName: r.sender_name || 'Anonim',
+        message:    r.message,
+        createdAt:  r.created_at,
+      }));
+      try { localStorage.setItem(lsKey(postUid), JSON.stringify(msgs)); } catch {}
+      return msgs;
+    } catch {
+      try { return JSON.parse(localStorage.getItem(lsKey(postUid)) || '[]'); } catch { return []; }
+    }
+  }
+
+  function renderMessages(messages, myUid) {
+    const box = document.getElementById('iap-chat-messages');
+    if (!box) return;
+    if (!messages.length) {
+      box.innerHTML = '<div class="iap-chat-empty">💬 Belum ada pesan. Mulai chat!</div>';
+      return;
+    }
+    box.innerHTML = messages.map(m => {
+      const isOwn = m.senderUid === myUid;
+      return `
+        <div class="iap-bubble ${isOwn ? 'iap-own' : 'iap-other'}">
+          ${!isOwn ? `<div class="iap-sender">${m.senderName}</div>` : ''}
+          <div class="iap-text">${m.message.replace(/</g,'&lt;')}</div>
+          <div class="iap-time">${timeAgoChat(m.createdAt)}</div>
+        </div>`;
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function openChat(postUid, postOwnerName) {
+    _activePostUid = postUid;
+    stopPolling();
+
+    const mc = document.getElementById('modalContent');
+    if (!mc) return;
+
+    // Hapus chat panel lama
+    const old = document.getElementById(`iap-chat-${postUid}`);
+    if (old) { old.remove(); _activePostUid = null; return; }
+    // Tutup semua chat panel lain
+    document.querySelectorAll('.iap-chat-panel').forEach(el => el.remove());
+
+    const myUid = getDeviceUID();
+    const msgs  = await fetchMessages(postUid);
+
+    const panel = document.createElement('div');
+    panel.id        = `iap-chat-${postUid}`;
+    panel.className = 'iap-chat-panel';
+    panel.innerHTML = `
+      <div class="iap-chat-header">
+        <span>💬 Chat — ${postOwnerName}</span>
+        <button class="iap-close" onclick="InAppChat.closeChat('${postUid}')">✕</button>
+      </div>
+      <div class="iap-chat-messages" id="iap-chat-messages"></div>
+      <div class="iap-chat-footer">
+        <input id="iap-name-input" class="iap-input iap-name" placeholder="Nama kamu" value="${_myName}" maxlength="20" />
+        <input id="iap-msg-input" class="iap-input iap-msg" placeholder="Pesan..." maxlength="300" onkeydown="if(event.key==='Enter')InAppChat.send('${postUid}')" />
+        <button class="iap-send-btn" onclick="InAppChat.send('${postUid}')">➤</button>
+      </div>`;
+
+    // Injeksi setelah post yang diklik
+    const postEl = document.querySelector(`[data-gb-uid="${postUid}"]`);
+    if (postEl && postEl.nextSibling) {
+      postEl.parentNode.insertBefore(panel, postEl.nextSibling);
+    } else if (postEl) {
+      postEl.parentNode.appendChild(panel);
+    } else {
+      mc.appendChild(panel);
+    }
+
+    renderMessages(msgs, myUid);
+    startPolling(postUid, myUid);
+  }
+
+  function closeChat(postUid) {
+    stopPolling();
+    const panel = document.getElementById(`iap-chat-${postUid}`);
+    if (panel) panel.remove();
+    _activePostUid = null;
+  }
+
+  async function send(postUid) {
+    const nameInput = document.getElementById('iap-name-input');
+    const msgInput  = document.getElementById('iap-msg-input');
+    if (!msgInput) return;
+
+    const name = (nameInput?.value || '').trim().slice(0, 20) || 'Anonim';
+    const text = msgInput.value.trim().slice(0, 300);
+    if (!text) return;
+
+    _myName = name;
+    msgInput.value = '';
+
+    const myUid  = getDeviceUID();
+    const msgUid = genMsgUID();
+
+    // Optimistic render
+    const box = document.getElementById('iap-chat-messages');
+    if (box) {
+      const bubble = document.createElement('div');
+      bubble.className = 'iap-bubble iap-own';
+      bubble.innerHTML = `<div class="iap-text">${text.replace(/</g,'&lt;')}</div><div class="iap-time">Baru</div>`;
+      box.appendChild(bubble);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    try {
+      await DB.insert('gb_chat', {
+        msg_uid:     msgUid,
+        post_uid:    postUid,
+        sender_uid:  myUid,
+        sender_name: name,
+        message:     text,
+      });
+    } catch { /* optimistic already shown */ }
+  }
+
+  function startPolling(postUid, myUid) {
+    _pollInterval = setInterval(async () => {
+      const msgs = await fetchMessages(postUid);
+      renderMessages(msgs, myUid);
+    }, 10_000);
+  }
+
+  function stopPolling() {
+    if (_pollInterval) { clearInterval(_pollInterval); _pollInterval = null; }
+  }
+
+  return { openChat, closeChat, send, stopPolling };
+})();
+window.InAppChat = InAppChat;
+
+/* Patch GroupBuying render untuk tambah tombol Chat per post */
+(function patchGroupBuyingWithChat() {
+  if (typeof GroupBuying === 'undefined') return;
+  const _origRender = GroupBuying.render;
+  if (!_origRender) return;
+
+  GroupBuying.render = function(concertId) {
+    _origRender.call(GroupBuying, concertId);
+
+    // Tambah atribut data-gb-uid & tombol Chat ke setiap post
+    setTimeout(() => {
+      const container = document.querySelector('.gb-posts');
+      if (!container) return;
+      container.querySelectorAll('.gb-post').forEach((el, i) => {
+        const posts = GroupBuying._getPosts ? GroupBuying._getPosts(concertId) : [];
+        const post  = posts[i];
+        if (!post) return;
+        el.setAttribute('data-gb-uid', post.uid);
+        if (!el.querySelector('.iap-chat-btn')) {
+          const btn = document.createElement('button');
+          btn.className   = 'iap-chat-btn btn-action';
+          btn.innerHTML   = '💬 Chat';
+          btn.onclick     = (e) => { e.stopPropagation(); InAppChat.openChat(post.uid, post.name); };
+          const footer = el.querySelector('.gb-post-footer') || el;
+          footer.appendChild(btn);
+        }
+      });
+    }, 300);
+  };
+})();

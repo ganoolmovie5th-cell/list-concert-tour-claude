@@ -35,6 +35,10 @@
 | 📊 Analytics Dashboard | Dashboard admin untuk melihat engagement |
 | 🤖 Auto-Update PR | Scraper HIGH confidence → update `app.js` → PR otomatis ke main |
 | 🔄 Monitor Harian | Scraper via GitHub Actions tiap hari 01:00 WIB + email laporan |
+| 🎟️ Social Proof Going | Tampilkan jumlah "X orang going" langsung di card konser (fetch all counts 1 DB call) |
+| 🗺️ Venue Seat Map | Denah & tips kategori kursi untuk 7 venue utama Jakarta (GBK, JIS, ICE BSD, dll) |
+| 🎵 Pre-Concert Playlist | Tombol "Buka Playlist di Spotify" di modal konser — auto-link ke artis/search |
+| 💬 In-App Chat | Real-time chat per post Cari Teman Nonton — polling 10s via Supabase (table: `gb_chat`) |
 | 🏷️ JSON-LD Schema | Structured data Event schema untuk semua konser (SEO Google Events) |
 | 📲 PWA | Progressive Web App — install di homescreen, offline support, auto-reload saat ada update |
 | 🔗 Internal Links | Tambahan internal links untuk SEO (paths: `/jadwal`, `/artis`, `/venue`, `/kategori`) |
@@ -95,3 +99,14 @@ list-concert-tour-claude/
 ---
 
 © 2026 ConcertID. Dibuat dengan ❤️ untuk komunitas fans musik Indonesia.
+
+---
+
+## 🆕 Update Juni 2026
+
+| Fitur Baru | Keterangan |
+|---|---|
+| 🎟️ Social Proof Going on Card | Going count tampil langsung di card — fetch all 44 konser dalam 1 DB call |
+| 🗺️ Venue Seat Map | Denah & tips kursi untuk 7 venue Jakarta di modal konser |
+| 🎵 Pre-Concert Playlist | Auto-link ke Spotify artis/playlist di modal konser |
+| 💬 In-App Chat | Real-time chat per post Cari Teman Nonton (Supabase `gb_chat`, polling 10s) |
