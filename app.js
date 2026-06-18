@@ -1144,6 +1144,15 @@ function renderCards(list) {
   if (!list.length) {
     grid.innerHTML = '';
     noResult.classList.remove('hidden');
+    // Pesan kontekstual: wishlist kosong vs tidak ada hasil pencarian
+    const msgEl = noResult.querySelector('p');
+    if (msgEl) {
+      if (typeof activeFilter !== 'undefined' && activeFilter === 'wishlist') {
+        msgEl.innerHTML = '❤️ Wishlist kamu masih kosong.<br><span style="font-size:0.85rem;opacity:0.7">Tambahkan konser favorit dengan klik tombol 🤍 Wishlist pada card konser.</span>';
+      } else {
+        msgEl.textContent = '😔 Tidak ada konser yang cocok dengan pencarian kamu.';
+      }
+    }
     return;
   }
   noResult.classList.add('hidden');
@@ -1208,8 +1217,19 @@ function renderCards(list) {
    RENDER HIGHLIGHTS
    ============================================ */
 function renderHighlights() {
-  const row   = document.getElementById('highlightsRow');
-  const picks = CONCERTS.filter(c => !isPast(c)).slice(0, 5);
+  const row = document.getElementById('highlightsRow');
+  if (!row) return;
+
+  const upcoming = CONCERTS.filter(c => !isPast(c));
+  // Hot concerts dulu, sisanya urut tanggal terdekat
+  const hot    = upcoming.filter(c => c.hot);
+  const nonHot = upcoming.filter(c => !c.hot).sort((a, b) => a.rawDate - b.rawDate);
+  const picks  = [...hot, ...nonHot].slice(0, 6);
+
+  if (!picks.length) {
+    row.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:24px 0">Belum ada konser mendatang.</p>';
+    return;
+  }
 
   row.innerHTML = picks.map(c => {
     const img = getArtistImage(c.id);
@@ -1954,7 +1974,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { injectEventSchemas(); } catch(e) { console.warn('[ConcertID] injectEventSchemas error:', e); }
   updateStats();
   updateWishlistCount();
-  renderCards(CONCERTS);
+  applyFilters();
   renderHighlights();
   handleDeepLink();
   // Apply UTM after first render

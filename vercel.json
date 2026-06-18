@@ -27,10 +27,16 @@
     }
   ],
   "rewrites": [
-    { "source": "/about", "destination": "/about.html" },
-    { "source": "/contact", "destination": "/contact.html" },
-    { "source": "/konser", "destination": "/konser.html" },
-    { "source": "/jadwal", "destination": "/jadwal.html" },
-    { "source": "/rumor", "destination": "/rumor.html" }
+    { "source": "/about",       "destination": "/about.html"   },
+    { "source": "/contact",     "destination": "/contact.html" },
+    { "source": "/konser",      "destination": "/konser.html"  },
+    { "source": "/jadwal",      "destination": "/jadwal.html"  },
+    { "source": "/rumor",       "destination": "/rumor.html"   },
+    { "source": "/artis",       "destination": "/index.html"   },
+    { "source": "/venue",       "destination": "/index.html"   },
+    { "source": "/kategori",    "destination": "/index.html"   },
+    { "source": "/tentang",     "destination": "/about.html"   },
+    { "source": "/sumber-data", "destination": "/about.html"   },
+    { "source": "/kontak",      "destination": "/contact.html" }
   ]
 }
