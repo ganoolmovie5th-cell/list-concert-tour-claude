@@ -18,11 +18,11 @@ test.describe('ConcertID (prod smoke)', () => {
     const nav = page.locator('nav.navbar');
     await expect(nav).toBeVisible();
 
-    // internal SEO links
-    await expect(nav.getByRole('link', { name: 'Jadwal Lengkap' })).toHaveAttribute('href', '/jadwal');
-    await expect(nav.getByRole('link', { name: 'Daftar Artis' })).toHaveAttribute('href', '/artis');
-    await expect(nav.getByRole('link', { name: 'Venue Populer' })).toHaveAttribute('href', '/venue');
-    await expect(nav.getByRole('link', { name: 'Kategori Konser' })).toHaveAttribute('href', '/kategori');
+    // navbar links
+    await expect(nav.getByRole('link', { name: 'Konser' })).toHaveAttribute('href', '#concerts');
+    await expect(nav.getByRole('link', { name: 'Mendatang' })).toHaveAttribute('href', '#upcoming');
+    await expect(nav.getByRole('link', { name: 'Venue' })).toHaveAttribute('href', '#venues');
+    await expect(nav.getByRole('link', { name: 'Tentang' })).toHaveAttribute('href', '#about');
   });
 
   test('robots.txt + sitemap.xml reachable', async ({ request }) => {
