@@ -81,6 +81,23 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
+
+    /* Consent Mode v2 — default denied sebelum user memilih */
+    gtag('consent', 'default', {
+      analytics_storage:    'denied',
+      ad_storage:           'denied',
+      ad_user_data:         'denied',
+      ad_personalization:   'denied',
+      wait_for_update:      500
+    });
+
+    /* Jika sudah pernah setuju di sesi sebelumnya, langsung granted */
+    try {
+      if (localStorage.getItem('concertid_consent') === 'granted') {
+        gtag('consent', 'update', { analytics_storage: 'granted' });
+      }
+    } catch(e) {}
+
     gtag('config', 'G-8NNHBT6N8Q');
   </script>
 
@@ -686,6 +703,81 @@
         showToast('📱 iOS: Tap Share → "Add to Home Screen" | Android: Menu ⋮ → "Add to Home Screen"', 'info', 5000);
       }
     }
+  </script>
+
+  <!-- ═══ COOKIE CONSENT BANNER ═══ -->
+  <style>
+    .consent-banner{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(calc(100% + 32px));width:min(calc(100vw - 32px),700px);background:#18181c;border:1px solid rgba(168,85,247,.28);border-radius:16px;padding:16px 20px;z-index:9999;box-shadow:0 8px 40px rgba(0,0,0,.65),0 0 0 1px rgba(168,85,247,.08);transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .35s;opacity:0;pointer-events:none}
+    .consent-banner.cb-visible{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
+    .consent-banner.cb-hidden{transform:translateX(-50%) translateY(calc(100% + 32px));opacity:0;pointer-events:none}
+    .cb-inner{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+    .cb-icon{font-size:1.6rem;flex-shrink:0;line-height:1}
+    .cb-text{flex:1;min-width:180px}
+    .cb-text strong{color:#f4f4f5;font-size:.88rem;font-weight:700;display:block;margin-bottom:3px}
+    .cb-text p{color:#9ca3af;font-size:.77rem;line-height:1.5;margin:0}
+    .cb-text a{color:#a855f7;text-decoration:none}
+    .cb-text a:hover{text-decoration:underline}
+    .cb-actions{display:flex;gap:8px;flex-shrink:0;align-items:center}
+    .cb-btn{border:none;border-radius:99px;padding:9px 22px;font-size:.84rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;font-family:inherit;white-space:nowrap;line-height:1}
+    .cb-btn:hover{opacity:.85;transform:translateY(-1px)}
+    .cb-btn:active{transform:translateY(0)}
+    .cb-accept{background:#a855f7;color:#fff}
+    .cb-reject{background:rgba(255,255,255,.07);color:#9ca3af;border:1px solid rgba(255,255,255,.1)}
+    @media(max-width:520px){
+      .consent-banner{bottom:12px;padding:14px 14px}
+      .cb-actions{width:100%;justify-content:flex-end}
+    }
+  </style>
+
+  <div id="consentBanner" class="consent-banner" role="dialog" aria-label="Cookie consent" aria-live="polite">
+    <div class="cb-inner">
+      <span class="cb-icon">🍪</span>
+      <div class="cb-text">
+        <strong>Kami menggunakan cookie analitik</strong>
+        <p>Untuk memahami cara kamu menjelajah ConcertID dan meningkatkan layanan. Data tidak dijual ke pihak ketiga.</p>
+      </div>
+      <div class="cb-actions">
+        <button id="cbReject" class="cb-btn cb-reject">Tolak</button>
+        <button id="cbAccept" class="cb-btn cb-accept">Terima</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const KEY    = 'concertid_consent';
+      const banner = document.getElementById('consentBanner');
+      const saved  = (() => { try { return localStorage.getItem(KEY); } catch(e) { return null; } })();
+
+      if (saved) return; /* sudah pernah pilih — jangan tampilkan */
+
+      /* Tampilkan setelah 800ms agar tidak ganggu FCP */
+      setTimeout(() => banner.classList.add('cb-visible'), 800);
+
+      function grant() {
+        try {
+          gtag('consent', 'update', { analytics_storage: 'granted' });
+          localStorage.setItem(KEY, 'granted');
+        } catch(e) {}
+        dismiss();
+      }
+
+      function deny() {
+        try {
+          gtag('consent', 'update', { analytics_storage: 'denied' });
+          localStorage.setItem(KEY, 'denied');
+        } catch(e) {}
+        dismiss();
+      }
+
+      function dismiss() {
+        banner.classList.remove('cb-visible');
+        banner.classList.add('cb-hidden');
+      }
+
+      document.getElementById('cbAccept').addEventListener('click', grant);
+      document.getElementById('cbReject').addEventListener('click', deny);
+    })();
   </script>
 </body>
 </html>
