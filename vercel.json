@@ -50,5 +50,8 @@
     { "source": "/tentang",     "destination": "/about.html"   },
     { "source": "/sumber-data", "destination": "/about.html"   },
     { "source": "/kontak",      "destination": "/contact.html" }
+  ],
+  "redirects": [
+    { "source": "/__", "destination": "/", "permanent": false }
   ]
 }
