@@ -40,6 +40,8 @@ Files: <file yang diubah selain README & steering>
 
 - **Juni 2026 (fix):** Countdown timer bug — semua konser menunjukkan jam:menit:detik yang sama karena `getCountdown()` hanya pakai `rawDate` (midnight UTC). Fix: tambah `getConcertDateTime(c)` yang parse `c.time` (e.g. "19:30 WIB") dan combine dengan `rawDate` untuk target waktu konser sebenarnya.
 - **Juni 2026 (fix):** Stats counter mismatch — `confirmedCount` filter `!isPast(c)` menyebabkan 18 konser confirmed yang sudah lewat tidak terhitung (13+13≠44). Fix: hapus filter `!isPast`, hitung semua confirmed.
+- **Juni 2026 (seo):** Canonical tags — `about.html`, `contact.html`, `konser.html`, `jadwal.html`, `rumor.html` canonical diubah dari `/#about`, `/#concerts` → `https://www.list-concert-tour.web.id/` (homepage tanpa hash) untuk hindari duplicate content di Google.
+- **Juni 2026 (seo):** Sitemap cleanup — hapus 5 duplicate redirect URLs dari `sitemap.xml` (about.html, contact.html, konser.html, jadwal.html, rumor.html) → hanya 1 URL homepage tersisa.
 - **Juni 2026:** Tambah Playwright E2E smoke tests + GitHub Actions workflow.
 - **Juni 2026 (feat):** Social Proof Going Count on Cards — `app.js` (`initGoingCountOnCards`): fetch semua `concert_votes` dalam 1 call, inject `.going-count-badge` ke setiap card.
 - **Juni 2026 (feat):** Venue Seat Map — `app.js` (`VENUE_SEAT_MAPS`, `renderSeatMapHtml`): denah + tips kategori kursi di modal, 7 venue utama.
