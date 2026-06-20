@@ -124,3 +124,14 @@ list-concert-tour-claude/
 | Filter awal kosong | `applyFilters()` di DOMContentLoaded — sorted dari awal |
 | Caching Cloudflare | SW v18 Network First + `Cache-Control: no-store` untuk HTML |
 | Navbar bersih | Hapus Jadwal Lengkap, Daftar Artis, Venue Populer, Kategori Konser |
+
+### Performance & Accessibility (PageSpeed — Juni 2026)
+| Item | Keterangan |
+|---|---|
+| ⚡ Hapus double analytics | `gtag.js` GA4 terpisah dihapus dari `index.html`; GA4 kini dimuat via GTM container saja (hemat ~375 KiB unused JS). Consent Mode v2 dipindah sebelum GTM |
+| ⚡ Defer app scripts | 7 `*.min.js` diberi `defer` (urutan eksekusi tetap terjaga) → kurangi render-block & critical path |
+| ⚡ CSS non-blocking | `style.min.css` dimuat via `media="print" onload` swap (+`<noscript>` fallback); critical CSS tetap inline |
+| 🖼️ Optimasi gambar | `images/hammersonic-2026.jpeg` di-recompress (q72, progressive) 24.7 KiB → 17.3 KiB, nama file sama (aman untuk mobile) |
+| ♿ Kontras light-mode | Tambah override `html.light .badge-*` (genre/status/premium/luxury/hot/going-count, dll) — teks pastel → 700/800-shade, semua ≥4.5:1 WCAG AA. Dark mode tidak berubah |
+
+> ⚠️ **Action manual di GTM:** pastikan tag **GA4 Configuration** (`G-8NNHBT6N8Q`) aktif di container `GTM-NG5XKT8T`, jika belum maka GA4 tidak akan terkumpul setelah perubahan ini.

@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <!-- Consent Mode v2 default — WAJIB sebelum GTM agar GA4 (via GTM) hormati consent -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      analytics_storage:    'denied',
+      ad_storage:           'denied',
+      ad_user_data:         'denied',
+      ad_personalization:   'denied',
+      wait_for_update:      500
+    });
+    try {
+      if (localStorage.getItem('concertid_consent') === 'granted') {
+        gtag('consent', 'update', { analytics_storage: 'granted' });
+      }
+    } catch(e) {}
+  </script>
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -82,31 +99,10 @@
   <!-- Google Search Console Verification -->
   <meta name="google-site-verification" content="vYW6K-GibQ8TI8DyuJCQshHWd_kpe1PBIJms-KrrDHo" />
 
-  <!-- Google Analytics GA4 — async, non-blocking -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8NNHBT6N8Q"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+  <!-- Google Analytics GA4 (G-8NNHBT6N8Q) dimuat via GTM container (GA4 Configuration tag).
+       gtag.js terpisah & gtag('config') DIHAPUS untuk hilangkan double-load (hemat ~375 KiB).
+       Consent Mode v2 default sudah diset di atas sebelum GTM. -->
 
-    /* Consent Mode v2 — default denied sebelum user memilih */
-    gtag('consent', 'default', {
-      analytics_storage:    'denied',
-      ad_storage:           'denied',
-      ad_user_data:         'denied',
-      ad_personalization:   'denied',
-      wait_for_update:      500
-    });
-
-    /* Jika sudah pernah setuju di sesi sebelumnya, langsung granted */
-    try {
-      if (localStorage.getItem('concertid_consent') === 'granted') {
-        gtag('consent', 'update', { analytics_storage: 'granted' });
-      }
-    } catch(e) {}
-
-    gtag('config', 'G-8NNHBT6N8Q');
-  </script>
 
   <!-- Preconnect untuk resource kritis -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -150,8 +146,9 @@
     .no-result.hidden{display:none}
   </style>
 
-  <!-- Full CSS — blocking tapi tidak masalah karena critical CSS sudah inline di atas -->
-  <link rel="stylesheet" href="style.min.css" />
+  <!-- Full CSS — non-blocking (critical CSS sudah inline di atas). Hindari render-blocking 320ms. -->
+  <link rel="stylesheet" href="style.min.css" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="style.min.css" /></noscript>
 
   <!-- EmailJS — defer, tidak kritis -->
   <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" onload="emailjs.init({publicKey:'Ph1AuCpm4gbC6zMw6'})"></script>
@@ -614,13 +611,14 @@
   <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="supabase.min.js"></script>
-  <script src="app.min.js"></script>
-  <script src="reviews.min.js"></script>
-  <script src="features.min.js"></script>
-  <script src="features2.min.js"></script>
-  <script src="features3.min.js"></script>
-  <script src="features4.min.js"></script>
+  <!-- defer: download paralel saat parse, eksekusi tetap berurutan (urutan loading terjaga) -->
+  <script defer src="supabase.min.js"></script>
+  <script defer src="app.min.js"></script>
+  <script defer src="reviews.min.js"></script>
+  <script defer src="features.min.js"></script>
+  <script defer src="features2.min.js"></script>
+  <script defer src="features3.min.js"></script>
+  <script defer src="features4.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const fbCard = document.getElementById('fbCard');

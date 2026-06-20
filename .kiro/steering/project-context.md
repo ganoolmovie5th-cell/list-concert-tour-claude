@@ -38,6 +38,12 @@ Files: <file yang diubah selain README & steering>
 
 ## Catatan Perubahan Penting (ringkas)
 
+- **Juni 2026 (perf):** PageSpeed — hapus double Google Analytics. `gtag.js` GA4 (`G-8NNHBT6N8Q`) + `gtag('config')` dihapus dari `index.html`; GA4 dimuat via GTM container (`GTM-NG5XKT8T`) saja → hemat ~375 KiB unused JS. **Consent Mode v2 default dipindah ke ATAS sebelum GTM** (wajib agar consent dihormati). ⚠️ Pastikan tag GA4 Configuration aktif di GTM, kalau tidak GA4 berhenti terkumpul.
+- **Juni 2026 (perf):** 7 script `*.min.js` (`supabase→app→reviews→features→features2→features3→features4`) diberi `defer` — `defer` mempertahankan urutan eksekusi jadi script loading order tetap aman.
+- **Juni 2026 (perf):** `style.min.css` jadi non-blocking via `media="print" onload="this.media='all'"` + `<noscript>` fallback (critical CSS tetap inline) → hilangkan render-block ~320ms.
+- **Juni 2026 (perf):** `images/hammersonic-2026.jpeg` recompress q72 progressive 24.7→17.3 KiB. Nama file & format SAMA (.jpeg) → tidak perlu sync URL ke mobile.
+- **Juni 2026 (a11y):** Kontras light-mode — badge pakai warna pastel (didesain dark bg) jatuh ~1.0-1.8:1 di light mode. Tambah blok override `html.light .badge-*` (genre/status/premium/luxury/hot/affordable/new-concert/going-count/dl-av/setlist/btn-rumor) → fill pale (alpha .12) + teks 700/800-shade, semua ≥4.5:1. **Dark mode tidak diubah.**
+
 - **Juni 2026 (fix):** Countdown timer bug — semua konser menunjukkan jam:menit:detik yang sama karena `getCountdown()` hanya pakai `rawDate` (midnight UTC). Fix: tambah `getConcertDateTime(c)` yang parse `c.time` (e.g. "19:30 WIB") dan combine dengan `rawDate` untuk target waktu konser sebenarnya.
 - **Juni 2026 (fix):** Stats counter mismatch — `confirmedCount` filter `!isPast(c)` menyebabkan 18 konser confirmed yang sudah lewat tidak terhitung (13+13≠44). Fix: hapus filter `!isPast`, hitung semua confirmed.
 - **Juni 2026 (seo):** Canonical tags — `about.html`, `contact.html`, `konser.html`, `jadwal.html`, `rumor.html` canonical diubah dari `/#about`, `/#concerts` → `https://www.list-concert-tour.web.id/` (homepage tanpa hash) untuk hindari duplicate content di Google.
