@@ -1404,16 +1404,31 @@ window.addEventListener('scroll', () => {
    ============================================ */
 function updateStats() {
   document.getElementById('totalConcerts').textContent  = CONCERTS.length;
-  document.getElementById('confirmedCount').textContent = CONCERTS.filter(c => c.confirmStatus === 'confirmed' && !isPast(c)).length;
+  document.getElementById('confirmedCount').textContent = CONCERTS.filter(c => c.confirmStatus === 'confirmed').length;
   document.getElementById('rumorCount').textContent     = CONCERTS.filter(c => isRumor(c)).length;
 }
 
 /* ============================================
    FITUR 1 — COUNTDOWN TIMER
    ============================================ */
-function getCountdown(rawDate) {
+// Parse concert time string (e.g. "19:30 WIB") and combine with rawDate
+// so countdown uses actual concert start time, not midnight UTC.
+function getConcertDateTime(c) {
+  if (!c.time || c.time === 'TBA') return c.rawDate;
+  const match = c.time.match(/(\d{1,2}):(\d{2})/);
+  if (!match) return c.rawDate;
+  const hours   = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  // WIB = UTC+7 → subtract 7 to get UTC
+  const d = new Date(c.rawDate);
+  d.setUTCHours(hours - 7, minutes, 0, 0);
+  return d;
+}
+
+function getCountdown(c) {
+  const target = getConcertDateTime(c);
   const now  = new Date();
-  const diff = rawDate - now;
+  const diff = target - now;
   if (diff <= 0) return null;
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
@@ -1424,7 +1439,7 @@ function getCountdown(rawDate) {
 
 function renderCountdown(c) {
   if (isPast(c) || isRumor(c)) return '';
-  const cd = getCountdown(c.rawDate);
+  const cd = getCountdown(c);
   if (!cd) return `<div class="countdown-past">Konser sedang berlangsung / sudah selesai</div>`;
   return `
     <div class="countdown-wrap" data-id="${c.id}">
@@ -1443,7 +1458,7 @@ setInterval(() => {
   document.querySelectorAll('.countdown-wrap[data-id]').forEach(wrap => {
     const c  = CONCERTS.find(x => x.id === wrap.dataset.id);
     if (!c) return;
-    const cd = getCountdown(c.rawDate);
+    const cd = getCountdown(c);
     if (!cd) { wrap.outerHTML = `<div class="countdown-past">Segera dimulai!</div>`; return; }
     wrap.querySelector('[data-field="d"]').textContent = cd.d;
     wrap.querySelector('[data-field="h"]').textContent = String(cd.h).padStart(2,'0');
