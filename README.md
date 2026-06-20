@@ -117,6 +117,8 @@ list-concert-tour-claude/
 |---|---|
 | Countdown timer bug | `getCountdown()` hanya pakai `rawDate` (midnight UTC) → semua konser jam:menit:detik sama. Fix: `getConcertDateTime(c)` parse `c.time` + combine dengan `rawDate` |
 | Stats counter mismatch | `confirmedCount` filter `!isPast(c)` → 18 confirmed past konser tidak terhitung (13+13≠44). Fix: hitung semua confirmed |
+| SEO: canonical tags | `about.html`, `contact.html`, `konser.html`, `jadwal.html`, `rumor.html` canonical dari `/#about`, `/#concerts` → `https://www.list-concert-tour.web.id/` (homepage) untuk hindari duplicate content |
+| SEO: sitemap cleanup | Hapus 5 duplicate redirect URLs dari `sitemap.xml` → hanya 1 URL homepage tersisa |
 | Website blank | `normalize()` undefined crash DOMContentLoaded |
 | Text "undefined" di modal | `patchGroupBuyingWithChat` tidak return HTML — fixed |
 | Filter awal kosong | `applyFilters()` di DOMContentLoaded — sorted dari awal |
