@@ -134,5 +134,8 @@ list-concert-tour-claude/
 | ⚡ CSS non-blocking | `style.min.css` dimuat via `media="print" onload` swap (+`<noscript>` fallback); critical CSS tetap inline |
 | 🖼️ Optimasi gambar | `images/hammersonic-2026.jpeg` di-recompress (q72, progressive) 24.7 KiB → 17.3 KiB, nama file sama (aman untuk mobile) |
 | ♿ Kontras light-mode | Tambah override `html.light .badge-*` (genre/status/premium/luxury/hot/going-count, dll) — teks pastel → 700/800-shade, semua ≥4.5:1 WCAG AA. Dark mode tidak berubah |
+| ♿ Focus visible | Web Interface Guidelines — hapus 15× `outline:none` + ring `:focus-visible` global (fokus keyboard terlihat, mouse-click bersih via `:focus:not(:focus-visible)`) |
+| ⚡ Transition explicit | 29× `transition:all` → properti eksplisit (color/bg/border/box-shadow/transform/opacity) — compositor-friendly, durasi/easing asli dipertahankan |
+| ✍️ Tipografi ellipsis | `...` → `…` pada teks tampilan (index/about/contact/jadwal/konser/rumor/analytics). Spread operator JS dilindungi. `style.min.css` di-regenerate via clean-css-cli |
 
 > ⚠️ **Action manual di GTM:** pastikan tag **GA4 Configuration** (`G-8NNHBT6N8Q`) aktif di container `GTM-NG5XKT8T`, jika belum maka GA4 tidak akan terkumpul setelah perubahan ini.
