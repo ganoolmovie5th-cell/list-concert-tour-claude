@@ -1868,9 +1868,12 @@ function injectEventSchemas() {
   }
 
   // Map eventStatus ke full schema.org URL
+  // NB: schema.org/Google eventStatus enum hanya: EventScheduled, EventCancelled,
+  // EventMovedOnline, EventPostponed, EventRescheduled. "EventEnded" TIDAK valid —
+  // Google otomatis tahu event sudah lewat dari startDate/endDate.
   function eventStatusUrl(c) {
-    if (isPast(c)) return 'https://schema.org/EventEnded';
-    if (c.confirmStatus === 'rumor') return 'https://schema.org/EventScheduled';
+    if (c.confirmStatus === 'cancelled') return 'https://schema.org/EventCancelled';
+    if (c.confirmStatus === 'postponed') return 'https://schema.org/EventPostponed';
     return 'https://schema.org/EventScheduled';
   }
 

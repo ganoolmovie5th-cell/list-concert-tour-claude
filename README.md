@@ -115,6 +115,7 @@ list-concert-tour-claude/
 ### Bug Fixes
 | Fix | Keterangan |
 |---|---|
+| JSON-LD `eventStatus` invalid (SEO) | `injectEventSchemas()` → `eventStatusUrl()` memakai `https://schema.org/EventEnded` untuk konser yang sudah lewat. Nilai itu **tidak ada** di enum `eventStatus` schema.org/Google (hanya EventScheduled/Cancelled/MovedOnline/Postponed/Rescheduled) → Google abaikan field-nya. Fix: kembalikan `EventScheduled` (Google tahu event lewat dari `startDate`/`endDate`), tambah mapping `EventCancelled`/`EventPostponed`. Hasil: 44/44 event valid |
 | Countdown timer bug | `getCountdown()` hanya pakai `rawDate` (midnight UTC) → semua konser jam:menit:detik sama. Fix: `getConcertDateTime(c)` parse `c.time` + combine dengan `rawDate` |
 | Stats counter mismatch | `confirmedCount` filter `!isPast(c)` → 18 confirmed past konser tidak terhitung (13+13≠44). Fix: hitung semua confirmed |
 | SEO: canonical tags | `about.html`, `contact.html`, `konser.html`, `jadwal.html`, `rumor.html` canonical dari `/#about`, `/#concerts` → `https://www.list-concert-tour.web.id/` (homepage) untuk hindari duplicate content |
