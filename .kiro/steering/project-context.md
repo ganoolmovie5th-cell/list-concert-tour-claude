@@ -72,7 +72,13 @@ Files: <file yang diubah selain README & steering>
 - **Juni 2026 (feat):** `spotify-callback.html` — halaman redirect untuk Spotify OAuth mobile.
 - **Juni 2026 (feat):** Weather Forecast (`features5.js`) — prakiraan cuaca hari konser via Open-Meteo API (live ≤16 hari, estimasi iklim untuk >16 hari). Cache localStorage 1 jam. Koordinat per venue.
 - **Juni 2026 (feat):** Parking Nearby (`features5.js`) — info parkir statis 5 venue utama (GBK, JIS, Ancol, ICE BSD, PIK2) + tips transportasi + link Google Maps.
-- **Juni 2026 (feat):** Story Card Generator (`features5.js`) — Canvas 9:16, 4 template (Dark/Purple/Neon/Sunset), download PNG / Web Share API. Button inject di `.modal-actions`. Menerima `?code=xxx` dari Spotify lalu redirect ke `concertid://spotify-auth?code=xxx`. URL: `https://www.list-concert-tour.web.id/spotify-callback` (registered di Spotify dashboard `bc23ee30bdb948b483cd1af6ba321cd1`).
+- **Juni 2026 (feat):** Story Card Generator (`features5.js`) — Canvas 9:16, 4 template (Dark/Purple/Neon/Sunset), download PNG / Web Share API. Button inject di `.modal-actions`.
+  - **Foto artis sebagai banner** (bukan emoji) — `crossOrigin='anonymous'`, CORS header Vercel `*`, object-cover fit 540×400px.
+  - **Fallback** ke emoji + gradient jika `img.onerror` (misal jaringan lambat).
+  - **Disabled untuk konser Rumor** — tombol tidak muncul jika `confirmStatus === 'rumor'`.
+  - **Canvas bersih** — tidak ada tulisan "ConcertID" dan tidak ada badge "Confirmed/Rumor" di dalam gambar.
+  - Button label: **"✨ Buat Story Card — Instagram"** (tanpa WhatsApp).
+  - Preview page: `story-card-preview.html` — pilih konser, pilih template, download PNG langsung.
 - **Juni 2026 (fix):** `vercel.json` redirect `/__` → `/` (homepage) — URL ini sering dihit bot dan return 404.
 - **Juni 2026 (remove):** Hapus H5 "Fasilitas Venue" + H6 "Parkir: 500 kendaraan" + subtitle dari section Venue Populer di `index.html`.
 - **Juni 2026 (fix):** E2E test — update `e2e.spec.ts` navbar test: ganti expectasi dari `/jadwal`, `/artis`, `/venue`, `/kategori` ke `#concerts`, `#upcoming`, `#venues`, `#about` sesuai navbar aktual.
@@ -153,8 +159,10 @@ CREATE INDEX IF NOT EXISTS idx_live_setlist_concert ON live_setlist(concert_id, 
 | `sw.js` | Service Worker v18 — Network First untuk HTML, Stale-While-Revalidate untuk JS/CSS |
 | `features.js` | Going/Interested, Sort, Diskusi, UGC — inject ke modal via `openModal` patch |
 | `features3.js` | GroupBuying, TicketMarket, InAppChat — **mapRow WAJIB punya fallback `\|\|'Anonim'`** |
+| `features5.js` | Weather Forecast, Parking Nearby, Story Card Generator — banner foto artis, disabled rumor, 4 template |
 | `vercel.json` | Security headers + `no-store` untuk HTML + rewrites untuk semua routes |
 | `spotify-callback.html` | Redirect Spotify OAuth → `concertid://` deep link untuk mobile app |
+| `story-card-preview.html` | Demo story card — pilih konser + template, download PNG (bukan halaman produk, bisa dihapus) |
 
 ### Script loading order (jangan ubah urutan):
 ```
