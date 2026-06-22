@@ -101,10 +101,8 @@ function draw(concert, tplKey) {
     tOrb.addColorStop(0,T.btn[0]+'55');tOrb.addColorStop(1,'transparent');
     ctx.fillStyle=tOrb;ctx.fillRect(0,0,W,BH);
 
-    ctx.textAlign='center';
-    ctx.shadowColor='rgba(0,0,0,.7)';ctx.shadowBlur=10;
-    ctx.fillStyle='#fff';ctx.font='bold 17px -apple-system,Inter,sans-serif';
-    ctx.fillText('🎵  ConcertID',W/2,52);ctx.shadowBlur=0;
+    // ConcertID branding — dihapus
+    ctx.shadowBlur=0;
 
     ctx.shadowColor='rgba(0,0,0,.9)';ctx.shadowBlur=16;ctx.fillStyle='#fff';
     const aFs=concert.artist.length>20?30:concert.artist.length>14?38:46;
@@ -116,10 +114,7 @@ function draw(concert, tplKey) {
     const tour=concert.tour.length>52?concert.tour.slice(0,50)+'…':concert.tour;
     ctx.fillText(tour.length>46?tour.slice(0,44)+'…':tour,W/2,BH-56);ctx.shadowBlur=0;
 
-    ctx.textAlign='left';
-    ctx.fillStyle='rgba(0,0,0,.52)';rrect(ctx,18,BH-44,136,30,8);ctx.fill();
-    ctx.fillStyle='#4ade80';ctx.font='bold 12px -apple-system,Inter,sans-serif';
-    ctx.fillText('✅ Confirmed',28,BH-24);
+    // Status badge — dihapus
 
     const dg=ctx.createLinearGradient(40,0,W-40,0);
     dg.addColorStop(0,'transparent');dg.addColorStop(.5,T.btn[0]+'99');dg.addColorStop(1,'transparent');

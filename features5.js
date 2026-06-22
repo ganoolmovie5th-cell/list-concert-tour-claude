@@ -313,12 +313,8 @@ const StoryCardGen = (() => {
       tOrb.addColorStop(0, T.btn[0] + '55'); tOrb.addColorStop(1, 'transparent');
       ctx.fillStyle = tOrb; ctx.fillRect(0, 0, W, BH);
 
-      // ConcertID branding di atas banner
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowBlur = 10;
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 17px -apple-system, Inter, sans-serif';
-      ctx.fillText('🎵  ConcertID', W / 2, 52);
+      // ConcertID branding — dihapus per request user
+
       ctx.shadowBlur = 0;
 
       // Artist name — overlaid bawah banner
@@ -337,14 +333,7 @@ const StoryCardGen = (() => {
       ctx.fillText(tour.length > 46 ? tour.slice(0, 44) + '…' : tour, W / 2, BH - 56);
       ctx.shadowBlur = 0;
 
-      // Status badge kiri bawah banner
-      ctx.textAlign = 'left';
-      const sLabel = concert.confirmStatus === 'confirmed' ? '✅ Confirmed' : '🔮 Rumor';
-      const sColor = concert.confirmStatus === 'confirmed' ? '#4ade80' : '#c084fc';
-      ctx.fillStyle = 'rgba(0,0,0,.52)';
-      rrect(ctx, 18, BH - 44, 136, 30, 8); ctx.fill();
-      ctx.fillStyle = sColor; ctx.font = 'bold 12px -apple-system, Inter, sans-serif';
-      ctx.fillText(sLabel, 28, BH - 24);
+      // Status badge — dihapus per request user
 
       // Divider
       const dg = ctx.createLinearGradient(40, 0, W - 40, 0);
@@ -463,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (actions && !modal.querySelector('.f5-story-wrap')) {
       const wrap = document.createElement('div');
       wrap.className = 'f5-story-wrap';
-      wrap.innerHTML = `<button class="f5-story-btn" onclick="StoryCardGen.openPanel('${id}')">✨ Buat Story Card — Instagram / WhatsApp</button>`;
+      wrap.innerHTML = `<button class="f5-story-btn" onclick="StoryCardGen.openPanel('${id}')">✨ Buat Story Card — Instagram</button>`;
       actions.insertAdjacentElement('afterend', wrap);
     }
   };
