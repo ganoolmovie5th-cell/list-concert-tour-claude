@@ -41,6 +41,9 @@
 | 💬 In-App Chat | Real-time chat per post Cari Teman Nonton — polling 10s via Supabase (table: `gb_chat`) |
 | 🏷️ JSON-LD Schema | Structured data Event schema untuk semua konser (SEO Google Events) |
 | 📲 PWA | Progressive Web App — install di homescreen, offline support, auto-reload saat ada update |
+| 🌤️ Weather Forecast | Prakiraan cuaca hari konser via Open-Meteo API (live ≤16 hari, estimasi iklim untuk tanggal lebih jauh) |
+| 🅿️ Parking Nearby | Info parkir per venue (GBK, JIS, ICE BSD, Ancol, PIK2) + link Google Maps |
+| ✨ Story Card Generator | Buat Story Instagram/WhatsApp untuk konser — Canvas 9:16, 4 template (Dark/Purple/Neon/Sunset), download PNG / Web Share API |
 | 🔗 Internal Links | Tambahan internal links untuk SEO (paths: `/jadwal`, `/artis`, `/venue`, `/kategori`) |
 | 🤖 Robots.txt | Disallow `manifest.json` + `/*.json$` dan set sitemap homepage |
 | 🏷️ Headings | Tambah H5/H6 minor headings untuk audit (Detail Informasi / Fasilitas Venue) |
@@ -74,6 +77,7 @@ list-concert-tour-claude/
 ├── features2.js            # Calendar View, Advanced Search, Harga Alert, Spotify
 ├── features3.js            # I18n, PriceConverter, BeenThere, GroupBuying, TicketMarket, FeedbackForm
 ├── features4.js            # Setlist.fm, NewConcertNotif, Tips & Artikel
+├── features5.js            # Weather Forecast, Parking Nearby, Story Card Generator (Juni 2026)
 ├── *.min.js                # Minified JS files (auto-generated)
 ├── sw.js                   # Service Worker — Stale-While-Revalidate, auto-reload saat ada update
 ├── supabase_schema.sql     # Schema SQL — jalankan di Supabase SQL Editor

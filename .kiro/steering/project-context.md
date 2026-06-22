@@ -69,7 +69,10 @@ Files: <file yang diubah selain README & steering>
 - **Juni 2026 (fix):** Minifikasi: selalu pakai `terser --compress` (tanpa `--mangle`) + `clean-css`. Pernah break website karena mangle.
 - **Juni 2026 (feat):** Cookie Consent Banner — `consentBanner` div + `concertid_consent` localStorage key. Terintegrasi GA Consent Mode v2 (`gtag('consent', 'default', {denied})` sebelum GTM, update ke `granted` saat terima).
 - **Juni 2026 (feat):** Google Tag Manager `GTM-NG5XKT8T` — snippet di `<head>` + noscript di `<body>`. GA4 `G-8NNHBT6N8Q` dikelola via GTM.
-- **Juni 2026 (feat):** `spotify-callback.html` — halaman redirect untuk Spotify OAuth mobile. Menerima `?code=xxx` dari Spotify lalu redirect ke `concertid://spotify-auth?code=xxx`. URL: `https://www.list-concert-tour.web.id/spotify-callback` (registered di Spotify dashboard `bc23ee30bdb948b483cd1af6ba321cd1`).
+- **Juni 2026 (feat):** `spotify-callback.html` — halaman redirect untuk Spotify OAuth mobile.
+- **Juni 2026 (feat):** Weather Forecast (`features5.js`) — prakiraan cuaca hari konser via Open-Meteo API (live ≤16 hari, estimasi iklim untuk >16 hari). Cache localStorage 1 jam. Koordinat per venue.
+- **Juni 2026 (feat):** Parking Nearby (`features5.js`) — info parkir statis 5 venue utama (GBK, JIS, Ancol, ICE BSD, PIK2) + tips transportasi + link Google Maps.
+- **Juni 2026 (feat):** Story Card Generator (`features5.js`) — Canvas 9:16, 4 template (Dark/Purple/Neon/Sunset), download PNG / Web Share API. Button inject di `.modal-actions`. Menerima `?code=xxx` dari Spotify lalu redirect ke `concertid://spotify-auth?code=xxx`. URL: `https://www.list-concert-tour.web.id/spotify-callback` (registered di Spotify dashboard `bc23ee30bdb948b483cd1af6ba321cd1`).
 - **Juni 2026 (fix):** `vercel.json` redirect `/__` → `/` (homepage) — URL ini sering dihit bot dan return 404.
 - **Juni 2026 (remove):** Hapus H5 "Fasilitas Venue" + H6 "Parkir: 500 kendaraan" + subtitle dari section Venue Populer di `index.html`.
 - **Juni 2026 (fix):** E2E test — update `e2e.spec.ts` navbar test: ganti expectasi dari `/jadwal`, `/artis`, `/venue`, `/kategori` ke `#concerts`, `#upcoming`, `#venues`, `#about` sesuai navbar aktual.
@@ -128,6 +131,14 @@ CREATE TABLE IF NOT EXISTS concert_checkins (
   checked_in_at timestamptz, lat float8, lng float8, verified boolean DEFAULT false,
   UNIQUE(concert_id, device_uid)
 );
+
+-- Live Setlist crowdsource (web + mobile)
+CREATE TABLE IF NOT EXISTS live_setlist (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  concert_id text NOT NULL, song_name text NOT NULL, song_number integer DEFAULT 1,
+  submitted_by text NOT NULL DEFAULT 'Anonim', created_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_live_setlist_concert ON live_setlist(concert_id, created_at DESC);
 ```
 
 ---
@@ -147,7 +158,7 @@ CREATE TABLE IF NOT EXISTS concert_checkins (
 
 ### Script loading order (jangan ubah urutan):
 ```
-supabase.min.js → app.min.js → reviews.min.js → features.min.js → features2.min.js → features3.min.js → features4.min.js
+supabase.min.js → app.min.js → reviews.min.js → features.min.js → features2.min.js → features3.min.js → features4.min.js → features5.min.js
 ```
 
 ---
