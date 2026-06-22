@@ -454,7 +454,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Parking
     ParkingNearby.inject(id);
 
-    // 3. Story Card button — inject setelah .modal-actions
+    // 3. Story Card button — inject setelah .modal-actions (skip untuk rumor)
+    const concert5 = typeof CONCERTS !== 'undefined' ? CONCERTS.find(x => x.id === id) : null;
+    if (concert5 && concert5.confirmStatus === 'rumor') return;
     const modal = document.getElementById('modalContent');
     if (!modal) return;
     const actions = modal.querySelector('.modal-actions');
