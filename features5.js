@@ -300,6 +300,7 @@ const StoryCardGen = (() => {
 
     // ─── drawContent: overlays + text (dipanggil setelah banner siap) ───
     function drawContent() {
+      ctx.textAlign = 'center'; // reset ke center di awal setiap render
       // Gradient overlay pada banner: gelap atas+bawah
       const topOv = ctx.createLinearGradient(0, 0, 0, BH);
       topOv.addColorStop(0,   'rgba(0,0,0,.55)');
