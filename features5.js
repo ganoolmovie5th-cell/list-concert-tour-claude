@@ -279,81 +279,138 @@ const StoryCardGen = (() => {
     const canvas = document.getElementById('sgCanvas'); if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const T = TPL[tplKey] || TPL.dark;
-    const W = 540, H = 960;
+    const W = 540, H = 960, BH = 400; // BH = banner height
 
-    // Background
+    // Full background (info section below banner)
     const bg = ctx.createLinearGradient(0, 0, W, H);
     bg.addColorStop(0, T.bg[0]); bg.addColorStop(.5, T.bg[1]); bg.addColorStop(1, T.bg[2]);
     ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-    // Orbs
-    [[.35, .25, 260, T.orb[0]], [.75, .72, 210, T.orb[1]]].forEach(([cx, cy, r, col]) => {
+    // Orbs di bagian bawah (info section)
+    [[.35, .78, 200, T.orb[0]], [.8, .92, 170, T.orb[1]]].forEach(([cx, cy, r, col]) => {
       const g = ctx.createRadialGradient(W * cx, H * cy, 0, W * cx, H * cy, r);
       g.addColorStop(0, col); g.addColorStop(1, 'transparent');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     });
 
-    // Grid
+    // Grid subtle
     ctx.strokeStyle = T.grid; ctx.lineWidth = 1;
     for (let x = 0; x <= W; x += 54) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
     for (let y = 0; y <= H; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
 
-    // Branding
-    ctx.textAlign = 'center'; ctx.fillStyle = T.btn[0];
-    ctx.font = 'bold 18px -apple-system, Inter, sans-serif';
-    ctx.fillText('🎵  ConcertID', W / 2, 70);
-    const dg = ctx.createLinearGradient(60, 0, W - 60, 0);
-    dg.addColorStop(0, 'transparent'); dg.addColorStop(.5, T.btn[0]); dg.addColorStop(1, 'transparent');
-    ctx.strokeStyle = dg; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(60, 88); ctx.lineTo(W - 60, 88); ctx.stroke();
+    // ─── drawContent: overlays + text (dipanggil setelah banner siap) ───
+    function drawContent() {
+      // Gradient overlay pada banner: gelap atas+bawah
+      const topOv = ctx.createLinearGradient(0, 0, 0, BH);
+      topOv.addColorStop(0,   'rgba(0,0,0,.55)');
+      topOv.addColorStop(0.4, 'rgba(0,0,0,.10)');
+      topOv.addColorStop(0.7, 'rgba(0,0,0,.38)');
+      topOv.addColorStop(1,   'rgba(0,0,0,.82)');
+      ctx.fillStyle = topOv; ctx.fillRect(0, 0, W, BH);
 
-    // Emoji
-    ctx.shadowColor = T.btn[0]; ctx.shadowBlur = 38;
-    ctx.font = '84px serif'; ctx.fillStyle = '#fff';
-    ctx.fillText(concert.emoji, W / 2, 218); ctx.shadowBlur = 0;
+      // Template color tint pada banner
+      const tOrb = ctx.createRadialGradient(W * .65, BH * .3, 0, W * .65, BH * .3, 190);
+      tOrb.addColorStop(0, T.btn[0] + '55'); tOrb.addColorStop(1, 'transparent');
+      ctx.fillStyle = tOrb; ctx.fillRect(0, 0, W, BH);
 
-    // Artist name
-    ctx.fillStyle = '#fff'; ctx.shadowColor = T.btn[0]; ctx.shadowBlur = 18;
-    const aFs = concert.artist.length > 20 ? 32 : concert.artist.length > 14 ? 40 : 50;
-    ctx.font = `bold ${aFs}px -apple-system, Inter, sans-serif`;
-    wrapLine(ctx, concert.artist, W / 2, 298, W - 60, aFs + 10);
-    ctx.shadowBlur = 0;
+      // ConcertID branding di atas banner
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowBlur = 10;
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 17px -apple-system, Inter, sans-serif';
+      ctx.fillText('🎵  ConcertID', W / 2, 52);
+      ctx.shadowBlur = 0;
 
-    // Tour name
-    ctx.fillStyle = 'rgba(200,200,210,.8)'; ctx.font = '18px -apple-system, Inter, sans-serif';
-    const tour = concert.tour.length > 52 ? concert.tour.slice(0, 50) + '…' : concert.tour;
-    wrapLine(ctx, tour, W / 2, 372, W - 80, 26);
+      // Artist name — overlaid bawah banner
+      ctx.shadowColor = 'rgba(0,0,0,.9)'; ctx.shadowBlur = 16;
+      ctx.fillStyle = '#fff';
+      const aFs = concert.artist.length > 20 ? 30 : concert.artist.length > 14 ? 38 : 46;
+      ctx.font = `bold ${aFs}px -apple-system, Inter, sans-serif`;
+      wrapLine(ctx, concert.artist, W / 2, BH - 104, W - 48, aFs + 8);
+      ctx.shadowBlur = 0;
 
-    // Info card
-    const cY = 426, cH = 274;
-    ctx.fillStyle = 'rgba(255,255,255,.055)';
-    rrect(ctx, 36, cY, W - 72, cH, 20); ctx.fill();
-    ctx.strokeStyle = T.btn[0] + '44'; ctx.lineWidth = 1;
-    rrect(ctx, 36, cY, W - 72, cH, 20); ctx.stroke();
+      // Tour name — overlaid bawah banner
+      ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = 10;
+      ctx.fillStyle = 'rgba(240,240,255,.88)';
+      ctx.font = '17px -apple-system, Inter, sans-serif';
+      const tour = concert.tour.length > 52 ? concert.tour.slice(0, 50) + '…' : concert.tour;
+      ctx.fillText(tour.length > 46 ? tour.slice(0, 44) + '…' : tour, W / 2, BH - 56);
+      ctx.shadowBlur = 0;
 
-    ctx.textAlign = 'left';
-    const rows = [['📅', concert.dates.join(' & ')], ['⏰', concert.time], ['📍', concert.venue.length > 38 ? concert.venue.slice(0, 36) + '…' : concert.venue], ['🏙️', concert.city]];
-    rows.forEach(([em, val], i) => {
-      const ry = cY + 34 + i * 58;
-      ctx.font = 'bold 22px serif'; ctx.fillStyle = 'rgba(255,255,255,.85)';
-      ctx.fillText(em, 64, ry);
-      ctx.font = `${val.length > 32 ? 15 : 17}px -apple-system, Inter, sans-serif`;
-      ctx.fillStyle = 'rgba(240,240,245,.82)';
-      ctx.fillText(val.length > 40 ? val.slice(0, 38) + '…' : val, 102, ry);
-    });
+      // Status badge kiri bawah banner
+      ctx.textAlign = 'left';
+      const sLabel = concert.confirmStatus === 'confirmed' ? '✅ Confirmed' : '🔮 Rumor';
+      const sColor = concert.confirmStatus === 'confirmed' ? '#4ade80' : '#c084fc';
+      ctx.fillStyle = 'rgba(0,0,0,.52)';
+      rrect(ctx, 18, BH - 44, 136, 30, 8); ctx.fill();
+      ctx.fillStyle = sColor; ctx.font = 'bold 12px -apple-system, Inter, sans-serif';
+      ctx.fillText(sLabel, 28, BH - 24);
 
-    // Bottom badge
-    const btnGrad = ctx.createLinearGradient(120, 0, W - 120, 0);
-    btnGrad.addColorStop(0, T.btn[0]); btnGrad.addColorStop(1, T.btn[1]);
-    ctx.fillStyle = btnGrad;
-    rrect(ctx, 120, 738, W - 240, 56, 28); ctx.fill();
-    ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
-    ctx.font = 'bold 18px -apple-system, Inter, sans-serif';
-    ctx.fillText('list-concert-tour.web.id', W / 2, 772);
+      // Divider
+      const dg = ctx.createLinearGradient(40, 0, W - 40, 0);
+      dg.addColorStop(0, 'transparent'); dg.addColorStop(.5, T.btn[0] + '99'); dg.addColorStop(1, 'transparent');
+      ctx.strokeStyle = dg; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(40, BH + 18); ctx.lineTo(W - 40, BH + 18); ctx.stroke();
 
-    // Footer
-    ctx.fillStyle = 'rgba(120,120,135,.55)'; ctx.font = '13px -apple-system, Inter, sans-serif';
-    ctx.fillText('© ConcertID — Info Konser Internasional di Indonesia', W / 2, 920);
+      // Info card
+      const cY = BH + 28, cH = 264;
+      ctx.fillStyle = 'rgba(255,255,255,.055)';
+      rrect(ctx, 36, cY, W - 72, cH, 20); ctx.fill();
+      ctx.strokeStyle = T.btn[0] + '44'; ctx.lineWidth = 1;
+      rrect(ctx, 36, cY, W - 72, cH, 20); ctx.stroke();
+
+      ctx.textAlign = 'left';
+      [['📅', concert.dates.join(' & ')], ['⏰', concert.time],
+       ['📍', concert.venue.length > 38 ? concert.venue.slice(0, 36) + '…' : concert.venue],
+       ['🏙️', concert.city]].forEach(([em, val], i) => {
+        const ry = cY + 34 + i * 55;
+        ctx.font = 'bold 20px serif'; ctx.fillStyle = 'rgba(255,255,255,.85)';
+        ctx.fillText(em, 56, ry);
+        ctx.font = `${val.length > 32 ? 15 : 16}px -apple-system, Inter, sans-serif`;
+        ctx.fillStyle = 'rgba(240,240,245,.82)';
+        ctx.fillText(val.length > 42 ? val.slice(0, 40) + '…' : val, 93, ry);
+      });
+
+      // Bottom badge
+      const btnGrad = ctx.createLinearGradient(100, 0, W - 100, 0);
+      btnGrad.addColorStop(0, T.btn[0]); btnGrad.addColorStop(1, T.btn[1]);
+      ctx.fillStyle = btnGrad;
+      rrect(ctx, 100, cY + cH + 24, W - 200, 52, 26); ctx.fill();
+      ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+      ctx.font = 'bold 17px -apple-system, Inter, sans-serif';
+      ctx.fillText('list-concert-tour.web.id', W / 2, cY + cH + 57);
+
+      // Footer
+      ctx.fillStyle = 'rgba(120,120,135,.5)'; ctx.font = '12px -apple-system, Inter, sans-serif';
+      ctx.fillText('© ConcertID — Info Konser Internasional di Indonesia', W / 2, H - 30);
+    }
+
+    // Load artist banner image
+    const imgUrl = `https://www.list-concert-tour.web.id/images/${concert.id}.jpeg`;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, 0, W, BH); ctx.clip();
+      const sc = Math.max(W / img.naturalWidth, BH / img.naturalHeight);
+      const dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
+      ctx.drawImage(img, (W - dw) / 2, (BH - dh) / 2, dw, dh);
+      ctx.restore();
+      drawContent();
+    };
+    img.onerror = () => {
+      // Fallback: gradient + emoji jika gambar gagal dimuat
+      const fb = ctx.createLinearGradient(0, 0, W, BH);
+      fb.addColorStop(0, T.bg[1]); fb.addColorStop(1, T.bg[2]);
+      ctx.fillStyle = fb; ctx.fillRect(0, 0, W, BH);
+      ctx.textAlign = 'center';
+      ctx.shadowColor = T.btn[0]; ctx.shadowBlur = 40;
+      ctx.font = '96px serif'; ctx.fillStyle = '#fff';
+      ctx.fillText(concert.emoji, W / 2, BH / 2 + 28);
+      ctx.shadowBlur = 0;
+      drawContent();
+    };
+    img.src = imgUrl;
   }
 
   function download() {
