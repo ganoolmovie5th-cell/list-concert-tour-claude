@@ -67,6 +67,12 @@ Files: <file yang diubah selain README & steering>
 - **Juni 2026 (remove):** Hapus `nav-links` tambahan dari navbar: Jadwal Lengkap, Daftar Artis, Venue Populer, Kategori Konser.
 - **Juni 2026 (remove):** Hapus `footer-mini-links` (Tentang/Sumber Data/Kontak) dan kolom "Internal" di footer.
 - **Juni 2026 (fix):** Minifikasi: selalu pakai `terser --compress` (tanpa `--mangle`) + `clean-css`. Pernah break website karena mangle.
+- **Juni 2026 (feat):** Cookie Consent Banner — `consentBanner` div + `concertid_consent` localStorage key. Terintegrasi GA Consent Mode v2 (`gtag('consent', 'default', {denied})` sebelum GTM, update ke `granted` saat terima).
+- **Juni 2026 (feat):** Google Tag Manager `GTM-NG5XKT8T` — snippet di `<head>` + noscript di `<body>`. GA4 `G-8NNHBT6N8Q` dikelola via GTM.
+- **Juni 2026 (feat):** `spotify-callback.html` — halaman redirect untuk Spotify OAuth mobile. Menerima `?code=xxx` dari Spotify lalu redirect ke `concertid://spotify-auth?code=xxx`. URL: `https://www.list-concert-tour.web.id/spotify-callback` (registered di Spotify dashboard `bc23ee30bdb948b483cd1af6ba321cd1`).
+- **Juni 2026 (fix):** `vercel.json` redirect `/__` → `/` (homepage) — URL ini sering dihit bot dan return 404.
+- **Juni 2026 (remove):** Hapus H5 "Fasilitas Venue" + H6 "Parkir: 500 kendaraan" + subtitle dari section Venue Populer di `index.html`.
+- **Juni 2026 (fix):** E2E test — update `e2e.spec.ts` navbar test: ganti expectasi dari `/jadwal`, `/artis`, `/venue`, `/kategori` ke `#concerts`, `#upcoming`, `#venues`, `#about` sesuai navbar aktual.
 
 ---
 
@@ -137,7 +143,7 @@ CREATE TABLE IF NOT EXISTS concert_checkins (
 | `features.js` | Going/Interested, Sort, Diskusi, UGC — inject ke modal via `openModal` patch |
 | `features3.js` | GroupBuying, TicketMarket, InAppChat — **mapRow WAJIB punya fallback `\|\|'Anonim'`** |
 | `vercel.json` | Security headers + `no-store` untuk HTML + rewrites untuk semua routes |
-| `*.html` redirect files | `artis.html`, `venue.html`, `kategori.html`, `tentang.html`, `sumber-data.html`, `kontak.html` |
+| `spotify-callback.html` | Redirect Spotify OAuth → `concertid://` deep link untuk mobile app |
 
 ### Script loading order (jangan ubah urutan):
 ```
