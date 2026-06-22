@@ -39,17 +39,18 @@
     }
   ],
   "rewrites": [
-    { "source": "/about",       "destination": "/about.html"   },
-    { "source": "/contact",     "destination": "/contact.html" },
-    { "source": "/konser",      "destination": "/konser.html"  },
-    { "source": "/jadwal",      "destination": "/jadwal.html"  },
-    { "source": "/rumor",       "destination": "/rumor.html"   },
-    { "source": "/artis",       "destination": "/"             },
-    { "source": "/venue",       "destination": "/"             },
-    { "source": "/kategori",    "destination": "/"             },
-    { "source": "/tentang",     "destination": "/about.html"   },
-    { "source": "/sumber-data", "destination": "/about.html"   },
-    { "source": "/kontak",      "destination": "/contact.html" }
+    { "source": "/about",              "destination": "/about.html"             },
+    { "source": "/contact",            "destination": "/contact.html"           },
+    { "source": "/konser",             "destination": "/konser.html"            },
+    { "source": "/jadwal",             "destination": "/jadwal.html"            },
+    { "source": "/rumor",              "destination": "/rumor.html"             },
+    { "source": "/artis",              "destination": "/"                       },
+    { "source": "/venue",              "destination": "/"                       },
+    { "source": "/kategori",           "destination": "/"                       },
+    { "source": "/tentang",            "destination": "/about.html"             },
+    { "source": "/sumber-data",        "destination": "/about.html"             },
+    { "source": "/kontak",             "destination": "/contact.html"           },
+    { "source": "/spotify-callback",   "destination": "/spotify-callback.html"  }
   ],
   "redirects": [
     { "source": "/__", "destination": "/", "permanent": false }
