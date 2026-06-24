@@ -85,6 +85,7 @@ Files: <file yang diubah selain README & steering>
 - **Juni 2026 (fix):** `vercel.json` redirect `/__` → `/` (homepage) — URL ini sering dihit bot dan return 404.
 - **Juni 2026 (remove):** Hapus H5 "Fasilitas Venue" + H6 "Parkir: 500 kendaraan" + subtitle dari section Venue Populer di `index.html`.
 - **Juni 2026 (fix):** E2E test — update `e2e.spec.ts` navbar test: ganti expectasi dari `/jadwal`, `/artis`, `/venue`, `/kategori` ke `#concerts`, `#upcoming`, `#venues`, `#about` sesuai navbar aktual.
+- **Juni 2026 (test):** E2E rewrite — `tests/e2e.spec.ts` ditulis ulang total dari 1 grup (3 test basic) → **3 grup, 12 assertions**, fix 3 kegagalan CI: **(1) Concert listings H1 selector mismatch** → tambah `h1.hero-title` selector + `toContainText('Konser')` + `toHaveCount(1)` + concert grid render `.concert-card` (waitForSelector 15s); **(2) Sitemap expected 6 URLs got 1** → tambah `/<loc>/g` count `toHaveLength(6)` + loop assert semua 6 path (`/`, `/jadwal`, `/konser`, `/rumor`, `/about`, `/contact`); **(3) Robots.txt Disallow rules not found** → tambah assert `Disallow: /sw.js` + `/*.min.js` + `/*.min.css` ada, `Disallow: /manifest.json` **tidak** ada, `Sitemap:` dideklarasikan, `manifest.json` HTTP 200 + valid JSON dengan `name`+`icons`. File: `tests/e2e.spec.ts`.
 
 ---
 

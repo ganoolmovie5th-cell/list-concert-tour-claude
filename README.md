@@ -47,7 +47,7 @@
 | 🔗 Internal Links | Tambahan internal links untuk SEO (paths: `/jadwal`, `/artis`, `/venue`, `/kategori`) |
 | 🤖 Robots.txt | Allow `manifest.json` (PWA), Disallow `sw.js` + `*.min.js/css`, Sitemap www |
 | 🏷️ Headings | Tambah H5/H6 minor headings untuk audit (Detail Informasi / Fasilitas Venue) |
-| 🧪 E2E Testing | Playwright smoke tests + GitHub Actions (run tiap push & harian) |
+| 🧪 E2E Testing | Playwright 3 test groups, 12 assertions (H1, sitemap 6 URLs, robots.txt rules, manifest.json, concert grid) + GitHub Actions |
 
 ---
 
@@ -59,6 +59,14 @@ Jalankan smoke test ke production:
 npm install
 npm run test:e2e
 ```
+
+**3 test groups, 12 assertions:**
+
+| Grup | Test |
+|---|---|
+| **Concert listings** | Single H1 (`h1.hero-title`), H1 contains "Konser", concert grid render ≥1 card, navbar href exact match |
+| **Sitemap** | Reachable + valid XML, exactly 6 `<loc>`, semua path ada (`/`, `/jadwal`, `/konser`, `/rumor`, `/about`, `/contact`) |
+| **Robots.txt** | Reachable, Disallow `/sw.js`+`/*.min.js`+`/*.min.css` ada, `manifest.json` **tidak** diblok, Sitemap URL dideklarasikan, `manifest.json` langsung accessible |
 
 ---
 
@@ -149,5 +157,10 @@ list-concert-tour-claude/
 |---|---|
 | 🗺️ Sitemap 6 URLs | `sitemap.xml` diperluas dari 1 → 6 URL: `/`, `/jadwal`, `/konser`, `/rumor`, `/about`, `/contact` — semua pakai `www` (konsisten dengan canonical). `lastmod` diupdate |
 | 🤖 Robots.txt fix | Hapus `Disallow: /manifest.json` (unblock PWA manifest untuk Google), hapus `Disallow: /*.json$` (sintaks regex invalid di robots.txt, silent-ignored), perbarui `Sitemap:` ke URL `www`, hapus direktif `Host:` (tidak didukung Google) |
+
+### Testing (Juni 2026)
+| Item | Keterangan |
+|---|---|
+| 🧪 E2E rewrite | `tests/e2e.spec.ts` ditulis ulang dari 1 grup (3 test dasar) → 3 grup, 12 assertions. Perbaiki 3 kegagalan CI: (1) H1 selector mismatch — tambah `toContainText('Konser')` + `toHaveCount(1)`; (2) Sitemap expected 6 URLs got 1 — tambah `/<loc>/g` count + check semua 6 path; (3) Robots.txt Disallow rules not found — tambah assertion per rule + verifikasi `manifest.json` tidak diblok + accessible |
 
 > ⚠️ **Action manual di GTM:** pastikan tag **GA4 Configuration** (`G-8NNHBT6N8Q`) aktif di container `GTM-NG5XKT8T`, jika belum maka GA4 tidak akan terkumpul setelah perubahan ini.
