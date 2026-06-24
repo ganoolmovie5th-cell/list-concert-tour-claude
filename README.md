@@ -45,7 +45,7 @@
 | 🅿️ Parking Nearby | Info parkir per venue (GBK, JIS, ICE BSD, Ancol, PIK2) + link Google Maps |
 | ✨ Story Card Generator | Buat Story Instagram untuk konser — Canvas 9:16, foto artis sebagai banner, 4 template (Dark/Purple/Neon/Sunset), download PNG / Web Share API. Disabled untuk konser Rumor. |
 | 🔗 Internal Links | Tambahan internal links untuk SEO (paths: `/jadwal`, `/artis`, `/venue`, `/kategori`) |
-| 🤖 Robots.txt | Disallow `manifest.json` + `/*.json$` dan set sitemap homepage |
+| 🤖 Robots.txt | Allow `manifest.json` (PWA), Disallow `sw.js` + `*.min.js/css`, Sitemap www |
 | 🏷️ Headings | Tambah H5/H6 minor headings untuk audit (Detail Informasi / Fasilitas Venue) |
 | 🧪 E2E Testing | Playwright smoke tests + GitHub Actions (run tiap push & harian) |
 
@@ -89,7 +89,7 @@ list-concert-tour-claude/
 ├── auto_updater.py         # Filter HIGH confidence → inject ke app.js → output summary
 ├── email_reporter.py       # Kirim laporan scraper via Gmail SMTP
 ├── requirements.txt        # Dependensi Python scraper
-├── sitemap.xml             # Sitemap (1 URL homepage)
+├── sitemap.xml             # Sitemap (6 URLs: /, /jadwal, /konser, /rumor, /about, /contact)
 ├── robots.txt              # Robots directives
 ├── vercel.json             # Konfigurasi Vercel + Security/CSP headers + Cache
 ├── images/                 # Foto artis/konser (dipakai juga oleh mobile app)
@@ -137,10 +137,17 @@ list-concert-tour-claude/
 | ⚡ Hapus double analytics | `gtag.js` GA4 terpisah dihapus dari `index.html`; GA4 kini dimuat via GTM container saja (hemat ~375 KiB unused JS). Consent Mode v2 dipindah sebelum GTM |
 | ⚡ Defer app scripts | 7 `*.min.js` diberi `defer` (urutan eksekusi tetap terjaga) → kurangi render-block & critical path |
 | ⚡ CSS non-blocking | `style.min.css` dimuat via `media="print" onload` swap (+`<noscript>` fallback); critical CSS tetap inline |
+| ⚡ Critical CSS hero-stats | Tambah `.hero-stats`, `.stat-num`, `.stat-label`, `.stat-divider`, `.hero-search` + `@media(max-width:480px)` ke inline `<style>` — fix CLS 0.306 akibat relayout saat `style.min.css` load async |
 | 🖼️ Optimasi gambar | `images/hammersonic-2026.jpeg` di-recompress (q72, progressive) 24.7 KiB → 17.3 KiB, nama file sama (aman untuk mobile) |
 | ♿ Kontras light-mode | Tambah override `html.light .badge-*` (genre/status/premium/luxury/hot/going-count, dll) — teks pastel → 700/800-shade, semua ≥4.5:1 WCAG AA. Dark mode tidak berubah |
 | ♿ Focus visible | Web Interface Guidelines — hapus 15× `outline:none` + ring `:focus-visible` global (fokus keyboard terlihat, mouse-click bersih via `:focus:not(:focus-visible)`) |
 | ⚡ Transition explicit | 29× `transition:all` → properti eksplisit (color/bg/border/box-shadow/transform/opacity) — compositor-friendly, durasi/easing asli dipertahankan |
 | ✍️ Tipografi ellipsis | `...` → `…` pada teks tampilan (index/about/contact/jadwal/konser/rumor/analytics). Spread operator JS dilindungi. `style.min.css` di-regenerate via clean-css-cli |
+
+### SEO (Juni 2026)
+| Item | Keterangan |
+|---|---|
+| 🗺️ Sitemap 6 URLs | `sitemap.xml` diperluas dari 1 → 6 URL: `/`, `/jadwal`, `/konser`, `/rumor`, `/about`, `/contact` — semua pakai `www` (konsisten dengan canonical). `lastmod` diupdate |
+| 🤖 Robots.txt fix | Hapus `Disallow: /manifest.json` (unblock PWA manifest untuk Google), hapus `Disallow: /*.json$` (sintaks regex invalid di robots.txt, silent-ignored), perbarui `Sitemap:` ke URL `www`, hapus direktif `Host:` (tidak didukung Google) |
 
 > ⚠️ **Action manual di GTM:** pastikan tag **GA4 Configuration** (`G-8NNHBT6N8Q`) aktif di container `GTM-NG5XKT8T`, jika belum maka GA4 tidak akan terkumpul setelah perubahan ini.
