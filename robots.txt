@@ -1,12 +1,8 @@
 User-agent: *
 Allow: /
 
-Disallow: /manifest.json
-Disallow: /*.json$
 Disallow: /sw.js
 Disallow: /*.min.js
 Disallow: /*.min.css
 
-Sitemap: https://list-concert-tour.web.id/sitemap.xml
-
-Host: list-concert-tour.web.id
+Sitemap: https://www.list-concert-tour.web.id/sitemap.xml
