@@ -2109,12 +2109,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!card) return;
       // Cek apakah badge sudah ada
       if (card.querySelector('.going-count-badge')) return;
-      const footer = card.querySelector('.card-footer');
-      if (!footer) return;
+      // Overlay absolute di card-header agar injeksi async tidak menggeser layout (CLS)
+      const header = card.querySelector('.card-header');
+      if (!header) return;
       const badge = document.createElement('div');
       badge.className = 'going-count-badge';
       badge.innerHTML = `🎟️ <strong>${fmtCount(cnt.going)}</strong> going`;
-      footer.insertBefore(badge, footer.firstChild);
+      header.appendChild(badge);
     });
   }
 

@@ -142,6 +142,7 @@ list-concert-tour-claude/
 ### Performance & Accessibility (PageSpeed — Juni 2026)
 | Item | Keterangan |
 |---|---|
+| 🧱 Fix CLS 0.357 (Agentic) | Badge **going count** di-inject async ke `.card-footer` (in-flow) setelah fetch Supabase → menambah tinggi kartu & menggeser kartu lain saat scroll. Fix: badge jadi overlay `position:absolute` di `.card-header` (zero layout shift). `app.min.js` + `style.min.css` di-regenerate |
 | ⚡ Hapus double analytics | `gtag.js` GA4 terpisah dihapus dari `index.html`; GA4 kini dimuat via GTM container saja (hemat ~375 KiB unused JS). Consent Mode v2 dipindah sebelum GTM |
 | ⚡ Defer app scripts | 7 `*.min.js` diberi `defer` (urutan eksekusi tetap terjaga) → kurangi render-block & critical path |
 | ⚡ CSS non-blocking | `style.min.css` dimuat via `media="print" onload` swap (+`<noscript>` fallback); critical CSS tetap inline |
