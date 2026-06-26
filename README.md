@@ -156,6 +156,7 @@ list-concert-tour-claude/
 ### SEO (Juni 2026)
 | Item | Keterangan |
 |---|---|
+| ✅ Consent Mode region-scoped | Google Tag flag "consent rate 0% di luar EEA". Fix: default `analytics_storage` jadi `granted` untuk non-EEA (mayoritas trafik = Indonesia, consent tak wajib), `denied` khusus EEA+UK+CH sampai user terima banner. ad_* tetap denied (tanpa iklan). Re-apply pilihan user kini dua arah |
 | 🔗 Internal links homepage | Audit SEO homepage (`/`) hanya mendeteksi ~2 internal link. Tambah section baru **Panduan Konser** (`.guide-section`, id `panduan`) setelah ABOUT — berisi 5 link ke route nyata yang sudah ada (`/jadwal`, `/konser`, `/rumor`, `/about`, `/contact`). Tidak membuat URL baru (semua sudah di `vercel.json` + `sitemap.xml`) |
 | 🏷️ Heading h5 & h6 | Homepage sebelumnya berhenti di h4 (footer). Section Panduan menambah cascade `h2→h3→h4→h5→h6` (2 kolom, tanpa skip level) sehingga semua level heading hadir natural dengan konten informatif |
 | 🗺️ Sitemap 6 URLs | `sitemap.xml` diperluas dari 1 → 6 URL: `/`, `/jadwal`, `/konser`, `/rumor`, `/about`, `/contact` — semua pakai `www` (konsisten dengan canonical). `lastmod` diupdate |

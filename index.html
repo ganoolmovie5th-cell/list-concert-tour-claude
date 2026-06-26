@@ -5,17 +5,29 @@
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
+    /* Default global: di luar EEA (mayoritas trafik = Indonesia) consent tidak
+       wajib secara hukum → analytics_storage granted agar pengukuran tidak hilang.
+       ad_* tetap denied (situs tidak menayangkan iklan). */
     gtag('consent', 'default', {
+      analytics_storage:    'granted',
+      ad_storage:           'denied',
+      ad_user_data:         'denied',
+      ad_personalization:   'denied'
+    });
+    /* Override khusus EEA + UK + Swiss: semua denied sampai user menerima banner (GDPR). */
+    gtag('consent', 'default', {
+      region: ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IS','IE','IT','LV','LI','LT','LU','MT','NL','NO','PL','PT','RO','SK','SI','ES','SE','GB','CH'],
       analytics_storage:    'denied',
       ad_storage:           'denied',
       ad_user_data:         'denied',
       ad_personalization:   'denied',
       wait_for_update:      500
     });
+    /* Re-apply pilihan eksplisit user (dua arah) agar konsisten lintas region & reload. */
     try {
-      if (localStorage.getItem('concertid_consent') === 'granted') {
-        gtag('consent', 'update', { analytics_storage: 'granted' });
-      }
+      var _c = localStorage.getItem('concertid_consent');
+      if (_c === 'granted')     gtag('consent', 'update', { analytics_storage: 'granted' });
+      else if (_c === 'denied') gtag('consent', 'update', { analytics_storage: 'denied' });
     } catch(e) {}
   </script>
   <!-- Google Tag Manager -->
