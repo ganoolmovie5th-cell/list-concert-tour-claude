@@ -12,7 +12,7 @@
 
 | Fitur | Keterangan |
 |---|---|
-| 🗓️ Jadwal Lengkap | 45+ konser 2025–2027: artis, tanggal, venue, jam, dan harga tiket |
+| 🗓️ Jadwal Lengkap | 44 konser 2025–2027: artis, tanggal, venue, jam, dan harga tiket |
 | ✅ / 🔮 Status | Label jelas **Confirmed** (resmi) vs **Rumor** (belum dikonfirmasi) |
 | 🔍 Search & Filter | Cari berdasarkan artis/venue/kota; filter genre, status, dan wishlist |
 | 🔍 Advanced Search | Filter harga (slider), bulan, kota/area, dan status konser |
@@ -75,7 +75,7 @@ npm run test:e2e
 ```
 list-concert-tour-claude/
 ├── index.html              # Single-page app utama
-├── app.js                  # Data konser (45 entries) & logika utama + JSON-LD schema
+├── app.js                  # Data konser (44 entries) & logika utama + JSON-LD schema
 ├── app.min.js              # Minified version (auto-generated)
 ├── style.css               # Styling (dark/light mode, responsive)
 ├── style.min.css           # Minified CSS (auto-generated)
@@ -120,7 +120,7 @@ list-concert-tour-claude/
 ### Fitur Baru
 | Fitur | Keterangan |
 |---|---|
-| 🎸 Guns N' Roses Jakarta | Konser baru **confirmed**: GNR World Tour 2026, Sabtu 21 Nov 2026, Stadion Madya GBK, promotor Rajawali Indonesia (sumber: gnrjakarta.com). Total konser jadi 45 |
+| 🎸 Guns N' Roses Jakarta | GNR World Tour 2026 dikonfirmasi: Sabtu 21 Nov 2026, Stadion Madya GBK, promotor Rajawali Indonesia (sumber: gnrjakarta.com). Entry GNR rumor lama diganti jadi confirmed — total tetap 44 |
 | 🕷️ +3 Sumber Scraper | `scraper.py` kini memantau **10 sumber** — tambah Live Nation Asia (HIGH), RRI (HIGH), KapanLagi (MEDIUM). `livenation.asia` masuk HIGH confidence di `auto_updater.py` |
 | 🎟️ Social Proof Going | Going count di setiap card, 1 DB call untuk semua 44 konser |
 | 🗺️ Venue Seat Map | Denah & tips kursi 7 venue Jakarta di modal konser |

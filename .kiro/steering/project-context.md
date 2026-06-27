@@ -38,7 +38,7 @@ Files: <file yang diubah selain README & steering>
 
 ## Catatan Perubahan Penting (ringkas)
 
-- **Juni 2026 (feat):** Tambah konser **Guns N' Roses — World Tour 2026 Jakarta** (`guns-n-roses-jakarta-2026`) ke `app.js`, status **confirmed**. Sabtu 21 November 2026, Stadion Madya GBK, promotor Rajawali Indonesia. Sumber resmi: `gnrjakarta.com` (dedicated promo site + JSON-LD event). Harga "Segera diumumkan" (belum dipublikasikan). **Total konser: 45 entries.** Wajib sync ke mobile `src/data/concerts.ts`.
+- **Juni 2026 (feat):** Konser **Guns N' Roses — World Tour 2026 Jakarta** dikonfirmasi. Entry GNR lama yang berstatus **rumor** (`gnr-jakarta-rumor`) **dihapus**, diganti entry **confirmed** (`guns-n-roses-jakarta-2026`): Sabtu 21 November 2026, Stadion Madya GBK, promotor Rajawali Indonesia. Sumber resmi: `gnrjakarta.com` (dedicated promo site + JSON-LD event). Gambar `gnr-jakarta-rumor.jpeg` di ARTIST_IMAGES di-repoint ke id baru. **Total tetap 44 entries** (1 rumor diganti 1 confirmed). Wajib sync ke mobile `src/data/concerts.ts`.
 - **Juni 2026 (feat):** Tambah 3 sumber scraper ke `scraper.py`: **Live Nation Asia** (`livenation.asia`, HIGH), **RRI** (`rri.co.id`, HIGH), **KapanLagi** (`kapanlagi.com`, MEDIUM). Total sumber: 10. Di `auto_updater.py`, `livenation.asia` ditambah ke `HIGH_CONFIDENCE_SOURCES` + mapping confirmed (platform promotor/tiket); RRI & KapanLagi diperlakukan sebagai media (default rumor, sama seperti tempo/jakartapost).
 
 - **Juni 2026 (fix):** Consent Mode v2 region-scoped — Google Tag mendiagnosis "consent rate 0%, 100% denied" di luar EEA. Root cause: `gtag('consent','default',{denied})` di `index.html` di-set denied untuk SEMUA region, padahal mayoritas trafik ConcertID = Indonesia (luar EEA, consent tidak wajib hukum) & kebanyakan user tak klik banner → GA4 tidak mengukur trafik non-EEA. **Fix:** dua `consent default` — (1) global `analytics_storage:'granted'` (ad_* tetap denied, situs tanpa iklan), (2) override `region: [EEA+GB+CH]` semua `denied` sampai user terima banner (GDPR). Plus fix re-apply pilihan user jadi **dua arah** (granted & denied) — sebelumnya hanya granted yang di-re-apply, sehingga user non-EEA yang pernah menolak bisa ke-grant lagi setelah default berubah. **Urutan tetap:** consent default → GTM. Hanya edit `index.html` (tanpa minify).
@@ -114,7 +114,7 @@ Files: <file yang diubah selain README & steering>
 
 ## Source of Truth
 
-- **`app.js`** = source of truth data konser (**45 entries** per Juni 2026)
+- **`app.js`** = source of truth data konser (**44 entries** per Juni 2026)
 - **Mobile `concerts.ts`** selalu sync dari `app.js`
 - **Images** tersimpan di `/images/[id].jpeg` — mobile pakai URL `https://www.list-concert-tour.web.id/images/[id].jpeg`
 
@@ -166,7 +166,7 @@ CREATE INDEX IF NOT EXISTS idx_live_setlist_concert ON live_setlist(concert_id, 
 | File | Fungsi |
 |---|---|
 | `index.html` | Single-page utama — critical CSS inline |
-| `app.js` | Data konser (45 entries) + render + filter + Going badge + Venue SeatMap + Playlist |
+| `app.js` | Data konser (44 entries) + render + filter + Going badge + Venue SeatMap + Playlist |
 | `style.css` | Semua styling termasuk `.going-count-badge`, `.seat-map-section`, `.playlist-section`, `.iap-*` |
 | `sw.js` | Service Worker v18 — Network First untuk HTML, Stale-While-Revalidate untuk JS/CSS |
 | `features.js` | Going/Interested, Sort, Diskusi, UGC — inject ke modal via `openModal` patch |
