@@ -50,7 +50,7 @@ const ARTIST_IMAGES = {
   'babymonster-jakarta-2026':       WEB_BASE + '/images/babymonster-jakarta-2026.jpeg?v=2',
   'nancy-ajram-jakarta-2027':       WEB_BASE + '/images/nancy-ajram-jakarta-2027.jpeg?v=2',
   'metallica-jakarta-rumor':        WEB_BASE + '/images/metallica-jakarta-rumor.jpeg?v=2',
-  'guns-n-roses-jakarta-2026':      WEB_BASE + '/images/gnr-jakarta-rumor.jpeg?v=2',
+  'guns-n-roses-jakarta-2026':      WEB_BASE + '/images/guns-n-roses-jakarta-2026.jpeg?v=2',
   // ── RUMOR ──
   'ariana-grande-jakarta-rumor':    WEB_BASE + '/images/ariana-grande-jakarta-rumor.jpeg?v=2',
   'olivia-rodrigo-jakarta-rumor':   WEB_BASE + '/images/olivia-rodrigo-jakarta-rumor.jpeg?v=2',
