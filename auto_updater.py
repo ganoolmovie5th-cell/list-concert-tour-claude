@@ -52,6 +52,7 @@ HIGH_CONFIDENCE_SOURCES = {
     "loket.com",
     "songkick.com",
     "bandwagon.asia",
+    "livenation.asia",
 }
 
 # ── Genre mapping berdasarkan kata kunci nama artis / judul ──────────────────
@@ -177,8 +178,8 @@ def generate_concert_entry(item: dict, concert_id: str) -> str:
     # Dates display
     dates_js = f'["{display_date}"]' if display_date != "TBA" else '["TBA"]'
 
-    # Determine confirmStatus — tiket.com/loket.com/songkick = confirmed, sisanya rumor
-    if source in ("tiket.com", "loket.com"):
+    # Determine confirmStatus — tiket.com/loket.com/livenation/songkick = confirmed, sisanya rumor
+    if source in ("tiket.com", "loket.com", "livenation.asia"):
         confirm_status = "confirmed"
     elif source in ("songkick.com", "bandwagon.asia"):
         confirm_status = "confirmed"

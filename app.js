@@ -68,6 +68,29 @@ const ARTIST_IMAGES = {
 const CONCERTS = [
 
   {
+    id: 'guns-n-roses-jakarta-2026',
+    artist: "Guns N' Roses",
+    tour: 'World Tour 2026',
+    genre: 'rock', emoji: '🎸',
+    dates: ["21 November 2026"],
+    rawDate: new Date('2026-11-21'),
+    time: '19:00 WIB',
+    venue: 'Stadion Madya GBK',
+    city: 'Senayan, Jakarta Pusat',
+    promotor: 'Rajawali Indonesia',
+    ticketPlatform: 'gnrjakarta.com',
+    ticketUrl: 'https://gnrjakarta.com',
+    priceRange: 'Segera diumumkan',
+    priceMin: 0, priceMax: 0,
+    ticketCategories: [
+      { name: 'Various Categories', price: 'Segera diumumkan' },
+    ],
+    confirmStatus: 'confirmed', hot: true,
+    description: "Guns N' Roses kembali ke Jakarta dalam rangkaian World Tour 2026. Axl Rose, Slash, dan Duff McKagan tampil di Stadion Madya GBK membawakan hits legendaris seperti Welcome to the Jungle, Sweet Child O' Mine, dan November Rain.",
+    sources: ["gnrjakarta.com"],
+  },
+
+  {
     id: 'blackpink-deadline-2025',
     artist: 'BLACKPINK',
     tour: 'WORLD TOUR <DEADLINE>',

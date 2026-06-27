@@ -53,7 +53,7 @@ Sekarang email reporter bisa kirim laporan otomatis.
 #### **Job 1: Monitor & Report** (5-10 menit)
 ```bash
 scraper.py
-├─ Scrape 7 sumber (Bandwagon, Tempo, Jakarta Post, Songkick, JamBase, tiket.com, Loket)
+├─ Scrape 10 sumber (Bandwagon, Tempo, Jakarta Post, Songkick, JamBase, tiket.com, Loket, Live Nation Asia, RRI, KapanLagi)
 ├─ Deduplicate & classify
 ├─ Generate scraper_report.json + HTML
 └─ Email report ke ADMIN_EMAIL
@@ -117,7 +117,7 @@ auto_updater.py (INPUT: scraper_report.json dari Job 1)
 
 | File | Role |
 |------|------|
-| `scraper.py` | Scrape 7 sumber, classify |
+| `scraper.py` | Scrape 10 sumber, classify |
 | `auto_updater.py` | Filter HIGH conf, inject ke app.js |
 | `scraper_report.json` | Data untuk auto_updater (Job 2) |
 | `scraper_report.html` | Email report HTML |

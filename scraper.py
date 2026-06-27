@@ -18,6 +18,9 @@ Sumber:
   - Songkick
   - Jambase
   - tiket.com / loket.com search
+  - Live Nation Asia
+  - RRI (Radio Republik Indonesia)
+  - KapanLagi
 """
 
 import json
@@ -303,6 +306,105 @@ def scrape_loket() -> list[dict]:
     return found
 
 
+def scrape_livenation() -> list[dict]:
+    """Live Nation Asia — promotor & platform tiket konser internasional."""
+    found = []
+    for url in [
+        "https://www.livenation.asia/event/allevents",
+        "https://www.livenation.asia/",
+    ]:
+        soup = fetch(url)
+        if not soup:
+            continue
+        for art in soup.select("[class*='event'],[class*='card'],article,[class*='show']")[:25]:
+            title_el = art.select_one("h1,h2,h3,h4,.title,[class*='title'],a")
+            if not title_el:
+                continue
+            title = title_el.get_text(strip=True)
+            if not any(k in title.lower() for k in ["concert","tour","jakarta","indonesia","live","konser","world tour"]):
+                continue
+            link_el = art.select_one("a[href]")
+            link = link_el["href"] if link_el else ""
+            if link and link.startswith("/"):
+                link = "https://www.livenation.asia" + link
+            date_el = art.select_one("time,[class*='date'],[class*='time']")
+            date    = date_el.get_text(strip=True) if date_el else ""
+            found.append({
+                "title": title, "url": link, "date": date,
+                "source": "livenation.asia", "source_label": "Live Nation Asia",
+                "reliability": "HIGH",
+            })
+        time.sleep(1)
+    log.info(f"livenation: {len(found)} events")
+    return found
+
+
+def scrape_rri() -> list[dict]:
+    """RRI — Radio Republik Indonesia (media negara terpercaya)."""
+    found = []
+    for url in [
+        "https://www.rri.co.id/tag/konser",
+        "https://www.rri.co.id/index.php/tag/konser",
+    ]:
+        soup = fetch(url)
+        if not soup:
+            continue
+        for art in soup.select("article,.card,[class*='article'],[class*='news'],[class*='post']")[:20]:
+            title_el = art.select_one("h1,h2,h3,h4,a")
+            if not title_el:
+                continue
+            title = title_el.get_text(strip=True)
+            if not any(k in title.lower() for k in ["concert","jakarta","indonesia","tour","live","konser","manggung"]):
+                continue
+            link_el = art.select_one("a[href]")
+            link = link_el["href"] if link_el else ""
+            if link and link.startswith("/"):
+                link = "https://www.rri.co.id" + link
+            date_el = art.select_one("time,[class*='date']")
+            date    = date_el.get_text(strip=True) if date_el else ""
+            found.append({
+                "title": title, "url": link, "date": date,
+                "source": "rri.co.id", "source_label": "RRI",
+                "reliability": "HIGH",
+            })
+        time.sleep(1)
+    log.info(f"rri: {len(found)} artikel")
+    return found
+
+
+def scrape_kapanlagi() -> list[dict]:
+    """KapanLagi — portal hiburan & musik Indonesia."""
+    found = []
+    for url in [
+        "https://www.kapanlagi.com/musik/",
+        "https://www.kapanlagi.com/tag/konser/",
+    ]:
+        soup = fetch(url)
+        if not soup:
+            continue
+        for art in soup.select("article,.card,[class*='article'],[class*='news'],[class*='post']")[:20]:
+            title_el = art.select_one("h1,h2,h3,h4,a")
+            if not title_el:
+                continue
+            title = title_el.get_text(strip=True)
+            if not any(k in title.lower() for k in ["concert","jakarta","indonesia","tour","live","konser","manggung","gelar"]):
+                continue
+            link_el = art.select_one("a[href]")
+            link = link_el["href"] if link_el else ""
+            if link and link.startswith("/"):
+                link = "https://www.kapanlagi.com" + link
+            date_el = art.select_one("time,[class*='date']")
+            date    = date_el.get_text(strip=True) if date_el else ""
+            found.append({
+                "title": title, "url": link, "date": date,
+                "source": "kapanlagi.com", "source_label": "KapanLagi",
+                "reliability": "MEDIUM",
+            })
+        time.sleep(1)
+    log.info(f"kapanlagi: {len(found)} artikel")
+    return found
+
+
 # ── Deduplicate & Classify ─────────────────────────────────────────────────────
 
 def deduplicate(items: list[dict]) -> list[dict]:
@@ -533,6 +635,9 @@ def main():
         ("JamBase",          scrape_jambase),
         ("tiket.com",        scrape_tiket),
         ("Loket.com",        scrape_loket),
+        ("Live Nation Asia", scrape_livenation),
+        ("RRI",              scrape_rri),
+        ("KapanLagi",        scrape_kapanlagi),
     ]
 
     for name, fn in scrapers:
