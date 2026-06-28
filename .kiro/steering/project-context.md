@@ -192,3 +192,10 @@ supabase.min.js → app.min.js → reviews.min.js → features.min.js → featur
 | Website tidak bisa diklik | Python minifier strip URL `//` | Pakai `npx terser --compress` |
 | Perubahan tidak terlihat | SW serve cached HTML | SW v18 network-first untuk HTML |
 | Global function hilang | terser `--mangle` rename global vars | Pakai `--compress` SAJA |
+
+---
+
+## Pembersihan Kode / Ponytail Audit (Juni 2026)
+
+- **remove:** 5 file HTML yatim dihapus — `artis.html`, `venue.html`, `kategori.html` (route-nya di `vercel.json` rewrite ke `/`, bukan ke file), `story-card-preview.html` (demo), `analytics.html` (dashboard noindex tak terhubung). Tidak menyentuh JS jadi tanpa re-minify. Semua recoverable dari git.
+- **ditunda:** dedup helper JS lintas `features*.js` (`timeAgo`, `lsGetAll`, escape inline, `buildWaHref`, `fmtCount`, `genId`) + generalisasi `scrape_*` di `scraper.py` — perlu edit source lalu re-minify (`terser --compress` tanpa `--mangle`, `clean-css-cli`) dengan hati-hati karena risiko merusak situs live.

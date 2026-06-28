@@ -170,3 +170,12 @@ list-concert-tour-claude/
 | 🧪 E2E rewrite | `tests/e2e.spec.ts` ditulis ulang dari 1 grup (3 test dasar) → 3 grup, 12 assertions. Perbaiki 3 kegagalan CI: (1) H1 selector mismatch — tambah `toContainText('Konser')` + `toHaveCount(1)`; (2) Sitemap expected 6 URLs got 1 — tambah `/<loc>/g` count + check semua 6 path; (3) Robots.txt Disallow rules not found — tambah assertion per rule + verifikasi `manifest.json` tidak diblok + accessible |
 
 > ⚠️ **Action manual di GTM:** pastikan tag **GA4 Configuration** (`G-8NNHBT6N8Q`) aktif di container `GTM-NG5XKT8T`, jika belum maka GA4 tidak akan terkumpul setelah perubahan ini.
+
+## Pembersihan Kode / Ponytail Audit (Juni 2026)
+
+Hapus 5 file HTML yatim (tidak dirujuk dari mana pun; tanpa perlu re-minify):
+- `artis.html`, `venue.html`, `kategori.html` — route `/artis`, `/venue`, `/kategori` di `vercel.json` di-rewrite ke `/`, bukan ke file `.html`-nya.
+- `story-card-preview.html` — halaman demo (steering menandai bisa dihapus).
+- `analytics.html` — dashboard demo `noindex` tak terhubung.
+
+Ditunda (butuh re-minify hati-hati): dedup helper JS (`timeAgo` 4×, `lsGetAll`, escape inline, `buildWaHref`) di `app.js`/`features*.js` dan generalisasi 10 fungsi `scrape_*` di `scraper.py`.
