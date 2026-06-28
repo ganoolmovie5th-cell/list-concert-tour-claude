@@ -500,8 +500,7 @@ window.PriceConverter = PriceConverter;
 const GroupBuying = (() => {
   const LS_KEY = 'cid_group_buying';
 
-  function lsGetAll()   { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } }
-  function lsGetFor(id) { return lsGetAll()[id] || []; }
+  const { getAll: lsGetAll, getFor: lsGetFor } = makeLocalStore(LS_KEY);
 
   function genPostUID() { return 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
 
@@ -737,8 +736,7 @@ window.GroupBuying = GroupBuying;
 const TicketMarket = (() => {
   const LS_KEY = 'cid_ticket_market';
 
-  function lsGetAll()   { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } }
-  function lsGetFor(id) { return lsGetAll()[id] || []; }
+  const { getAll: lsGetAll, getFor: lsGetFor } = makeLocalStore(LS_KEY);
 
   function genPostUID() { return 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
 

@@ -191,3 +191,7 @@ Ditunda (cross-file, risiko tinggi di SPA live): konsolidasi `timeAgo`/`lsGetAll
 ### Dedup timeAgo (Juni 2026, lanjutan)
 
 Hanya dua `timeAgo` identik di `features3.js` (GroupBuying & TicketMarket) yang digabung jadi satu fungsi top-level. Versi di `reviews.js` & `features.js` dibiarkan karena perilakunya berbeda (format tanggal/tahun & penanganan input tidak sama). `features3.min.js` di-regenerate.
+
+### Dedup localStorage store → makeLocalStore (Juni 2026, lanjutan)
+
+5 salinan `lsGetAll`/`lsGetFor`/`lsSaveAll` digantikan satu factory global `makeLocalStore(key)` di `supabase.js`. Tiap modul (`reviews`, `features` Discussion+UGC, `features3` GroupBuying+TicketMarket) memakai destructuring bernama sama sehingga call site tak berubah. Re-minify 4 file `.min.js` (`terser --compress`, tanpa `--mangle`); verifikasi `node --check` + global utuh.

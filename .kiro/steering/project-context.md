@@ -213,3 +213,12 @@ Dedup helper berisiko-rendah (single-file), behavior-preserving. Re-minify pakai
 ### Dedup timeAgo (Juni 2026, lanjutan)
 
 Temuan: keempat `timeAgo` TIDAK identik — `reviews.js` (input Date, >30 hari pakai tahun), `features.js` (input string|Date, >30 hari tanpa tahun), `features3.js` ×2 (coerce Date, tanpa cap >30 hari). Jadi hanya **dua copy di features3.js yang benar-benar duplikat** → digabung jadi satu function declaration top-level (hoisted, dipakai GroupBuying & TicketMarket). `reviews.js` & `features.js` SENGAJA dibiarkan karena perilakunya beda (menggabung paksa = ubah perilaku atau tambah param, bukan ponytail). `features3.min.js` di-regenerate, `node --check` lolos, 8 global modul utuh. Catatan: `timeAgoChat` adalah fungsi berbeda, tidak disentuh.
+
+### Dedup localStorage store → makeLocalStore (Juni 2026, lanjutan)
+
+5 salinan boilerplate `lsGetAll`/`lsGetFor`/`lsSaveAll` (key-scoped, identik kecuali `LS_KEY`) dikonsolidasi:
+- **`supabase.js`:** tambah factory global `makeLocalStore(key)` → `{ getAll, getFor, saveAll }`, di-expose `window.makeLocalStore` (di samping `getDeviceUID`). Load pertama (defer) jadi tersedia untuk semua script setelahnya.
+- **`reviews.js`, `features.js` (Discussion + UGC), `features3.js` (GroupBuying + TicketMarket):** definisi `function lsGetAll/lsGetFor/lsSaveAll` diganti destructuring **bernama sama** dari `makeLocalStore(LS_KEY)` → semua call site (`lsGetAll()`, `lsGetFor(id)`, `lsSaveAll(d)`) tetap tanpa perubahan, churn minimal. `localStorage.setItem(LS_KEY, ...)` inline dibiarkan (tetap benar).
+- Re-minify `supabase/reviews/features/features3 .min.js` via `terser --compress` (tanpa `--mangle`). Verifikasi `node --check` lolos keempatnya; `makeLocalStore` ter-expose & dipakai 1+2+2+1; global modul (`Discussion`/`UGC`/`SocialFeatures`/`SocialMedia`/`GroupBuying`/`TicketMarket`/`ConcertReviews`) utuh.
+
+**Sisa ditunda (kosmetik, risiko > manfaat):** `fmtCount` (app.js+features.js), escape inline `&lt;`, `MONTH_FULL`/`MONTHS_FULL`, generalisasi `scrape_*` di `scraper.py` (backend).

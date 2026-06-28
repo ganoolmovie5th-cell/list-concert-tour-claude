@@ -304,8 +304,7 @@ window.SocialMedia = SocialMedia;
 const Discussion = (() => {
   const LS_KEY = 'cid_discussions';
 
-  function lsGetAll() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } }
-  function lsGetFor(id) { return lsGetAll()[id] || []; }
+  const { getAll: lsGetAll, getFor: lsGetFor } = makeLocalStore(LS_KEY);
 
   function timeAgo(date) {
     const d    = typeof date === 'string' ? new Date(date) : date;
@@ -488,8 +487,7 @@ const UGC = (() => {
   const MAX_SIZE = 2 * 1024 * 1024;
   const MAX_DIM  = 1200;
 
-  function lsGetAll() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } }
-  function lsGetFor(id) { return lsGetAll()[id] || []; }
+  const { getAll: lsGetAll, getFor: lsGetFor } = makeLocalStore(LS_KEY);
 
   /* Resize & compress */
   function processFile(file) {

@@ -104,7 +104,18 @@ function getDeviceUID() {
   return uid;
 }
 
+/* ── localStorage store factory (key-scoped) ──────────────── */
+/* Dipakai modul reviews / discussions / UGC / GroupBuying / TicketMarket
+   yang sebelumnya menyalin lsGetAll/lsGetFor/lsSaveAll identik. */
+function makeLocalStore(key) {
+  const getAll  = () => { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; } };
+  const getFor  = (id) => getAll()[id] || [];
+  const saveAll = (d) => localStorage.setItem(key, JSON.stringify(d));
+  return { getAll, getFor, saveAll };
+}
+
 /* ── Expose globals ───────────────────────────────────────── */
 window.DB         = DB;
 window.Storage    = Storage;
 window.getDeviceUID = getDeviceUID;
+window.makeLocalStore = makeLocalStore;

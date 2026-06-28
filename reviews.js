@@ -8,10 +8,8 @@
 
   const LS_KEY = 'cid_reviews';
 
-  /* ── localStorage fallback ── */
-  function lsGetAll()     { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } }
-  function lsSaveAll(d)   { localStorage.setItem(LS_KEY, JSON.stringify(d)); }
-  function lsGetFor(id)   { return lsGetAll()[id] || []; }
+  /* ── localStorage fallback (factory key-scoped dari supabase.js) ── */
+  const { getAll: lsGetAll, saveAll: lsSaveAll, getFor: lsGetFor } = makeLocalStore(LS_KEY);
 
   /* ── Supabase helpers ── */
   async function fetchReviews(concertId) {
