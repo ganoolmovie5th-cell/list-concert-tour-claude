@@ -199,3 +199,13 @@ supabase.min.js → app.min.js → reviews.min.js → features.min.js → featur
 
 - **remove:** 5 file HTML yatim dihapus — `artis.html`, `venue.html`, `kategori.html` (route-nya di `vercel.json` rewrite ke `/`, bukan ke file), `story-card-preview.html` (demo), `analytics.html` (dashboard noindex tak terhubung). Tidak menyentuh JS jadi tanpa re-minify. Semua recoverable dari git.
 - **ditunda:** dedup helper JS lintas `features*.js` (`timeAgo`, `lsGetAll`, escape inline, `buildWaHref`, `fmtCount`, `genId`) + generalisasi `scrape_*` di `scraper.py` — perlu edit source lalu re-minify (`terser --compress` tanpa `--mangle`, `clean-css-cli`) dengan hati-hati karena risiko merusak situs live.
+
+---
+
+## Pembersihan Kode / Ponytail Audit — Dedup Helper (Juni 2026)
+
+Dedup helper berisiko-rendah (single-file), behavior-preserving. Re-minify pakai `terser --compress` (tanpa `--mangle`); diverifikasi `node --check` + global utuh:
+- **`reviews.js`:** hapus `getDeviceUIDLocal()` → pakai `getDeviceUID()` global dari `supabase.js` (key `cid_uid` + generator identik; supabase.min.js load lebih dulu). `reviews.min.js` di-regenerate.
+- **`features3.js`:** `buildWaHref()` yang diduplikasi di IIFE GroupBuying & TicketMarket → satu function declaration top-level (di-hoist, dipakai kedua modul). `features3.min.js` di-regenerate.
+
+**Sengaja DITUNDA (cross-file, risiko tinggi di SPA live untuk gain kosmetik):** konsolidasi `timeAgo` (4×), `lsGetAll/lsGetFor/lsSaveAll` (5×), `fmtCount` (app.js+features.js), escape inline `&lt;`, `MONTH_FULL`/`MONTHS_FULL`, dan generalisasi 10 fungsi `scrape_*` di `scraper.py` (backend, sulit dites tanpa workflow). Butuh shared global + re-minify banyak file; kerjakan terpisah dan hati-hati (riwayat insiden situs blank).

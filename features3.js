@@ -10,6 +10,16 @@
 
 'use strict';
 
+/* WhatsApp link helper — dipakai modul GroupBuying & TicketMarket (sebelumnya diduplikasi) */
+function buildWaHref(contact) {
+  const digits = contact.replace(/\D/g,'');
+  if (!digits || digits.length < 8) return null;
+  let num = digits;
+  if (num.startsWith('0')) num = '62' + num.slice(1);
+  else if (!num.startsWith('62')) num = '62' + num;
+  return `https://wa.me/${num}`;
+}
+
 /* ================================================================
    1. MULTI-BAHASA (ID / EN)
    ================================================================ */
@@ -561,15 +571,6 @@ const GroupBuying = (() => {
     }
   }
 
-  function buildWaHref(contact) {
-    const digits = contact.replace(/\D/g,'');
-    if (!digits || digits.length < 8) return null;
-    let num = digits;
-    if (num.startsWith('0')) num = '62' + num.slice(1);
-    else if (!num.startsWith('62')) num = '62' + num;
-    return `https://wa.me/${num}`;
-  }
-
   function renderCard(p, concertId) {
     const isOwner = p.ownerUid === getDeviceUID();
     const name    = p.name    || 'Anonim';
@@ -813,15 +814,6 @@ const TicketMarket = (() => {
       all[concertId] = (all[concertId]||[]).filter(p => p.uid !== uid);
       localStorage.setItem(LS_KEY, JSON.stringify(all));
     }
-  }
-
-  function buildWaHref(contact) {
-    const digits = contact.replace(/\D/g,'');
-    if (!digits || digits.length < 8) return null;
-    let num = digits;
-    if (num.startsWith('0')) num = '62' + num.slice(1);
-    else if (!num.startsWith('62')) num = '62' + num;
-    return `https://wa.me/${num}`;
   }
 
   function buildContactEmoji(contact) {

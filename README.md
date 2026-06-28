@@ -179,3 +179,11 @@ Hapus 5 file HTML yatim (tidak dirujuk dari mana pun; tanpa perlu re-minify):
 - `analytics.html` — dashboard demo `noindex` tak terhubung.
 
 Ditunda (butuh re-minify hati-hati): dedup helper JS (`timeAgo` 4×, `lsGetAll`, escape inline, `buildWaHref`) di `app.js`/`features*.js` dan generalisasi 10 fungsi `scrape_*` di `scraper.py`.
+
+## Pembersihan Kode / Ponytail Audit — Dedup Helper (Juni 2026)
+
+Dedup helper single-file (behavior-preserving), re-minify `terser --compress` tanpa `--mangle`:
+- `reviews.js`: hapus `getDeviceUIDLocal` → pakai `getDeviceUID` global.
+- `features3.js`: `buildWaHref` duplikat di 2 IIFE → satu fungsi top-level.
+
+Ditunda (cross-file, risiko tinggi di SPA live): konsolidasi `timeAgo`/`lsGetAll`/`fmtCount`/escape inline + generalisasi `scraper.py`.

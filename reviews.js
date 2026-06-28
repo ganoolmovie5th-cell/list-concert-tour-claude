@@ -69,12 +69,6 @@
   }
 
   /* ── Helpers ── */
-  function getDeviceUIDLocal() {
-    let uid = localStorage.getItem('cid_uid');
-    if (!uid) { uid = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('cid_uid', uid); }
-    return uid;
-  }
-
   function sanitize(str) {
     return str.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').slice(0,500);
   }
@@ -98,7 +92,7 @@
 
   function renderReviewCard(r, concertId) {
     const ago    = timeAgo(new Date(r.date));
-    const uid    = getDeviceUIDLocal();
+    const uid    = getDeviceUID();
     const isOwn  = r.uid === uid;
     return `
       <div class="rv-card" data-id="${r.id || ''}">
@@ -122,7 +116,7 @@
   }
 
   function renderReviewSection(concertId) {
-    const uid      = getDeviceUIDLocal();
+    const uid      = getDeviceUID();
     const concert  = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === concertId) : null;
     const today    = typeof TODAY !== 'undefined' ? TODAY : new Date();
     const isPast   = concert ? concert.rawDate < today : false;
