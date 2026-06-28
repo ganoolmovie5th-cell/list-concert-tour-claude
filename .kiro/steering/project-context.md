@@ -209,3 +209,7 @@ Dedup helper berisiko-rendah (single-file), behavior-preserving. Re-minify pakai
 - **`features3.js`:** `buildWaHref()` yang diduplikasi di IIFE GroupBuying & TicketMarket → satu function declaration top-level (di-hoist, dipakai kedua modul). `features3.min.js` di-regenerate.
 
 **Sengaja DITUNDA (cross-file, risiko tinggi di SPA live untuk gain kosmetik):** konsolidasi `timeAgo` (4×), `lsGetAll/lsGetFor/lsSaveAll` (5×), `fmtCount` (app.js+features.js), escape inline `&lt;`, `MONTH_FULL`/`MONTHS_FULL`, dan generalisasi 10 fungsi `scrape_*` di `scraper.py` (backend, sulit dites tanpa workflow). Butuh shared global + re-minify banyak file; kerjakan terpisah dan hati-hati (riwayat insiden situs blank).
+
+### Dedup timeAgo (Juni 2026, lanjutan)
+
+Temuan: keempat `timeAgo` TIDAK identik — `reviews.js` (input Date, >30 hari pakai tahun), `features.js` (input string|Date, >30 hari tanpa tahun), `features3.js` ×2 (coerce Date, tanpa cap >30 hari). Jadi hanya **dua copy di features3.js yang benar-benar duplikat** → digabung jadi satu function declaration top-level (hoisted, dipakai GroupBuying & TicketMarket). `reviews.js` & `features.js` SENGAJA dibiarkan karena perilakunya beda (menggabung paksa = ubah perilaku atau tambah param, bukan ponytail). `features3.min.js` di-regenerate, `node --check` lolos, 8 global modul utuh. Catatan: `timeAgoChat` adalah fungsi berbeda, tidak disentuh.

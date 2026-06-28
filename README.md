@@ -187,3 +187,7 @@ Dedup helper single-file (behavior-preserving), re-minify `terser --compress` ta
 - `features3.js`: `buildWaHref` duplikat di 2 IIFE → satu fungsi top-level.
 
 Ditunda (cross-file, risiko tinggi di SPA live): konsolidasi `timeAgo`/`lsGetAll`/`fmtCount`/escape inline + generalisasi `scraper.py`.
+
+### Dedup timeAgo (Juni 2026, lanjutan)
+
+Hanya dua `timeAgo` identik di `features3.js` (GroupBuying & TicketMarket) yang digabung jadi satu fungsi top-level. Versi di `reviews.js` & `features.js` dibiarkan karena perilakunya berbeda (format tanggal/tahun & penanganan input tidak sama). `features3.min.js` di-regenerate.

@@ -20,6 +20,16 @@ function buildWaHref(contact) {
   return `https://wa.me/${num}`;
 }
 
+/* "x menit/jam/hari lalu" — dipakai modul GroupBuying & TicketMarket (sebelumnya diduplikasi) */
+function timeAgo(date) {
+  const diff = Date.now() - new Date(date).getTime();
+  const m = Math.floor(diff/60000), h = Math.floor(m/60), d = Math.floor(h/24);
+  if (d > 0) return `${d} hari lalu`;
+  if (h > 0) return `${h} jam lalu`;
+  if (m > 0) return `${m} menit lalu`;
+  return 'Baru saja';
+}
+
 /* ================================================================
    1. MULTI-BAHASA (ID / EN)
    ================================================================ */
@@ -495,15 +505,6 @@ const GroupBuying = (() => {
 
   function genPostUID() { return 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
 
-  function timeAgo(date) {
-    const diff = Date.now() - new Date(date).getTime();
-    const m = Math.floor(diff/60000), h = Math.floor(m/60), d = Math.floor(h/24);
-    if (d > 0) return `${d} hari lalu`;
-    if (h > 0) return `${h} jam lalu`;
-    if (m > 0) return `${m} menit lalu`;
-    return 'Baru saja';
-  }
-
   async function fetchPosts(concertId) {
     try {
       const rows = await DB.select('group_buying',
@@ -740,15 +741,6 @@ const TicketMarket = (() => {
   function lsGetFor(id) { return lsGetAll()[id] || []; }
 
   function genPostUID() { return 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
-
-  function timeAgo(date) {
-    const diff = Date.now() - new Date(date).getTime();
-    const m = Math.floor(diff/60000), h = Math.floor(m/60), d = Math.floor(h/24);
-    if (d > 0) return `${d} hari lalu`;
-    if (h > 0) return `${h} jam lalu`;
-    if (m > 0) return `${m} menit lalu`;
-    return 'Baru saja';
-  }
 
   async function fetchPosts(concertId) {
     try {
