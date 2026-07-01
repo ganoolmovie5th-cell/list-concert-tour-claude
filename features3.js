@@ -1255,15 +1255,6 @@ const InAppChat = (() => {
   function genMsgUID() { return 'cm_' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
   function lsKey(uid)  { return LS_PREFIX + uid; }
 
-  function timeAgoChat(date) {
-    const diff = Date.now() - new Date(date).getTime();
-    const m = Math.floor(diff / 60000);
-    const h = Math.floor(m / 60);
-    if (h > 0) return `${h}j lalu`;
-    if (m > 0) return `${m}m lalu`;
-    return 'Baru';
-  }
-
   async function fetchMessages(postUid) {
     try {
       const rows = await DB.select('gb_chat',
@@ -1295,7 +1286,7 @@ const InAppChat = (() => {
         <div class="iap-bubble ${isOwn ? 'iap-own' : 'iap-other'}">
           ${!isOwn ? `<div class="iap-sender">${m.senderName}</div>` : ''}
           <div class="iap-text">${m.message.replace(/</g,'&lt;')}</div>
-          <div class="iap-time">${timeAgoChat(m.createdAt)}</div>
+          <div class="iap-time">${timeAgo(m.createdAt)}</div>
         </div>`;
     }).join('');
     box.scrollTop = box.scrollHeight;

@@ -749,6 +749,5 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Check pending notifications — dinonaktifkan
-  // BrowserNotif.checkPending();
+
 });
