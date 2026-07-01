@@ -203,3 +203,7 @@ Hanya dua `timeAgo` identik di `features3.js` (GroupBuying & TicketMarket) yang 
 - `features3.js`: hapus fungsi duplikat `timeAgoChat()` → call site diganti `timeAgo()`
 - `features4.js`: hapus 3 entry `null` di `ARTIST_MAP` (`fforever`, `lalala-fest`, `java-jazz`)
 - `features.js`: hapus blok komentar dead code `BrowserNotif.checkPending()`
+
+### Audit Lanjutan 2 (Juli 2026)
+
+- `features2.js`: promosikan `formatRp()` ke module scope; ganti 4 format budget inline di `HargaAlert` (`checkAndNotify`, `renderPanel`, `quickAdd`) dengan `formatRp()` — `buildWaHref` & `makeLocalStore` sudah bersih dari audit sebelumnya
