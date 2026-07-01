@@ -195,3 +195,11 @@ Hanya dua `timeAgo` identik di `features3.js` (GroupBuying & TicketMarket) yang 
 ### Dedup localStorage store → makeLocalStore (Juni 2026, lanjutan)
 
 5 salinan `lsGetAll`/`lsGetFor`/`lsSaveAll` digantikan satu factory global `makeLocalStore(key)` di `supabase.js`. Tiap modul (`reviews`, `features` Discussion+UGC, `features3` GroupBuying+TicketMarket) memakai destructuring bernama sama sehingga call site tak berubah. Re-minify 4 file `.min.js` (`terser --compress`, tanpa `--mangle`); verifikasi `node --check` + global utuh.
+
+### Audit Lanjutan — Hapus Minified & Dead Code (Juli 2026)
+
+- Hapus 8 file `.min.js` (duplikat dari `.js` yang sudah ada); tambah `*.min.js` ke `.gitignore`
+- Update `index.html` dan `sw.js` agar load `.js` bukan `.min.js`
+- `features3.js`: hapus fungsi duplikat `timeAgoChat()` → call site diganti `timeAgo()`
+- `features4.js`: hapus 3 entry `null` di `ARTIST_MAP` (`fforever`, `lalala-fest`, `java-jazz`)
+- `features.js`: hapus blok komentar dead code `BrowserNotif.checkPending()`
