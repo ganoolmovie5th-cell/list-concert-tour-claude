@@ -210,6 +210,13 @@ const CalendarView = (() => {
 window.CalendarView = CalendarView;
 
 
+/* shared budget formatter — dipakai AdvancedSearch & HargaAlert */
+function formatRp(val) {
+  if (val >= 1000000) return `Rp ${(val/1000000).toFixed(1).replace('.0','')}jt`;
+  if (val >= 1000)    return `Rp ${(val/1000).toFixed(0)}rb`;
+  return `Rp ${val}`;
+}
+
 /* ================================================================
    2. ADVANCED SEARCH
    ================================================================ */
@@ -224,12 +231,6 @@ const AdvancedSearch = (() => {
 
   const CITIES = ['Semua Kota', 'Jakarta', 'Tangerang', 'Banten', 'Ancol', 'Senayan', 'BSD'];
   const MONTHS_FULL = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-
-  function formatRp(val) {
-    if (val >= 1000000) return `Rp ${(val/1000000).toFixed(1).replace('.0','')}jt`;
-    if (val >= 1000)    return `Rp ${(val/1000).toFixed(0)}rb`;
-    return `Rp ${val}`;
-  }
 
   function render() {
     const monthOpts = `<option value="all">Semua Bulan</option>` +
@@ -447,7 +448,7 @@ const HargaAlert = (() => {
       const matches = getMatchingConcerts(budget);
       if (matches.length && typeof showToast === 'function') {
         showToast(
-          `💰 ${matches.length} konser tersedia di bawah ${budget >= 1e6 ? `Rp ${(budget/1e6).toFixed(1)}jt` : `Rp ${(budget/1e3).toFixed(0)}rb`}!`,
+          `💰 ${matches.length} konser tersedia di bawah ${formatRp(budget)}!`,
           'success', 5000
         );
       }
@@ -459,7 +460,7 @@ const HargaAlert = (() => {
     const alertItems = alerts.length
       ? alerts.map(b => {
           const matches = getMatchingConcerts(b);
-          const label   = b >= 1e6 ? `Rp ${b/1e6}jt` : `Rp ${(b/1e3).toFixed(0)}rb`;
+          const label   = formatRp(b);
           return `
             <div class="ha-item">
               <div class="ha-item-left">
@@ -486,7 +487,7 @@ const HargaAlert = (() => {
             ${[300000,500000,750000,1000000,2000000,3000000].map(v =>
               `<button type="button" class="ha-preset${alerts.includes(v) ? ' ha-preset-active' : ''}"
                 onclick="HargaAlert.quickAdd(${v})">
-                ${v >= 1e6 ? `Rp ${v/1e6}jt` : `Rp ${(v/1e3).toFixed(0)}rb`}
+                ${formatRp(v)}
               </button>`).join('')}
           </div>
           <div class="ha-custom-row">
@@ -547,7 +548,7 @@ const HargaAlert = (() => {
   function quickAdd(budget) {
     const result = addAlert(budget);
     if (result.ok && typeof showToast === 'function') {
-      showToast(`💰 Alert Rp ${budget >= 1e6 ? (budget/1e6).toFixed(1)+'jt' : (budget/1e3).toFixed(0)+'rb'} ditambahkan!`, 'success', 2000);
+      showToast(`💰 Alert ${formatRp(budget)} ditambahkan!`, 'success', 2000);
     }
     // Refresh panel
     const overlay = document.getElementById('haOverlay');
