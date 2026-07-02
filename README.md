@@ -207,3 +207,9 @@ Hanya dua `timeAgo` identik di `features3.js` (GroupBuying & TicketMarket) yang 
 ### Audit Lanjutan 2 (Juli 2026)
 
 - `features2.js`: promosikan `formatRp()` ke module scope; ganti 4 format budget inline di `HargaAlert` (`checkAndNotify`, `renderPanel`, `quickAdd`) dengan `formatRp()` — `buildWaHref` & `makeLocalStore` sudah bersih dari audit sebelumnya
+
+### Audit Lanjutan 3 (Juli 2026)
+
+- `features.js`: single dispatcher — tambah `window._openModalHandlers?.forEach(h => h(id))` di akhir patch; hilangkan komentar patch chain
+- `features4.js`: hapus wrap `window.openModal`; push handler SetlistFM ke `window._openModalHandlers`
+- `features5.js`: hapus wrap `window.openModal`; push handler Weather/Parking/StoryCard ke `window._openModalHandlers`
