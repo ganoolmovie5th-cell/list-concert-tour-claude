@@ -658,12 +658,12 @@ const UGC = (() => {
 window.UGC = UGC;
 
 /* ================================================================
-   PATCH openModal — inject semua fitur baru ke modal
+   PATCH openModal — single dispatcher, feature modules register handlers
+   via window._openModalHandlers (ponytail: eliminates wrap chain)
    ================================================================ */
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Patch openModal — SATU TEMPAT untuk semua inject bawah disclaimer
-  // Urutan: Going/Interested → Spotify → Ikuti di → Diskusi → Rating & Review → Foto dari Fans
+  // Single dispatcher — features4.js and features5.js push to _openModalHandlers
   const _baseFeaturesOpenModal = window.openModal;
   if (typeof _baseFeaturesOpenModal === 'function') {
     window.openModal = function(id) {
@@ -746,6 +746,9 @@ document.addEventListener('DOMContentLoaded', () => {
           if (anchor) anchor.insertAdjacentElement(tmSection ? 'afterend' : 'beforebegin', gbEl.firstElementChild || gbEl);
         }
       });
+
+      // Dispatch to feature module handlers (features4.js, features5.js, etc.)
+      window._openModalHandlers?.forEach(h => h(id));
     };
   }
 

@@ -429,32 +429,25 @@ window.StoryCardGen = StoryCardGen;
 
 
 /* ================================================================
-   PATCH openModal — inject semua fitur
+   PATCH openModal — register handler (ponytail: handler, not a wrap-chain link)
    ================================================================ */
-document.addEventListener('DOMContentLoaded', () => {
-  const _prev5 = window.openModal;
-  if (typeof _prev5 !== 'function') return;
+(window._openModalHandlers = window._openModalHandlers || []).push(function(id) {
+  // 1. Weather (async, inject placeholder dulu)
+  WeatherForecast.inject(id);
 
-  window.openModal = function (id) {
-    _prev5(id);
+  // 2. Parking
+  ParkingNearby.inject(id);
 
-    // 1. Weather (async, inject placeholder dulu)
-    WeatherForecast.inject(id);
-
-    // 2. Parking
-    ParkingNearby.inject(id);
-
-    // 3. Story Card button — inject setelah .modal-actions (skip untuk rumor)
-    const concert5 = typeof CONCERTS !== 'undefined' ? CONCERTS.find(x => x.id === id) : null;
-    if (concert5 && concert5.confirmStatus === 'rumor') return;
-    const modal = document.getElementById('modalContent');
-    if (!modal) return;
-    const actions = modal.querySelector('.modal-actions');
-    if (actions && !modal.querySelector('.f5-story-wrap')) {
-      const wrap = document.createElement('div');
-      wrap.className = 'f5-story-wrap';
-      wrap.innerHTML = `<button class="f5-story-btn" onclick="StoryCardGen.openPanel('${id}')">✨ Buat Story Card — Instagram</button>`;
-      actions.insertAdjacentElement('afterend', wrap);
-    }
-  };
+  // 3. Story Card button — inject setelah .modal-actions (skip untuk rumor)
+  const concert5 = typeof CONCERTS !== 'undefined' ? CONCERTS.find(x => x.id === id) : null;
+  if (concert5 && concert5.confirmStatus === 'rumor') return;
+  const modal = document.getElementById('modalContent');
+  if (!modal) return;
+  const actions = modal.querySelector('.modal-actions');
+  if (actions && !modal.querySelector('.f5-story-wrap')) {
+    const wrap = document.createElement('div');
+    wrap.className = 'f5-story-wrap';
+    wrap.innerHTML = `<button class="f5-story-btn" onclick="StoryCardGen.openPanel('${id}')">✨ Buat Story Card — Instagram</button>`;
+    actions.insertAdjacentElement('afterend', wrap);
+  }
 });

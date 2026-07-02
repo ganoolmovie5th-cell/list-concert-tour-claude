@@ -604,33 +604,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!TipsArticle.isRead()) TipsArticle.openPopup();
   }, 4000);
 
-  // ── 5. Patch openModal untuk inject Setlist.fm ──
-  const _prevF4 = window.openModal;
-  if (typeof _prevF4 === 'function') {
-    window.openModal = function(id) {
-      _prevF4(id);
-      const c = typeof CONCERTS !== 'undefined' ? CONCERTS.find(x => x.id === id) : null;
-      if (!c || c.rawDate > new Date()) return; // hanya untuk konser past
+  // ── 5. Register Setlist.fm handler (ponytail: handler, not a wrap-chain link) ──
+  (window._openModalHandlers = window._openModalHandlers || []).push(function(id) {
+    const c = typeof CONCERTS !== 'undefined' ? CONCERTS.find(x => x.id === id) : null;
+    if (!c || c.rawDate > new Date()) return; // hanya untuk konser past
 
-      // Coba fetch setlist.fm dan replace setlist jika berhasil
-      SetlistFM.renderLive(id, c).then(liveHtml => {
-        if (!liveHtml) return;
-        const modal = document.getElementById('modalContent');
-        if (!modal) return;
-        // Ganti setlist yang sudah ada (dari features3.js) dengan data live
-        const existing = modal.querySelector('.setlist-section');
-        if (existing) {
-          existing.outerHTML = liveHtml;
-        } else {
-          // Inject sebelum ticket area jika belum ada
-          const anchor = modal.querySelector('.modal-ticket-area');
-          if (anchor) {
-            const el = document.createElement('div');
-            el.innerHTML = liveHtml;
-            anchor.insertAdjacentElement('beforebegin', el.firstElementChild || el);
-          }
+    // Coba fetch setlist.fm dan replace setlist jika berhasil
+    SetlistFM.renderLive(id, c).then(liveHtml => {
+      if (!liveHtml) return;
+      const modal = document.getElementById('modalContent');
+      if (!modal) return;
+      // Ganti setlist yang sudah ada (dari features3.js) dengan data live
+      const existing = modal.querySelector('.setlist-section');
+      if (existing) {
+        existing.outerHTML = liveHtml;
+      } else {
+        // Inject sebelum ticket area jika belum ada
+        const anchor = modal.querySelector('.modal-ticket-area');
+        if (anchor) {
+          const el = document.createElement('div');
+          el.innerHTML = liveHtml;
+          anchor.insertAdjacentElement('beforebegin', el.firstElementChild || el);
         }
-      });
-    };
-  }
+      }
+    });
+  });
 });
