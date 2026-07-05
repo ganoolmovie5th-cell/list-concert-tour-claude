@@ -555,22 +555,21 @@ window.StoryCardGen = StoryCardGen;
   };
 
   // Inject into modal via openModal handler
-  if (window._openModalHandlers) {
-    window._openModalHandlers.push(function(id) {
-      var modal = document.querySelector('.modal');
-      if (!modal) return;
-      // Only for upcoming confirmed concerts
-      var concert = window.CONCERTS ? window.CONCERTS.find(function(c) { return c.id === id; }) : null;
-      if (!concert || concert.confirmStatus === 'rumor') return;
-      var existing = modal.querySelector('.f5-meetup-section');
-      if (existing) existing.remove();
-      var target = modal.querySelector('.f5-story-wrap') || modal.querySelector('.modal-actions');
-      if (target) {
-        var div = document.createElement('div');
-        div.innerHTML = renderMeetupSection(id);
-        target.insertAdjacentElement('afterend', div.firstElementChild);
-        FanMeetup.load(id);
-      }
-    });
-  }
+  (window._openModalHandlers = window._openModalHandlers || []).push(function(id) {
+    var modal = document.querySelector('.modal');
+    if (!modal) return;
+    // Only for confirmed concerts (not rumor)
+    var concert = window.CONCERTS ? window.CONCERTS.find(function(c) { return c.id === id; }) : null;
+    if (!concert || concert.confirmStatus === 'rumor') return;
+    var existing = modal.querySelector('.f5-meetup-section');
+    if (existing) existing.remove();
+    // Insert after story wrap, or after modal-actions, or at end of modal body
+    var target = modal.querySelector('.f5-story-wrap') || modal.querySelector('.modal-actions') || modal.querySelector('.modal-body');
+    if (target) {
+      var div = document.createElement('div');
+      div.innerHTML = renderMeetupSection(id);
+      target.insertAdjacentElement('afterend', div.firstElementChild);
+      FanMeetup.load(id);
+    }
+  });
 })();
