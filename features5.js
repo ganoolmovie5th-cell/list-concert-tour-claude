@@ -562,16 +562,22 @@ window.StoryCardGen = StoryCardGen;
     if (!concert || concert.confirmStatus === 'rumor') return;
     var existing = modal.querySelector('.f5-meetup-section');
     if (existing) existing.remove();
-    // Insert before Forum Jual Beli Tiket (.tm-section), or fallback to after modal-actions
-    var tmSection = modal.querySelector('.tm-section');
+    // Insert after Going/Interested badges (.social-badges)
+    var socialBadges = modal.querySelector('.social-badges');
     var div = document.createElement('div');
     div.innerHTML = renderMeetupSection(id);
     var el = div.firstElementChild;
-    if (tmSection) {
-      tmSection.parentNode.insertBefore(el, tmSection);
+    if (socialBadges) {
+      socialBadges.insertAdjacentElement('afterend', el);
     } else {
-      var target = modal.querySelector('.f5-story-wrap') || modal.querySelector('.modal-actions') || modal.querySelector('.modal-body');
-      if (target) target.insertAdjacentElement('afterend', el);
+      // Fallback: before Forum Jual Beli or after modal-actions
+      var tmSection = modal.querySelector('.tm-section');
+      if (tmSection) {
+        tmSection.parentNode.insertBefore(el, tmSection);
+      } else {
+        var target = modal.querySelector('.modal-actions') || modal.querySelector('.modal-body');
+        if (target) target.insertAdjacentElement('afterend', el);
+      }
     }
     FanMeetup.load(id);
   });
