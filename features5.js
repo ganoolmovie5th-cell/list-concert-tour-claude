@@ -555,30 +555,34 @@ window.StoryCardGen = StoryCardGen;
   };
 
   // Inject into modal via openModal handler
+  // ponytail: rAF delay required because features.js injects social-badges inside
+  // requestAnimationFrame — handler here runs before that rAF completes.
   (window._openModalHandlers = window._openModalHandlers || []).push(function(id) {
-    var modal = document.querySelector('.modal');
-    if (!modal) return;
-    var concert = typeof CONCERTS !== 'undefined' ? CONCERTS.find(function(c) { return c.id === id; }) : null;
-    if (!concert || concert.confirmStatus === 'rumor') return;
-    var existing = modal.querySelector('.f5-meetup-section');
-    if (existing) existing.remove();
-    // Insert after Going/Interested badges (.social-badges)
-    var socialBadges = modal.querySelector('.social-badges');
-    var div = document.createElement('div');
-    div.innerHTML = renderMeetupSection(id);
-    var el = div.firstElementChild;
-    if (socialBadges) {
-      socialBadges.insertAdjacentElement('afterend', el);
-    } else {
-      // Fallback: before Forum Jual Beli or after modal-actions
-      var tmSection = modal.querySelector('.tm-section');
-      if (tmSection) {
-        tmSection.parentNode.insertBefore(el, tmSection);
+    setTimeout(function() {
+      var modal = document.querySelector('.modal');
+      if (!modal) return;
+      var concert = typeof CONCERTS !== 'undefined' ? CONCERTS.find(function(c) { return c.id === id; }) : null;
+      if (!concert || concert.confirmStatus === 'rumor') return;
+      var existing = modal.querySelector('.f5-meetup-section');
+      if (existing) existing.remove();
+      // Insert after Going/Interested badges (.social-badges)
+      var socialBadges = modal.querySelector('.social-badges');
+      var div = document.createElement('div');
+      div.innerHTML = renderMeetupSection(id);
+      var el = div.firstElementChild;
+      if (socialBadges) {
+        socialBadges.insertAdjacentElement('afterend', el);
       } else {
-        var target = modal.querySelector('.modal-actions') || modal.querySelector('.modal-body');
-        if (target) target.insertAdjacentElement('afterend', el);
+        // Fallback: before Forum Jual Beli or after modal-actions
+        var tmSection = modal.querySelector('.tm-section');
+        if (tmSection) {
+          tmSection.parentNode.insertBefore(el, tmSection);
+        } else {
+          var target = modal.querySelector('.modal-actions') || modal.querySelector('.modal-body');
+          if (target) target.insertAdjacentElement('afterend', el);
+        }
       }
-    }
-    FanMeetup.load(id);
+      FanMeetup.load(id);
+    }, 50); // Wait for rAF in features.js to complete DOM injection
   });
 })();
