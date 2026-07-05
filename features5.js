@@ -562,13 +562,17 @@ window.StoryCardGen = StoryCardGen;
     if (!concert || concert.confirmStatus === 'rumor') return;
     var existing = modal.querySelector('.f5-meetup-section');
     if (existing) existing.remove();
-    // Insert after story wrap, or after modal-actions, or at end of modal body
-    var target = modal.querySelector('.f5-story-wrap') || modal.querySelector('.modal-actions') || modal.querySelector('.modal-body');
-    if (target) {
-      var div = document.createElement('div');
-      div.innerHTML = renderMeetupSection(id);
-      target.insertAdjacentElement('afterend', div.firstElementChild);
-      FanMeetup.load(id);
+    // Insert before Forum Jual Beli Tiket (.tm-section), or fallback to after modal-actions
+    var tmSection = modal.querySelector('.tm-section');
+    var div = document.createElement('div');
+    div.innerHTML = renderMeetupSection(id);
+    var el = div.firstElementChild;
+    if (tmSection) {
+      tmSection.parentNode.insertBefore(el, tmSection);
+    } else {
+      var target = modal.querySelector('.f5-story-wrap') || modal.querySelector('.modal-actions') || modal.querySelector('.modal-body');
+      if (target) target.insertAdjacentElement('afterend', el);
     }
+    FanMeetup.load(id);
   });
 })();

@@ -1643,6 +1643,7 @@ function renderPriceVisual(c) {
    ============================================ */
 const VENUE_MAPS = {
   'Gelora Bung Karno':       'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.1!2d106.8027!3d-6.2183!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f3e945e34b9d%3A0x5371bf0fdad786a2!2sGelora%20Bung%20Karno!5e0!3m2!1sid!2sid',
+  'Stadion Madya':           'https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3966.2!2d106.8015!3d-6.2195!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f3e7e4b0e4a7%3A0x301576d14feb6800!2sStadion%20Madya%20Gelora%20Bung%20Karno!5e0!3m2!1sid!2sid!4v1720000000000',
   'Jakarta International':   'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.9!2d106.8619!3d-6.1482!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6a1d39c8b1b1e1%3A0x4e1b1a1a1a1a1a1a!2sJakarta%20International%20Stadium!5e0!3m2!1sid!2sid',
   'NICE PIK':                'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5!2d106.7305!3d-6.1023!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6a0000000000001%3A0x1!2sNICE%20PIK2!5e0!3m2!1sid!2sid',
   'ICE BSD':                 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.8!2d106.6637!3d-6.2991!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e9b7c55f5555%3A0x5!2sICE%20BSD%20City!5e0!3m2!1sid!2sid',
