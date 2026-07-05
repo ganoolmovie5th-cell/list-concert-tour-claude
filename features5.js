@@ -558,8 +558,7 @@ window.StoryCardGen = StoryCardGen;
   (window._openModalHandlers = window._openModalHandlers || []).push(function(id) {
     var modal = document.querySelector('.modal');
     if (!modal) return;
-    // Only for confirmed concerts (not rumor)
-    var concert = window.CONCERTS ? window.CONCERTS.find(function(c) { return c.id === id; }) : null;
+    var concert = typeof CONCERTS !== 'undefined' ? CONCERTS.find(function(c) { return c.id === id; }) : null;
     if (!concert || concert.confirmStatus === 'rumor') return;
     var existing = modal.querySelector('.f5-meetup-section');
     if (existing) existing.remove();
