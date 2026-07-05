@@ -498,17 +498,16 @@ window.StoryCardGen = StoryCardGen;
   }
 
   function renderMeetupSection(concertId) {
-    var myMeetups = getMyMeetups();
-    var html = '<div class="f5-meetup-section">';
-    html += '<h4 style="margin:0 0 10px">📍 Fan Meetup Points</h4>';
-    html += '<div class="f5-meetup-list" id="f5-meetup-list-' + concertId + '"><p style="color:#999;font-size:13px">Loading meetups...</p></div>';
-    html += '<details class="f5-meetup-form"><summary style="cursor:pointer;color:#a855f7;font-weight:700;font-size:14px">+ Tambah Meetup Point</summary>';
-    html += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">';
-    html += '<input id="f5-meetup-name-' + concertId + '" placeholder="Nama meetup (misal: Kopi bareng fans)" style="padding:8px 12px;border-radius:8px;border:1px solid #444;background:#1e293b;color:#fff;font-size:14px"/>';
-    html += '<input id="f5-meetup-loc-' + concertId + '" placeholder="Lokasi (misal: Starbucks depan Gate A)" style="padding:8px 12px;border-radius:8px;border:1px solid #444;background:#1e293b;color:#fff;font-size:14px"/>';
-    html += '<input id="f5-meetup-time-' + concertId + '" placeholder="Waktu (misal: 15:00 WIB)" style="padding:8px 12px;border-radius:8px;border:1px solid #444;background:#1e293b;color:#fff;font-size:14px"/>';
-    html += '<button onclick="FanMeetup.submit(\'' + concertId + '\')" style="padding:10px;border-radius:10px;background:#a855f7;color:#fff;font-weight:700;border:none;cursor:pointer">Posting Meetup</button>';
-    html += '</div></details></div>';
+    var html = '<div class="f5-meetup-section" style="margin-top:16px;padding:16px 18px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:14px">';
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:18px">📍</span><span style="font-weight:700;color:#e2e8f0;font-size:15px">Fan Meetup Points</span></div>';
+    html += '<div class="f5-meetup-list" id="f5-meetup-list-' + concertId + '" style="margin-bottom:12px"><p style="color:#94a3b8;font-size:13px">Memuat meetup...</p></div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+    html += '<input id="f5-meetup-name-' + concertId + '" placeholder="Nama meetup" style="padding:10px 12px;border-radius:10px;border:1px solid rgba(148,163,184,0.3);background:rgba(15,23,42,0.6);color:#fff;font-size:13px;grid-column:1/-1"/>';
+    html += '<input id="f5-meetup-loc-' + concertId + '" placeholder="📌 Lokasi" style="padding:10px 12px;border-radius:10px;border:1px solid rgba(148,163,184,0.3);background:rgba(15,23,42,0.6);color:#fff;font-size:13px"/>';
+    html += '<input id="f5-meetup-time-' + concertId + '" placeholder="🕐 Waktu" style="padding:10px 12px;border-radius:10px;border:1px solid rgba(148,163,184,0.3);background:rgba(15,23,42,0.6);color:#fff;font-size:13px"/>';
+    html += '</div>';
+    html += '<button onclick="FanMeetup.submit(\'' + concertId + '\')" style="margin-top:10px;width:100%;padding:11px;border-radius:10px;background:#a855f7;color:#fff;font-weight:700;font-size:14px;border:none;cursor:pointer;transition:opacity 0.2s" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">📍 Posting Meetup</button>';
+    html += '</div>';
     return html;
   }
 
@@ -516,15 +515,16 @@ window.StoryCardGen = StoryCardGen;
     var el = document.getElementById('f5-meetup-list-' + concertId);
     if (!el) return;
     if (meetups.length === 0) {
-      el.innerHTML = '<p style="color:#999;font-size:13px">Belum ada meetup. Jadi yang pertama!</p>';
+      el.innerHTML = '<p style="color:#94a3b8;font-size:13px;text-align:center">Belum ada meetup. Jadi yang pertama! 🎉</p>';
       return;
     }
     el.innerHTML = meetups.map(function(m) {
-      return '<div style="background:#1e293b;border-radius:10px;padding:10px 14px;margin-bottom:8px">'
-        + '<div style="font-weight:700;color:#fff;font-size:14px">📍 ' + (m.name || 'Meetup') + '</div>'
-        + '<div style="color:#94a3b8;font-size:12px;margin-top:3px">📌 ' + (m.location || '-') + '</div>'
-        + '<div style="color:#94a3b8;font-size:12px">🕐 ' + (m.meet_time || '-') + '</div>'
-        + '</div>';
+      return '<div style="display:flex;align-items:flex-start;gap:10px;background:rgba(15,23,42,0.5);border-radius:10px;padding:10px 14px;margin-bottom:8px;border:1px solid rgba(148,163,184,0.1)">'
+        + '<span style="font-size:20px;margin-top:2px">📍</span>'
+        + '<div style="flex:1">'
+        + '<div style="font-weight:700;color:#e2e8f0;font-size:13px">' + (m.name || 'Meetup') + '</div>'
+        + '<div style="color:#94a3b8;font-size:12px;margin-top:3px">📌 ' + (m.location || '-') + ' · 🕐 ' + (m.meet_time || '-') + '</div>'
+        + '</div></div>';
     }).join('');
   }
 
