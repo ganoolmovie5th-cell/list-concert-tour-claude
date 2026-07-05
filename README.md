@@ -44,6 +44,7 @@
 | 🌤️ Weather Forecast | Prakiraan cuaca hari konser via Open-Meteo API (live ≤16 hari, estimasi iklim untuk tanggal lebih jauh) |
 | 🅿️ Parking Nearby | Info parkir per venue (GBK, JIS, ICE BSD, Ancol, PIK2) + link Google Maps |
 | ✨ Story Card Generator | Buat Story Instagram untuk konser — Canvas 9:16, foto artis sebagai banner, 4 template (Dark/Purple/Neon/Sunset), download PNG / Web Share API. Disabled untuk konser Rumor. |
+| 📍 Fan Meetup Map | Crowdsourced meetup points per konser — form (nama + lokasi + waktu), Supabase `fan_meetups` table, tampil di bawah Going/Interested |
 | 🔗 Internal Links | Tambahan internal links untuk SEO (paths: `/jadwal`, `/artis`, `/venue`, `/kategori`) |
 | 🤖 Robots.txt | Allow `manifest.json` (PWA), Disallow `sw.js` + `*.min.js/css`, Sitemap www |
 | 🏷️ Headings | Tambah H5/H6 minor headings untuk audit (Detail Informasi / Fasilitas Venue) |
@@ -85,7 +86,7 @@ list-concert-tour-claude/
 ├── features2.js            # Calendar View, Advanced Search, Harga Alert, Spotify
 ├── features3.js            # I18n, PriceConverter, BeenThere, GroupBuying, TicketMarket, FeedbackForm
 ├── features4.js            # Setlist.fm, NewConcertNotif, Tips & Artikel
-├── features5.js            # Weather Forecast, Parking Nearby, Story Card Generator (Juni 2026)
+├── features5.js            # Weather Forecast, Parking Nearby, Story Card Generator, Fan Meetup Map (Juni-Juli 2026)
 ├── story-card-preview.html # Preview & demo story card (pilih konser + template, download PNG)
 ├── *.min.js                # Minified JS files (auto-generated)
 ├── sw.js                   # Service Worker — Stale-While-Revalidate, auto-reload saat ada update

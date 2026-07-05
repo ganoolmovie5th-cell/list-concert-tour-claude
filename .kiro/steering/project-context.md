@@ -85,6 +85,9 @@ Files: <file yang diubah selain README & steering>
 - **Juni 2026 (feat):** Weather Forecast (`features5.js`) — prakiraan cuaca hari konser via Open-Meteo API (live ≤16 hari, estimasi iklim untuk >16 hari). Cache localStorage 1 jam. Koordinat per venue.
 - **Juni 2026 (feat):** Parking Nearby (`features5.js`) — info parkir statis 5 venue utama (GBK, JIS, Ancol, ICE BSD, PIK2) + tips transportasi + link Google Maps.
 - **Juni 2026 (feat):** Story Card Generator (`features5.js`) — Canvas 9:16, 4 template (Dark/Purple/Neon/Sunset), download PNG / Web Share API. Button inject di `.modal-actions`.
+- **Juli 2026 (feat):** Fan Meetup Map (`features5.js`) — crowdsourced meetup points per konser (Supabase `fan_meetups`). Form: nama + lokasi + waktu. Posisi: setelah `.social-badges` (Going/Interested), delay 50ms agar tunggu rAF. Hanya tampil untuk confirmed.
+- **Juli 2026 (feat):** UI percantik modal sections — `.tm-section`, `.gb-section`, `.disc-section`, `.ugc-section` diubah dari border-top plain ke kotak ungu rounded (`rgba(168,85,247,0.06)` bg + `rgba(168,85,247,0.2)` border + 14px radius) — konsisten dengan Fan Meetup.
+- **Juli 2026 (fix):** Stadion Madya GBK ditambahkan ke `VENUE_MAPS` — GNR sekarang tampilkan embedded Google Maps.
   - **Foto artis sebagai banner** (bukan emoji) — `crossOrigin='anonymous'`, CORS header Vercel `*`, object-cover fit 540×400px.
   - **Fallback** ke emoji + gradient jika `img.onerror` (misal jaringan lambat).
   - **Disabled untuk konser Rumor** — tombol tidak muncul jika `confirmStatus === 'rumor'`.
@@ -172,7 +175,7 @@ CREATE INDEX IF NOT EXISTS idx_live_setlist_concert ON live_setlist(concert_id, 
 | `sw.js` | Service Worker v18 — Network First untuk HTML, Stale-While-Revalidate untuk JS/CSS |
 | `features.js` | Going/Interested, Sort, Diskusi, UGC — inject ke modal via `openModal` patch |
 | `features3.js` | GroupBuying, TicketMarket, InAppChat — **mapRow WAJIB punya fallback `\|\|'Anonim'`** |
-| `features5.js` | Weather Forecast, Parking Nearby, Story Card Generator — banner foto artis, disabled rumor, 4 template |
+| `features5.js` | Weather Forecast, Parking Nearby, Story Card Generator, Fan Meetup Map — banner foto artis, disabled rumor, 4 template, meetup crowdsourced |
 | `vercel.json` | Security headers + `no-store` untuk HTML + rewrites untuk semua routes |
 | `spotify-callback.html` | Redirect Spotify OAuth → `concertid://` deep link untuk mobile app |
 | `story-card-preview.html` | Demo story card — pilih konser + template, download PNG (bukan halaman produk, bisa dihapus) |
