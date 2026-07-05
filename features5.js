@@ -451,3 +451,126 @@ window.StoryCardGen = StoryCardGen;
     actions.insertAdjacentElement('afterend', wrap);
   }
 });
+
+// ─── Fan Meetup Map ──────────────────────────────────────────────────────────
+// Crowdsourced meetup pins per concert. Stored in Supabase table `fan_meetups`.
+// Users can add a meetup point (name + location desc + time) and see others'.
+
+(function() {
+  'use strict';
+
+  var SUPA_URL = window.SUPA_URL || 'https://crtqxgsruywurdlcsjfp.supabase.co';
+  var SUPA_KEY = window.SUPA_KEY || '';
+  var LS_KEY = 'cid_meetup_my';
+
+  function getMyMeetups() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
+  }
+  function saveMyMeetup(concertId, id) {
+    var m = getMyMeetups(); m[concertId] = id; localStorage.setItem(LS_KEY, JSON.stringify(m));
+  }
+
+  async function fetchMeetups(concertId) {
+    if (!SUPA_KEY) return [];
+    try {
+      var res = await fetch(SUPA_URL + '/rest/v1/fan_meetups?concert_id=eq.' + encodeURIComponent(concertId) + '&order=created_at.asc&select=*', {
+        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY }
+      });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch { return []; }
+  }
+
+  async function addMeetup(concertId, name, location, meetTime) {
+    if (!SUPA_KEY) return null;
+    var uid = window.getDeviceUID ? window.getDeviceUID() : 'anon';
+    var body = { concert_id: concertId, creator_uid: uid, name: name, location: location, meet_time: meetTime };
+    try {
+      var res = await fetch(SUPA_URL + '/rest/v1/fan_meetups', {
+        method: 'POST',
+        headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) return null;
+      var data = await res.json();
+      return data[0] || null;
+    } catch { return null; }
+  }
+
+  function renderMeetupSection(concertId) {
+    var myMeetups = getMyMeetups();
+    var html = '<div class="f5-meetup-section">';
+    html += '<h4 style="margin:0 0 10px">📍 Fan Meetup Points</h4>';
+    html += '<div class="f5-meetup-list" id="f5-meetup-list-' + concertId + '"><p style="color:#999;font-size:13px">Loading meetups...</p></div>';
+    html += '<details class="f5-meetup-form"><summary style="cursor:pointer;color:#a855f7;font-weight:700;font-size:14px">+ Tambah Meetup Point</summary>';
+    html += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">';
+    html += '<input id="f5-meetup-name-' + concertId + '" placeholder="Nama meetup (misal: Kopi bareng fans)" style="padding:8px 12px;border-radius:8px;border:1px solid #444;background:#1e293b;color:#fff;font-size:14px"/>';
+    html += '<input id="f5-meetup-loc-' + concertId + '" placeholder="Lokasi (misal: Starbucks depan Gate A)" style="padding:8px 12px;border-radius:8px;border:1px solid #444;background:#1e293b;color:#fff;font-size:14px"/>';
+    html += '<input id="f5-meetup-time-' + concertId + '" placeholder="Waktu (misal: 15:00 WIB)" style="padding:8px 12px;border-radius:8px;border:1px solid #444;background:#1e293b;color:#fff;font-size:14px"/>';
+    html += '<button onclick="FanMeetup.submit(\'' + concertId + '\')" style="padding:10px;border-radius:10px;background:#a855f7;color:#fff;font-weight:700;border:none;cursor:pointer">Posting Meetup</button>';
+    html += '</div></details></div>';
+    return html;
+  }
+
+  function renderList(concertId, meetups) {
+    var el = document.getElementById('f5-meetup-list-' + concertId);
+    if (!el) return;
+    if (meetups.length === 0) {
+      el.innerHTML = '<p style="color:#999;font-size:13px">Belum ada meetup. Jadi yang pertama!</p>';
+      return;
+    }
+    el.innerHTML = meetups.map(function(m) {
+      return '<div style="background:#1e293b;border-radius:10px;padding:10px 14px;margin-bottom:8px">'
+        + '<div style="font-weight:700;color:#fff;font-size:14px">📍 ' + (m.name || 'Meetup') + '</div>'
+        + '<div style="color:#94a3b8;font-size:12px;margin-top:3px">📌 ' + (m.location || '-') + '</div>'
+        + '<div style="color:#94a3b8;font-size:12px">🕐 ' + (m.meet_time || '-') + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  window.FanMeetup = {
+    render: renderMeetupSection,
+    load: async function(concertId) {
+      var meetups = await fetchMeetups(concertId);
+      renderList(concertId, meetups);
+    },
+    submit: async function(concertId) {
+      var nameEl = document.getElementById('f5-meetup-name-' + concertId);
+      var locEl = document.getElementById('f5-meetup-loc-' + concertId);
+      var timeEl = document.getElementById('f5-meetup-time-' + concertId);
+      if (!nameEl || !locEl || !timeEl) return;
+      var name = nameEl.value.trim();
+      var loc = locEl.value.trim();
+      var mt = timeEl.value.trim();
+      if (!name || !loc) { alert('Isi nama dan lokasi meetup'); return; }
+      var result = await addMeetup(concertId, name, loc, mt);
+      if (result) {
+        saveMyMeetup(concertId, result.id);
+        nameEl.value = ''; locEl.value = ''; timeEl.value = '';
+        FanMeetup.load(concertId);
+      } else {
+        alert('Gagal mengirim. Coba lagi.');
+      }
+    }
+  };
+
+  // Inject into modal via openModal handler
+  if (window._openModalHandlers) {
+    window._openModalHandlers.push(function(id) {
+      var modal = document.querySelector('.modal');
+      if (!modal) return;
+      // Only for upcoming confirmed concerts
+      var concert = window.CONCERTS ? window.CONCERTS.find(function(c) { return c.id === id; }) : null;
+      if (!concert || concert.confirmStatus === 'rumor') return;
+      var existing = modal.querySelector('.f5-meetup-section');
+      if (existing) existing.remove();
+      var target = modal.querySelector('.f5-story-wrap') || modal.querySelector('.modal-actions');
+      if (target) {
+        var div = document.createElement('div');
+        div.innerHTML = renderMeetupSection(id);
+        target.insertAdjacentElement('afterend', div.firstElementChild);
+        FanMeetup.load(id);
+      }
+    });
+  }
+})();
