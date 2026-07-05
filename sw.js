@@ -5,7 +5,7 @@
               Network First untuk data dinamis
    ============================================ */
 
-const CACHE_VERSION = 'v24';
+const CACHE_VERSION = 'v25';
 const CACHE_STATIC = `concertid-static-${CACHE_VERSION}`;
 const CACHE_IMAGES = `concertid-images-${CACHE_VERSION}`;
 
