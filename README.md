@@ -121,6 +121,7 @@ list-concert-tour-claude/
 | Fitur | Keterangan |
 |---|---|
 | 🎸 Guns N' Roses Jakarta | GNR World Tour 2026 dikonfirmasi: Sabtu 21 Nov 2026, Stadion Madya GBK, promotor Rajawali Indonesia (sumber: gnrjakarta.com). Entry GNR rumor lama diganti jadi confirmed — total tetap 44 |
+| 🎟️ GNR Tiket Update (Jul 2026) | Harga tiket tersedia via TipTip: presale Nightrain mulai Rp 1.050.000 (2 Jul), BALE by BTN (16 Jul), General Sale (30 Jul). Waktu dikoreksi 17:00 WIB |
 | 🕷️ +3 Sumber Scraper | `scraper.py` kini memantau **10 sumber** — tambah Live Nation Asia (HIGH), RRI (HIGH), KapanLagi (MEDIUM). `livenation.asia` masuk HIGH confidence di `auto_updater.py` |
 | 🎟️ Social Proof Going | Going count di setiap card, 1 DB call untuk semua 44 konser |
 | 🗺️ Venue Seat Map | Denah & tips kursi 7 venue Jakarta di modal konser |
