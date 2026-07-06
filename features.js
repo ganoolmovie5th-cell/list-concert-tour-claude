@@ -680,6 +680,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const disclaimer = modal.querySelector('.modal-disclaimer');
         if (!disclaimer) return;
 
+        const past = c.rawDate < new Date();
+
         // Helper: tambahkan section setelah elemen terakhir yang sudah ada
         let lastEl = disclaimer;
         function appendAfterLast(html) {
@@ -691,7 +693,8 @@ document.addEventListener('DOMContentLoaded', () => {
           lastEl = node;
         }
 
-        // 1. Going & Interested — selalu tampil (termasuk konser past, data actual)
+        // Urutan konsisten untuk SEMUA tipe (confirmed/past/rumor):
+        // 1. Going & Interested
         if (typeof SocialFeatures !== 'undefined') {
           appendAfterLast(SocialFeatures.renderBadges(c.id));
         }
@@ -704,15 +707,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. Ikuti di (Social media links)
         appendAfterLast(SocialMedia.renderLinks(c.id, c.artist));
 
-      // Urutan seragam untuk SEMUA tipe konser (past/confirmed/rumor):
-        // Forum Jual Beli → Cari Teman Nonton → Diskusi → Review & Rating → Foto dari Fans
-        // (inject Forum & Cari Teman dari features3.js via rAF ke-2)
-        // Di sini hanya inject: Diskusi, Review, Foto dari Fans
+        // 4. Forum Jual Beli Tiket
+        if (typeof TicketMarket !== 'undefined') {
+          appendAfterLast(TicketMarket.render(c.id));
+        }
 
-        // 4. Diskusi — tampil untuk semua, tapi form disabled untuk past
-        appendAfterLast(Discussion.render(c.id, c.rawDate < new Date()));
+        // 5. Cari Teman Nonton
+        if (typeof GroupBuying !== 'undefined') {
+          appendAfterLast(GroupBuying.render(c.id));
+        }
 
-        // 5. Rating & Review
+        // 6. Diskusi
+        appendAfterLast(Discussion.render(c.id, past));
+
+        // 7. Rating & Review
         if (typeof window.ConcertReviews !== 'undefined') {
           const rvHtml = window.ConcertReviews.render(id);
           if (rvHtml) {
@@ -725,26 +733,8 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // 6. Foto dari Fans
+        // 8. Foto dari Fans
         appendAfterLast(UGC.render(c.id));
-
-        // 7. Forum Jual Beli Tiket — di bawah Ikuti di, sebelum Diskusi
-        if (typeof TicketMarket !== 'undefined') {
-          const discSection = modal.querySelector('.disc-section');
-          const tmEl = document.createElement('div');
-          tmEl.innerHTML = TicketMarket.render(c.id);
-          if (discSection) discSection.insertAdjacentElement('beforebegin', tmEl.firstElementChild || tmEl);
-        }
-
-        // 8. Cari Teman Nonton — setelah Forum Jual Beli, sebelum Diskusi
-        if (typeof GroupBuying !== 'undefined') {
-          const tmSection  = modal.querySelector('.tm-section');
-          const discSection = modal.querySelector('.disc-section');
-          const anchor     = tmSection || discSection;
-          const gbEl       = document.createElement('div');
-          gbEl.innerHTML   = GroupBuying.render(c.id);
-          if (anchor) anchor.insertAdjacentElement(tmSection ? 'afterend' : 'beforebegin', gbEl.firstElementChild || gbEl);
-        }
       });
 
       // Dispatch to feature module handlers (features4.js, features5.js, etc.)

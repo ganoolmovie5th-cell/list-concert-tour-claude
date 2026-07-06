@@ -562,27 +562,38 @@ window.StoryCardGen = StoryCardGen;
       var modal = document.querySelector('.modal');
       if (!modal) return;
       var concert = typeof CONCERTS !== 'undefined' ? CONCERTS.find(function(c) { return c.id === id; }) : null;
-      if (!concert || concert.confirmStatus === 'rumor') return;
+      if (!concert) return;
       var existing = modal.querySelector('.f5-meetup-section');
       if (existing) existing.remove();
-      // Insert after Going/Interested badges (.social-badges)
+
+      var past = concert.rawDate < new Date();
+      var rumor = concert.confirmStatus === 'rumor';
+
+      // Insert after Ikuti di (.social-links) — consistent position for all types
+      var socialLinks = modal.querySelector('.social-links');
       var socialBadges = modal.querySelector('.social-badges');
+      var anchor = socialLinks || socialBadges;
+
       var div = document.createElement('div');
-      div.innerHTML = renderMeetupSection(id);
-      var el = div.firstElementChild;
-      if (socialBadges) {
-        socialBadges.insertAdjacentElement('afterend', el);
+      if (past || rumor) {
+        // Disabled state for past/rumor
+        div.innerHTML = '<div class="f5-meetup-section" style="margin-top:16px;padding:16px 18px;background:rgba(168,85,247,0.04);border:1px solid rgba(168,85,247,0.1);border-radius:14px;opacity:0.5">'
+          + '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:18px">📍</span><span style="font-weight:700;color:#94a3b8;font-size:15px">Fan Meetup Points</span></div>'
+          + '<p style="color:#64748b;font-size:13px;margin-top:8px">' + (past ? 'Konser sudah selesai' : 'Menunggu konfirmasi resmi') + '</p></div>';
       } else {
-        // Fallback: before Forum Jual Beli or after modal-actions
+        div.innerHTML = renderMeetupSection(id);
+      }
+      var el = div.firstElementChild;
+      if (anchor) {
+        anchor.insertAdjacentElement('afterend', el);
+      } else {
+        // Fallback: before .tm-section
         var tmSection = modal.querySelector('.tm-section');
         if (tmSection) {
           tmSection.parentNode.insertBefore(el, tmSection);
-        } else {
-          var target = modal.querySelector('.modal-actions') || modal.querySelector('.modal-body');
-          if (target) target.insertAdjacentElement('afterend', el);
         }
       }
-      FanMeetup.load(id);
-    }, 50); // Wait for rAF in features.js to complete DOM injection
+      if (!past && !rumor) FanMeetup.load(id);
+    }, 50);
   });
 })();
