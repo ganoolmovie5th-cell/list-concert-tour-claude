@@ -187,6 +187,37 @@ supabase.min.js → app.min.js → reviews.min.js → features.min.js → featur
 
 ---
 
+## Urutan Modal Detail Konser (Konsisten untuk Confirmed / Past / Rumor)
+
+| # | Section | Confirmed | Past | Rumor |
+|---|---|---|---|---|
+| 1 | Banner (hero image + badges) | ✅ | ✅ | ✅ |
+| 2 | Tanggal, Jam Mulai | ✅ | ✅ | ✅ (TBA) |
+| 3 | Venue, Kota | ✅ | ✅ | ✅ (TBA) |
+| 4 | Promotor, Platform Tiket | ✅ | ✅ | ✅ (TBA) |
+| 5 | Range Harga | ✅ | ✅ | ⚠️ Belum diumumkan |
+| 6 | Google Maps (embed/link) | ✅ | ✅ | ✅ |
+| 7 | 🌤️ Estimasi Iklim Hari Konser | ✅ | disabled | disabled |
+| 8 | 🅿️ Parkir & Transportasi | ✅ | ✅ | ✅ |
+| 9 | 🎫 Kategori Tiket | ✅ | ✅ | ⚠️ Belum diumumkan |
+| 10 | ❤️ Wishlist, 📅 Google Calendar, 🔗 Share | ✅ aktif | disabled (opacity) | ✅ aktif |
+| 11 | 🎫 Beli Tiket Sekarang | ✅ link aktif | "Konser Telah Selesai" (disabled) | 🔔 Pantau Info Resmi |
+| 12 | ✨ Buat Story Card — Instagram | ✅ | disabled | disabled |
+| 13 | ⚠️ Disclaimer | ✅ harga berubah | ✅ harga berubah | ⚠️ belum dikonfirmasi |
+| 14 | 🎟️ Going & Interested | ✅ vote aktif | tampil (disabled, data historis) | ✅ vote aktif |
+| 15 | 🎵 Spotify Preview | ✅ | ✅ | ✅ |
+| 16 | 📱 Ikuti di (social media) | ✅ | ✅ | ✅ |
+| 17 | 📍 Fan Meetup Points | ✅ form aktif | disabled "Konser sudah selesai" | disabled "Menunggu konfirmasi" |
+| 18 | 🎫 Forum Jual Beli Tiket | ✅ | ✅ | ✅ |
+| 19 | 🤝 Cari Teman Nonton | ✅ | ✅ | ✅ |
+| 20 | 💬 Diskusi | ✅ form aktif | tampil (form disabled) | ✅ form aktif |
+| 21 | ⭐ Review & Rating | ✅ | ✅ | ✅ |
+| 22 | 📸 Foto dari Fans | ✅ upload aktif | ✅ upload aktif | ✅ upload aktif |
+
+**Aturan:** Jangan ubah urutan ini tanpa alasan jelas. Semua tipe konser (confirmed/past/rumor) HARUS menampilkan section dalam urutan yang sama — yang berbeda hanya state aktif/disabled.
+
+---
+
 ## Bug Patterns yang Pernah Terjadi (jangan diulang)
 
 | Bug | Penyebab | Fix |
