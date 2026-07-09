@@ -119,3 +119,7 @@ window.DB         = DB;
 window.Storage    = Storage;
 window.getDeviceUID = getDeviceUID;
 window.makeLocalStore = makeLocalStore;
+
+/* ponytail: shared fmtCount — dipakai app.js & features.js (sebelumnya duplikat) */
+function fmtCount(n) { return n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : String(n); }
+window.fmtCount = fmtCount;

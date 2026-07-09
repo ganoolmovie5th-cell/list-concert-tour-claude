@@ -18,7 +18,7 @@ const CalendarView = (() => {
   let currentMonth = new Date().getMonth(); // 0-based
 
   const MONTH_ID  = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-  const MONTH_FULL = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const MONTH_FULL = MONTHS_FULL_SHARED;
   const DAY_LABELS = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 
   function getConcertsForMonth(year, month) {
@@ -217,6 +217,9 @@ function formatRp(val) {
   return `Rp ${val}`;
 }
 
+/* ponytail: shared month array — dipakai CalendarView & AdvancedSearch */
+const MONTHS_FULL_SHARED = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
 /* ================================================================
    2. ADVANCED SEARCH
    ================================================================ */
@@ -230,7 +233,7 @@ const AdvancedSearch = (() => {
   };
 
   const CITIES = ['Semua Kota', 'Jakarta', 'Tangerang', 'Banten', 'Ancol', 'Senayan', 'BSD'];
-  const MONTHS_FULL = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const MONTHS_FULL = MONTHS_FULL_SHARED;
 
   function render() {
     const monthOpts = `<option value="all">Semua Bulan</option>` +

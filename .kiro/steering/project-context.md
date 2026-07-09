@@ -257,3 +257,13 @@ Temuan: keempat `timeAgo` TIDAK identik — `reviews.js` (input Date, >30 hari p
 - Re-minify `supabase/reviews/features/features3 .min.js` via `terser --compress` (tanpa `--mangle`). Verifikasi `node --check` lolos keempatnya; `makeLocalStore` ter-expose & dipakai 1+2+2+1; global modul (`Discussion`/`UGC`/`SocialFeatures`/`SocialMedia`/`GroupBuying`/`TicketMarket`/`ConcertReviews`) utuh.
 
 **Sisa ditunda (kosmetik, risiko > manfaat):** `fmtCount` (app.js+features.js), escape inline `&lt;`, `MONTH_FULL`/`MONTHS_FULL`, generalisasi `scrape_*` di `scraper.py` (backend).
+
+### Ponytail Audit — Juli 2026 (lanjutan)
+
+Dedup & cleanup berisiko-rendah. Re-minify `terser --compress` (tanpa `--mangle`); `node --check` lolos semua.
+
+- **Hapus 3 redirect HTML stubs:** `tentang.html`, `sumber-data.html`, `kontak.html` — semua hanya `<meta refresh>` redirect yang sudah di-handle Vercel rewrites di edge. Redundan.
+- **Dedup `MONTH_FULL`/`MONTHS_FULL` di `features2.js`:** 2 array identik (CalendarView line 22 + AdvancedSearch line 234) → satu `const MONTHS_FULL_SHARED` di file-level, kedua IIFE referensi via alias. `features2.min.js` di-regenerate.
+- **Dedup `fmtCount` → `supabase.js` global:** definisi identik di `app.js` dan `features.js` dihapus, satu `window.fmtCount` ditambah di `supabase.js` (load pertama). `app.min.js`, `features.min.js`, `supabase.min.js` di-regenerate.
+
+**Sisa ditunda:** `timeAgo` (3 versi berbeda perilaku), escape inline 20+ occurrences (risiko banyak file), generalisasi `scrape_*` di `scraper.py`.
