@@ -146,7 +146,10 @@ const SocialFeatures = (() => {
     return { going: going[id], interested: interest[id], myVote: myVotes[id] || null };
   }
 
-  // ponytail: fmtCount dipindah ke supabase.js global (window.fmtCount)
+  function fmtCount(n) {
+    if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
+    return n;
+  }
 
   function renderBadges(id) {
     const concert = typeof CONCERTS !== 'undefined' ? CONCERTS.find(c => c.id === id) : null;

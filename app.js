@@ -2103,7 +2103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ponytail: fmtCount dipindah ke supabase.js global (window.fmtCount)
+  function fmtCount(n) { return n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : String(n); }
 
   function injectGoingBadges(counts) {
     CONCERTS.forEach(c => {
