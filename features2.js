@@ -9,6 +9,9 @@
 
 'use strict';
 
+/* ponytail: shared month array — dipakai CalendarView & AdvancedSearch */
+const MONTHS_FULL_SHARED = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
 /* ================================================================
    1. TAMPILAN KALENDER
    ================================================================ */
@@ -216,9 +219,6 @@ function formatRp(val) {
   if (val >= 1000)    return `Rp ${(val/1000).toFixed(0)}rb`;
   return `Rp ${val}`;
 }
-
-/* ponytail: shared month array — dipakai CalendarView & AdvancedSearch */
-const MONTHS_FULL_SHARED = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
 /* ================================================================
    2. ADVANCED SEARCH
