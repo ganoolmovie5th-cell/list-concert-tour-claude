@@ -16,6 +16,7 @@
 | ✅ / 🔮 Status | Label jelas **Confirmed** (resmi) vs **Rumor** (belum dikonfirmasi) |
 | 🔍 Search & Filter | Cari berdasarkan artis/venue/kota; filter genre, status, dan wishlist |
 | 🔍 Advanced Search | Filter harga (slider), bulan, kota/area, dan status konser |
+| 🌙 Dark Mode Toggle | Pilih tema Dark (default) atau Light — tersimpan di localStorage |
 | 💰 Harga Alert | Set budget maksimal — notifikasi saat ada konser yang sesuai |
 | ❤️ Wishlist | Simpan konser favorit ke localStorage tanpa perlu akun |
 | ⏱️ Countdown | Timer hitung mundur untuk setiap konser mendatang |
