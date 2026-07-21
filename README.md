@@ -216,3 +216,7 @@ Hanya dua `timeAgo` identik di `features3.js` (GroupBuying & TicketMarket) yang 
 - `features.js`: single dispatcher — tambah `window._openModalHandlers?.forEach(h => h(id))` di akhir patch; hilangkan komentar patch chain
 - `features4.js`: hapus wrap `window.openModal`; push handler SetlistFM ke `window._openModalHandlers`
 - `features5.js`: hapus wrap `window.openModal`; push handler Weather/Parking/StoryCard ke `window._openModalHandlers`
+
+### Data Accuracy (Juli 2026)
+
+20 past concerts updated from `confirmStatus: 'confirmed'` to `confirmStatus: 'past'` (dates < 2026-07-21): BLACKPINK, Green Day, ATEEZ–EXO, MCR, Laufey, Java Jazz, F✦FOREVER, ONE OK ROCK, aespa, NCT WISH, Deep Purple, MONSTA X, TREASURE, Hammersonic, Perses, Jaehyun, KARD, The Neighbourhood. Timestamp updated June 15 → July 21, 2026 (commits: Mark 20 past concerts as 'past' status + Update data sync timestamp).
