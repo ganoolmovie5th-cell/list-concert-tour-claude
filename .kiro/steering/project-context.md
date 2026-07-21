@@ -267,3 +267,35 @@ Dedup & cleanup berisiko-rendah. Re-minify `terser --compress` (tanpa `--mangle`
 - **Dedup `fmtCount` → `supabase.js` global:** definisi identik di `app.js` dan `features.js` dihapus, satu `window.fmtCount` ditambah di `supabase.js` (load pertama). `app.min.js`, `features.min.js`, `supabase.min.js` di-regenerate.
 
 **Sisa ditunda:** `timeAgo` (3 versi berbeda perilaku), escape inline 20+ occurrences (risiko banyak file), generalisasi `scrape_*` di `scraper.py`.
+
+---
+
+## Data Accuracy (Juli 2026)
+
+20 past concerts updated from `confirmStatus: 'confirmed'` to `confirmStatus: 'past'` (dates < 2026-07-21):
+1. BLACKPINK DEADLINE (Nov 1-2, 2025)
+2. Green Day (Feb 15, 2025)
+3. F✦FOREVER (May 29-30, 2026)
+4. ATEEZ (Jan 31, 2026)
+5. Dream Theater (Feb 7, 2026)
+6. MCR Hammersonic (May 3, 2026)
+7. Laufey (May 23, 2026)
+8. Java Jazz (May 29-31, 2026)
+9. EXO (Jun 6-7, 2026)
+10. aespa (Apr 4, 2026)
+11. NCT WISH (Apr 11, 2026)
+12. Deep Purple (Apr 18, 2026)
+13. MONSTA X (Apr 18, 2026)
+14. TREASURE (Apr 25-26, 2026)
+15. Hammersonic 2026 (May 2-3, 2026)
+16. ONE OK ROCK (May 16, 2026)
+17. Perses (Jun 13, 2026)
+18. Jaehyun (Jun 20, 2026)
+19. KARD (Jun 27, 2026)
+20. The Neighbourhood (Jul 18, 2026)
+
+Timestamp updated: "// Last auto-updated: 15 Jun 2026 09:00 WIB" → "// Last auto-updated: 21 Jul 2026 09:00 WIB". Data terakhir sync June 15, 2026 (36+ hari old) — sekarang disync ke current date 2026-07-21.
+
+**Commits:** 
+- `Mark 20 past concerts as 'past' status — update data accuracy` (b6f83c3)
+- `Update data sync timestamp: June 15 → July 21, 2026` (f4161c8)
