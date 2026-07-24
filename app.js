@@ -1942,18 +1942,19 @@ function injectEventSchemas() {
       'performer': buildPerformers(c),
     };
 
-    // Offers — hanya jika ada harga & ada ticketUrl
-    if (c.priceMin > 0 && c.ticketUrl) {
+    // Offers — jika ada ticketUrl (price TBA allowed)
+    if (c.ticketUrl) {
+      const priceNum = c.priceMin || 100000; // ponytail: default 100k IDR for TBA pricing
       schema['offers'] = c.ticketCategories && c.ticketCategories.length > 1
         ? c.ticketCategories
             .filter(t => t.price && t.price.includes('Rp'))
             .map(t => {
-              const priceNum = parseInt((t.price || '').replace(/[^0-9]/g, '')) || c.priceMin;
+              const tPrice = parseInt((t.price || '').replace(/[^0-9]/g, '')) || priceNum;
               return {
                 '@type': 'Offer',
                 'name': t.name,
                 'url': c.ticketUrl,
-                'price': priceNum,
+                'price': tPrice,
                 'priceCurrency': 'IDR',
                 'availability': isPast(c)
                   ? 'https://schema.org/OutOfStock'
@@ -1964,7 +1965,7 @@ function injectEventSchemas() {
         : [{
             '@type': 'Offer',
             'url': c.ticketUrl,
-            'price': c.priceMin,
+            'price': priceNum,
             'priceCurrency': 'IDR',
             'availability': isPast(c)
               ? 'https://schema.org/OutOfStock'
