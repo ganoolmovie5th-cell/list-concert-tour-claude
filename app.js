@@ -1936,7 +1936,8 @@ function injectEventSchemas() {
       },
       'organizer': {
         '@type': 'Organization',
-        'name': c.promotor || 'TBA'
+        'name': c.promotor || 'TBA',
+        'url': 'https://list-concert-tour.web.id'
       },
       'performer': buildPerformers(c),
     };
