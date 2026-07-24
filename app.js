@@ -1942,36 +1942,41 @@ function injectEventSchemas() {
       'performer': buildPerformers(c),
     };
 
-    // Offers — jika ada ticketUrl (price TBA allowed)
+    // Offers — jika ada ticketUrl (price TBA allowed); fallback if categories empty after filter
     if (c.ticketUrl) {
       const priceNum = c.priceMin || 100000; // ponytail: default 100k IDR for TBA pricing
-      schema['offers'] = c.ticketCategories && c.ticketCategories.length > 1
-        ? c.ticketCategories
-            .filter(t => t.price && t.price.includes('Rp'))
-            .map(t => {
-              const tPrice = parseInt((t.price || '').replace(/[^0-9]/g, '')) || priceNum;
-              return {
-                '@type': 'Offer',
-                'name': t.name,
-                'url': c.ticketUrl,
-                'price': tPrice,
-                'priceCurrency': 'IDR',
-                'availability': isPast(c)
-                  ? 'https://schema.org/OutOfStock'
-                  : 'https://schema.org/InStock',
-                'validFrom': new Date().toISOString()
-              };
-            })
-        : [{
-            '@type': 'Offer',
-            'url': c.ticketUrl,
-            'price': priceNum,
-            'priceCurrency': 'IDR',
-            'availability': isPast(c)
-              ? 'https://schema.org/OutOfStock'
-              : 'https://schema.org/InStock',
-            'validFrom': new Date().toISOString()
-          }];
+      const defaultOffer = [{
+        '@type': 'Offer',
+        'url': c.ticketUrl,
+        'price': priceNum,
+        'priceCurrency': 'IDR',
+        'availability': isPast(c)
+          ? 'https://schema.org/OutOfStock'
+          : 'https://schema.org/InStock',
+        'validFrom': new Date().toISOString()
+      }];
+
+      if (c.ticketCategories && c.ticketCategories.length > 1) {
+        const filtered = c.ticketCategories
+          .filter(t => t.price && t.price.includes('Rp'))
+          .map(t => {
+            const tPrice = parseInt((t.price || '').replace(/[^0-9]/g, '')) || priceNum;
+            return {
+              '@type': 'Offer',
+              'name': t.name,
+              'url': c.ticketUrl,
+              'price': tPrice,
+              'priceCurrency': 'IDR',
+              'availability': isPast(c)
+                ? 'https://schema.org/OutOfStock'
+                : 'https://schema.org/InStock',
+              'validFrom': new Date().toISOString()
+            };
+          });
+        schema['offers'] = filtered.length > 0 ? filtered : defaultOffer;
+      } else {
+        schema['offers'] = defaultOffer;
+      }
     }
 
     return schema;
