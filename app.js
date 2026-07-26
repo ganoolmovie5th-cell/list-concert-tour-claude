@@ -68,6 +68,35 @@ const ARTIST_IMAGES = {
 const CONCERTS = [
 
   {
+    id: 'kanye-west-jakarta-2026',
+    artist: 'Kanye West (Ye)',
+    tour: 'Ye Live Concert Tour 2026',
+    genre: 'pop', emoji: '🐻',
+    dates: ["24 Oktober 2026"],
+    rawDate: new Date('2026-10-24'),
+    time: 'TBA',
+    venue: 'Stadion Utama Gelora Bung Karno (SUGBK)',
+    city: 'Senayan, Jakarta Pusat',
+    promotor: 'Raw Vision Collective',
+    ticketPlatform: 'yejakarta.com',
+    ticketUrl: 'https://yejakarta.com',
+    priceRange: 'Rp 1.875.000 – Rp 9.850.000',
+    priceMin: 1875000, priceMax: 9850000,
+    ticketCategories: [
+      { name: 'CAT 4A & 4B (numbered seat)', price: 'Rp 1.875.000' },
+      { name: 'CAT 3A & 3B (numbered seat)', price: 'Rp 2.875.000' },
+      { name: 'Festival A & B', price: 'Rp 3.500.000' },
+      { name: 'CAT 2A & 2B (numbered seat)', price: 'Rp 3.875.000' },
+      { name: 'CAT 1A & 1B (numbered seat)', price: 'Rp 4.875.000' },
+      { name: 'Super Fans Festival', price: 'Rp 5.850.000' },
+      { name: 'VIP East / West (numbered seat)', price: 'Rp 9.850.000' },
+    ],
+    confirmStatus: 'confirmed', hot: true,
+    description: 'Kanye West (Ye) menggelar konser perdana di Indonesia lewat Ye Live in Jakarta, bagian dari Ye Live Concert Tour 2026 bersama Madrid, Algarve, Almaty, New Orleans, dan Chicago. Tiket dijual mulai 29 Juli 2026 pukul 10:00 WIB via yejakarta.com. Harga belum termasuk pajak 10% dan platform fee 6%.',
+    sources: ["yejakarta.com", "idntimes.com"],
+  },
+
+  {
     id: 'guns-n-roses-jakarta-2026',
     artist: "Guns N' Roses",
     tour: 'World Tour 2026',
