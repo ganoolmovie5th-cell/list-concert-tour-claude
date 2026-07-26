@@ -91,11 +91,11 @@ def already_in_list(artist: str, existing_artists: set[str]) -> bool:
     return False
 
 # ── Fetcher ───────────────────────────────────────────────────────────────────
-def fetch(url: str, timeout: int = 15) -> BeautifulSoup | None:
+def fetch(url: str, timeout: int = 15, parser: str = "html.parser") -> BeautifulSoup | None:
     try:
         resp = requests.get(url, headers=HEADERS, timeout=timeout)
         resp.raise_for_status()
-        return BeautifulSoup(resp.text, "html.parser")
+        return BeautifulSoup(resp.text, parser)
     except Exception as exc:
         log.warning(f"fetch failed: {url} → {exc}")
         return None
@@ -139,32 +139,26 @@ def scrape_bandwagon() -> list[dict]:
 
 
 def scrape_tempo() -> list[dict]:
-    """Tempo.co — media Indonesia terpercaya."""
+    """Tempo.co — via RSS (halaman tag JS-rendered, en.tempo.co topic sudah 404)."""
     found = []
-    for url in [
-        "https://en.tempo.co/topic/concert",
-        "https://www.tempo.co/tag/konser",
-    ]:
-        soup = fetch(url)
-        if not soup:
-            continue
-        for art in soup.select("article,.card,[class*='article'],[class*='news']")[:20]:
-            title_el = art.select_one("h1,h2,h3,h4,a")
+    soup = fetch("https://rss.tempo.co/", parser="xml")
+    if soup:
+        for item in soup.select("item")[:50]:
+            title_el = item.select_one("title")
             if not title_el:
                 continue
             title = title_el.get_text(strip=True)
-            if not any(k in title.lower() for k in ["concert","jakarta","indonesia","tour","live","konser"]):
+            if not any(k in title.lower() for k in ["concert","tour","live","konser","manggung"]):
                 continue
-            link_el = art.select_one("a[href]")
-            link = link_el["href"] if link_el else ""
-            date_el = art.select_one("time,[class*='date']")
+            link_el = item.select_one("link")
+            link = link_el.get_text(strip=True) if link_el else ""
+            date_el = item.select_one("pubDate")
             date    = date_el.get_text(strip=True) if date_el else ""
             found.append({
                 "title": title, "url": link, "date": date,
                 "source": "tempo.co", "source_label": "Tempo.co",
                 "reliability": "HIGH",
             })
-        time.sleep(1)
     log.info(f"tempo: {len(found)} artikel")
     return found
 
@@ -174,21 +168,17 @@ def scrape_thejakartapost() -> list[dict]:
     found = []
     soup  = fetch("https://www.thejakartapost.com/culture")
     if soup:
-        for art in soup.select("article,.article,[class*='article'],[class*='story']")[:20]:
-            title_el = art.select_one("h1,h2,h3,h4")
-            if not title_el:
-                continue
+        # Struktur live 2026: <a href="/culture/..."><h2 class="titleNews">Judul</h2></a>
+        for title_el in soup.select("h2.titleNews")[:40]:
             title = title_el.get_text(strip=True)
             if not any(k in title.lower() for k in ["concert","tour","live","music","perform","konser"]):
                 continue
-            link_el = art.select_one("a[href]")
-            link = link_el["href"] if link_el else ""
+            parent_a = title_el.find_parent("a")
+            link = parent_a.get("href", "") if parent_a else ""
             if link and link.startswith("/"):
                 link = "https://www.thejakartapost.com" + link
-            date_el = art.select_one("time,[class*='date']")
-            date    = date_el.get_text(strip=True) if date_el else ""
             found.append({
-                "title": title, "url": link, "date": date,
+                "title": title, "url": link, "date": "",
                 "source": "thejakartapost.com", "source_label": "The Jakarta Post",
                 "reliability": "HIGH",
             })
@@ -373,35 +363,27 @@ def scrape_rri() -> list[dict]:
 
 
 def scrape_kapanlagi() -> list[dict]:
-    """KapanLagi — portal hiburan & musik Indonesia."""
+    """Antara News (hiburan) — pengganti KapanLagi yang halamannya sudah 404/410/JS-rendered."""
     found = []
-    for url in [
-        "https://www.kapanlagi.com/musik/",
-        "https://www.kapanlagi.com/tag/konser/",
-    ]:
-        soup = fetch(url)
-        if not soup:
-            continue
-        for art in soup.select("article,.card,[class*='article'],[class*='news'],[class*='post']")[:20]:
-            title_el = art.select_one("h1,h2,h3,h4,a")
+    soup = fetch("https://www.antaranews.com/rss/hiburan.xml", parser="xml")
+    if soup:
+        for item in soup.select("item")[:30]:
+            title_el = item.select_one("title")
             if not title_el:
                 continue
             title = title_el.get_text(strip=True)
             if not any(k in title.lower() for k in ["concert","jakarta","indonesia","tour","live","konser","manggung","gelar"]):
                 continue
-            link_el = art.select_one("a[href]")
-            link = link_el["href"] if link_el else ""
-            if link and link.startswith("/"):
-                link = "https://www.kapanlagi.com" + link
-            date_el = art.select_one("time,[class*='date']")
+            link_el = item.select_one("link")
+            link = link_el.get_text(strip=True) if link_el else ""
+            date_el = item.select_one("pubDate")
             date    = date_el.get_text(strip=True) if date_el else ""
             found.append({
                 "title": title, "url": link, "date": date,
-                "source": "kapanlagi.com", "source_label": "KapanLagi",
+                "source": "antaranews.com", "source_label": "Antara News",
                 "reliability": "MEDIUM",
             })
-        time.sleep(1)
-    log.info(f"kapanlagi: {len(found)} artikel")
+    log.info(f"antaranews: {len(found)} artikel")
     return found
 
 
@@ -637,7 +619,7 @@ def main():
         ("Loket.com",        scrape_loket),
         ("Live Nation Asia", scrape_livenation),
         ("RRI",              scrape_rri),
-        ("KapanLagi",        scrape_kapanlagi),
+        ("Antara News",      scrape_kapanlagi),
     ]
 
     for name, fn in scrapers:
