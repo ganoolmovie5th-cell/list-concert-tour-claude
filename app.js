@@ -63,6 +63,7 @@ const ARTIST_IMAGES = {
   'dua-lipa-jakarta-rumor':         WEB_BASE + '/images/dua-lipa-jakarta-rumor.jpeg?v=2',
   'enhypen-jakarta-2027':           WEB_BASE + '/images/enhypen-jakarta-2027.jpeg?v=2',
   'byeon-woo-seok-jakarta-2026':    WEB_BASE + '/images/byeon-woo-seok-jakarta-2026.jpeg?v=2',
+  'kanye-west-jakarta-2026':        WEB_BASE + '/images/kanye-west-jakarta-2026.jpeg?v=2',
 };
 
 const CONCERTS = [
