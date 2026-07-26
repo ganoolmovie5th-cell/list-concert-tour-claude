@@ -52,19 +52,24 @@ test.describe('Sitemap', () => {
     expect(body).toContain('<urlset');
   });
 
-  test('sitemap contains exactly 6 URLs', async ({ request }) => {
+  test('sitemap contains exactly 4 URLs', async ({ request }) => {
     const res = await request.get('/sitemap.xml');
     const body = await res.text();
     const locs = body.match(/<loc>/g);
-    expect(locs, 'Expected 6 <loc> entries in sitemap.xml').toHaveLength(6);
+    // /about dan /contact sengaja dikeluarkan: keduanya stub redirect ber-noindex
+    expect(locs, 'Expected 4 <loc> entries in sitemap.xml').toHaveLength(4);
   });
 
   test('sitemap includes all required canonical paths', async ({ request }) => {
     const res = await request.get('/sitemap.xml');
     const body = await res.text();
-    const required = ['/', '/jadwal', '/konser', '/rumor', '/about', '/contact'];
+    const required = ['/', '/jadwal', '/konser', '/rumor'];
     for (const path of required) {
       expect(body, `sitemap.xml missing path: ${path}`).toContain(path);
+    }
+    // Stub redirect noindex tidak boleh kembali masuk sitemap (sinyal soft-404)
+    for (const path of ['/about', '/contact']) {
+      expect(body, `sitemap.xml must not list noindex stub: ${path}`).not.toContain(`<loc>https://www.list-concert-tour.web.id${path}</loc>`);
     }
   });
 });
