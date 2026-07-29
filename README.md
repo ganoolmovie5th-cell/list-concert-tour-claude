@@ -220,3 +220,7 @@ Hanya dua `timeAgo` identik di `features3.js` (GroupBuying & TicketMarket) yang 
 ### Data Accuracy (Juli 2026)
 
 20 past concerts updated from `confirmStatus: 'confirmed'` to `confirmStatus: 'past'` (dates < 2026-07-21): BLACKPINK, Green Day, ATEEZ–EXO, MCR, Laufey, Java Jazz, F✦FOREVER, ONE OK ROCK, aespa, NCT WISH, Deep Purple, MONSTA X, TREASURE, Hammersonic, Perses, Jaehyun, KARD, The Neighbourhood. Timestamp updated June 15 → July 21, 2026 (commits: Mark 20 past concerts as 'past' status + Update data sync timestamp).
+
+### Sitemap lastmod dihapus (Juli 2026)
+
+4 `<lastmod>2026-07-26</lastmod>` dihapus dari `sitemap.xml`. Tanggalnya hardcoded dan beku: konten konser berubah tiap hari (scraper jalan 01:00 WIB) tapi `<lastmod>` tidak pernah ikut diupdate, jadi nilainya bohong. Google mengabaikan `lastmod` yang tidak melacak perubahan nyata, dan field ini **opsional** menurut sitemaps.org — lebih baik tidak ada daripada salah. `<changefreq>` + `<priority>` tetap. Jumlah `<loc>` tetap 4, jadi `tests/e2e.spec.ts:55-60` (assert tepat 4) tetap lolos; tidak ada assertion yang membaca `<lastmod>`. **Jangan tambahkan kembali** kecuali ada mekanisme yang benar-benar mengupdate tanggalnya.
