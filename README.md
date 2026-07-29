@@ -78,9 +78,9 @@ npm run test:e2e
 list-concert-tour-claude/
 ├── index.html              # Single-page app utama
 ├── app.js                  # Data konser (44 entries) & logika utama + JSON-LD schema
-├── app.min.js              # Minified version (auto-generated)
+├── app.min.js              # Basi: tidak dimuat siapa pun, tidak ada script minify
 ├── style.css               # Styling (dark/light mode, responsive)
-├── style.min.css           # Minified CSS (auto-generated)
+├── style.min.css           # Dimuat index.html via media="print" swap (masih dipakai)
 ├── supabase.js             # Supabase REST client (DB + Storage + getDeviceUID)
 ├── reviews.js              # Review & Rating — Supabase primary
 ├── features.js             # Going/Interested, Diskusi, Foto Fans — Supabase primary
@@ -89,7 +89,7 @@ list-concert-tour-claude/
 ├── features4.js            # Setlist.fm, NewConcertNotif, Tips & Artikel
 ├── features5.js            # Weather Forecast, Parking Nearby, Story Card Generator, Fan Meetup Map (Juni-Juli 2026)
 ├── story-card-preview.html # Preview & demo story card (pilih konser + template, download PNG)
-├── *.min.js                # Minified JS files (auto-generated)
+├── *.min.js                # 8 file basi: masih ter-track git, tapi tidak dimuat index.html/sw.js
 ├── sw.js                   # Service Worker — Stale-While-Revalidate, auto-reload saat ada update
 ├── supabase_schema.sql     # Schema SQL — jalankan di Supabase SQL Editor
 ├── api/
@@ -201,8 +201,8 @@ Hanya dua `timeAgo` identik di `features3.js` (GroupBuying & TicketMarket) yang 
 
 ### Audit Lanjutan — Hapus Minified & Dead Code (Juli 2026)
 
-- Hapus 8 file `.min.js` (duplikat dari `.js` yang sudah ada); tambah `*.min.js` ke `.gitignore`
-- Update `index.html` dan `sw.js` agar load `.js` bukan `.min.js`
+- Update `index.html` dan `sw.js` agar load `.js` bukan `.min.js` (selesai)
+- **Belum selesai:** 8 file `.min.js` masih ada dan masih ter-track git, `*.min.js` belum masuk `.gitignore`. Sudah tidak dimuat siapa pun, jadi aman dihapus, tapi `tests/e2e.spec.ts` masih menguji `robots.txt` punya `Disallow: /*.min.js`, jadi hapus keduanya bersamaan. `style.min.css` **tetap dipakai** (`index.html` memuatnya via `media="print"` swap), jangan ikut dihapus
 - `features3.js`: hapus fungsi duplikat `timeAgoChat()` → call site diganti `timeAgo()`
 - `features4.js`: hapus 3 entry `null` di `ARTIST_MAP` (`fforever`, `lalala-fest`, `java-jazz`)
 - `features.js`: hapus blok komentar dead code `BrowserNotif.checkPending()`

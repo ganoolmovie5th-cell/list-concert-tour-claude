@@ -16,8 +16,8 @@ Website jadwal konser internasional di Indonesia 2025–2027. Single-page app (S
 - **Website tetap 1 page (SPA)** — jangan buat halaman/URL baru
 - Gunakan `kiro_powers github push_to_remote` dengan `remote_branch_name: "main"`
 - Baca file seminimal mungkin — hanya yang relevan dengan task
-- Setelah edit JS: `npx terser <file>.js --compress --output <file>.min.js` (**TANPA --mangle**)
-- Setelah edit CSS: `npx clean-css-cli -o style.min.css style.css`
+- Setelah edit JS: **tidak perlu minify.** `index.html` dan `sw.js` memuat `.js` langsung, bukan `.min.js`. File `*.min.js` yang ada sekarang basi dan tidak dimuat siapa pun — jangan regenerate
+- Setelah edit CSS: `npx clean-css-cli -o style.min.css style.css` — `style.min.css` **masih dipakai** (`index.html` memuatnya via `media="print"` swap)
 - **JANGAN** pakai Python minifier atau terser dengan `--mangle` — akan break global function names
 
 ---
@@ -124,15 +124,12 @@ Files: <file yang diubah selain README & steering>
 
 ---
 
-## Minifikasi (WAJIB cara ini)
+## Minifikasi (hanya CSS)
+
+`index.html` dan `sw.js` memuat `.js` langsung, jadi **JS tidak perlu diminify.** Jangan regenerate `*.min.js` — file yang ada sekarang basi dan tidak dimuat siapa pun.
 
 ```bash
-# JS — WAJIB tanpa --mangle agar global function names tidak berubah
-npx terser app.js --compress --output app.min.js
-npx terser features.js --compress --output features.min.js
-# dst untuk features2, features3, features4
-
-# CSS
+# CSS — style.min.css masih dipakai (dimuat via media="print" swap)
 npx clean-css-cli -o style.min.css style.css
 ```
 
@@ -182,7 +179,7 @@ CREATE INDEX IF NOT EXISTS idx_live_setlist_concert ON live_setlist(concert_id, 
 
 ### Script loading order (jangan ubah urutan):
 ```
-supabase.min.js → app.min.js → reviews.min.js → features.min.js → features2.min.js → features3.min.js → features4.min.js → features5.min.js
+supabase.js → app.js → reviews.js → features.js → features2.js → features3.js → features4.js → features5.js
 ```
 
 ---
