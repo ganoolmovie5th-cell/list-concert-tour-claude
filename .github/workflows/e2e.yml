@@ -26,7 +26,7 @@ jobs:
 
       - name: Run E2E
         env:
-          BASE_URL: https://list-concert-tour.web.id
+          BASE_URL: https://www.list-concert-tour.web.id
         run: npm run test:e2e
 
       - name: Upload report
