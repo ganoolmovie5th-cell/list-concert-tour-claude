@@ -1,0 +1,44 @@
+{
+  "generated_at": "26 Jul 2026 23:56 WIB",
+  "total_raw": 9,
+  "new_potential": [
+    {
+      "title": "KBRI Beijing Gelar Konser Orkestra Budaya Indonesia di Tiongkok",
+      "url": "https://rri.co.id/internasional/2598871/kbri-beijing-gelar-konser-orkestra-budaya-indonesia-di-tiongkok",
+      "date": "",
+      "source": "rri.co.id",
+      "source_label": "RRI",
+      "reliability": "HIGH",
+      "_extracted_artist": "KBRI Beijing Gelar"
+    },
+    {
+      "title": "Menonton Konser Musik Dinilai Efektif Redakan Stres dan Tingkatkan Kebahagiaan",
+      "url": "https://rri.co.id/bintuhan/berita-lain/2598242/menonton-konser-musik-dinilai-efektif-redakan-stres-dan-tingkatkan-kebahagiaan",
+      "date": "",
+      "source": "rri.co.id",
+      "source_label": "RRI",
+      "reliability": "HIGH",
+      "_extracted_artist": "Menonton"
+    },
+    {
+      "title": "Hwang In Youp gelar fan meeting di Jakarta 24 Oktober 2026",
+      "url": "https://www.antaranews.com/berita/5664068/hwang-in-youp-gelar-fan-meeting-di-jakarta-24-oktober-2026",
+      "date": "Fri, 24 Jul 2026 14:18:06 +0700",
+      "source": "antaranews.com",
+      "source_label": "Antara News",
+      "reliability": "MEDIUM",
+      "_extracted_artist": "Hwang In Youp gelar"
+    }
+  ],
+  "updates": [
+    {
+      "title": "Jadwal lengkap BTS World Tour 2026-2027, Indonesia kebagian Desember",
+      "url": "https://www.antaranews.com/berita/5352081/jadwal-lengkap-bts-world-tour-2026-2027-indonesia-kebagian-desember",
+      "date": "Wed, 14 Jan 2026 18:20:23 +0700",
+      "source": "antaranews.com",
+      "source_label": "Antara News",
+      "reliability": "MEDIUM",
+      "_extracted_artist": "Jadwal lengkap BTS World"
+    }
+  ]
+}

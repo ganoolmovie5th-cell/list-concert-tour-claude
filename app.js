@@ -1866,7 +1866,7 @@ function applyUTMToLinks() {
    SEO — JSON-LD Event Schema Injection
    ============================================ */
 function injectEventSchemas() {
-  const BASE_URL = 'https://list-concert-tour.web.id';
+  const BASE_URL = 'https://www.list-concert-tour.web.id';
 
   // Helper: build ISO datetime string dari rawDate + time string "19:00 WIB"
   function toISODateTime(date, timeStr) {
@@ -1949,7 +1949,10 @@ function injectEventSchemas() {
       'name': c.artist + (c.tour && c.tour !== c.artist ? ' — ' + c.tour : ''),
       'description': c.description || (c.artist + ' live in Indonesia'),
       'image': buildImage(c),
-      'url': BASE_URL + '?concert=' + c.id,
+      // Stable @id + a path-rooted url. Without the slash the URL was
+      // "…web.id?concert=x", which Google normalizes away from the canonical.
+      '@id': BASE_URL + '/?concert=' + c.id,
+      'url': BASE_URL + '/?concert=' + c.id,
       'startDate': startISO,
       'endDate': endISO,
       'eventStatus': eventStatusUrl(c),
@@ -1967,17 +1970,19 @@ function injectEventSchemas() {
       'organizer': {
         '@type': 'Organization',
         'name': c.promotor || 'TBA',
-        'url': 'https://list-concert-tour.web.id'
+        'url': 'https://www.list-concert-tour.web.id'
       },
       'performer': buildPerformers(c),
     };
 
-    // Offers — jika ada ticketUrl (price TBA allowed); fallback if categories empty after filter
-    if (c.ticketUrl) {
+    // Offers is a required field, so it is always emitted — a concert with no
+    // ticketUrl yet falls back to its own deep link rather than dropping the key.
+    {
       const priceNum = c.priceMin || 100000; // ponytail: default 100k IDR for TBA pricing
+      const offerUrl = c.ticketUrl || schema['url'];
       const defaultOffer = [{
         '@type': 'Offer',
-        'url': c.ticketUrl,
+        'url': offerUrl,
         'price': priceNum,
         'priceCurrency': 'IDR',
         'availability': isPast(c)
@@ -1994,7 +1999,7 @@ function injectEventSchemas() {
             return {
               '@type': 'Offer',
               'name': t.name,
-              'url': c.ticketUrl,
+              'url': offerUrl,
               'price': tPrice,
               'priceCurrency': 'IDR',
               'availability': isPast(c)
