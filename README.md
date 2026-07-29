@@ -49,7 +49,7 @@
 | 🔗 Internal Links | Tambahan internal links untuk SEO (paths: `/jadwal`, `/artis`, `/venue`, `/kategori`) |
 | 🤖 Robots.txt | Allow `manifest.json` (PWA), Disallow `sw.js` + `*.min.js/css`, Sitemap www |
 | 🏷️ Headings | Tambah H5/H6 minor headings untuk audit (Detail Informasi / Fasilitas Venue) |
-| 🧪 E2E Testing | Playwright 3 test groups, 12 assertions (H1, sitemap 6 URLs, robots.txt rules, manifest.json, concert grid) + GitHub Actions |
+| 🧪 E2E Testing | Playwright 3 test group, 12 test / 26 assertion (H1, sitemap 4 URLs, robots.txt rules, manifest.json, concert grid) + GitHub Actions |
 
 ---
 
@@ -67,7 +67,7 @@ npm run test:e2e
 | Grup | Test |
 |---|---|
 | **Concert listings** | Single H1 (`h1.hero-title`), H1 contains "Konser", concert grid render ≥1 card, navbar href exact match |
-| **Sitemap** | Reachable + valid XML, exactly 6 `<loc>`, semua path ada (`/`, `/jadwal`, `/konser`, `/rumor`, `/about`, `/contact`) |
+| **Sitemap** | Reachable + valid XML, tepat 4 `<loc>`, semua path ada (`/`, `/jadwal`, `/konser`, `/rumor`); `/about` + `/contact` dipastikan **tidak** terdaftar (stub redirect noindex) |
 | **Robots.txt** | Reachable, Disallow `/sw.js`+`/*.min.js`+`/*.min.css` ada, `manifest.json` **tidak** diblok, Sitemap URL dideklarasikan, `manifest.json` langsung accessible |
 
 ---
@@ -99,7 +99,7 @@ list-concert-tour-claude/
 ├── auto_updater.py         # Filter HIGH confidence → inject ke app.js → output summary
 ├── email_reporter.py       # Kirim laporan scraper via Gmail SMTP
 ├── requirements.txt        # Dependensi Python scraper
-├── sitemap.xml             # Sitemap (6 URLs: /, /jadwal, /konser, /rumor, /about, /contact)
+├── sitemap.xml             # Sitemap (4 URLs: /, /jadwal, /konser, /rumor — /about & /contact stub noindex, sengaja dikeluarkan)
 ├── robots.txt              # Robots directives
 ├── vercel.json             # Konfigurasi Vercel + Security/CSP headers + Cache
 ├── images/                 # Foto artis/konser (dipakai juga oleh mobile app)
