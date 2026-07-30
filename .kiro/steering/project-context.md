@@ -18,7 +18,7 @@ Website jadwal konser internasional di Indonesia 2025–2027. Single-page app (S
 - Baca file seminimal mungkin — hanya yang relevan dengan task
 - Setelah edit JS: **tidak perlu minify.** `index.html` dan `sw.js` memuat `.js` langsung, bukan `.min.js`. File `*.min.js` yang ada sekarang basi dan tidak dimuat siapa pun — jangan regenerate
 - Setelah edit CSS: `npx clean-css-cli -o style.min.css style.css` — `style.min.css` **masih dipakai** (`index.html` memuatnya via `media="print"` swap)
-- **JANGAN** pakai Python minifier atau terser dengan `--mangle` — akan break global function names
+- **JANGAN** pakai Python minifier atau terser dengan `--mangle` **kalau** suatu saat minify JS diaktifkan lagi — mangling merename global function names (`window.openModal`, handler di `window._openModalHandlers`, dll) yang dipanggil lintas file dan dari atribut `onclick` di HTML, jadi situs langsung rusak. Saat ini tidak relevan karena JS memang tidak diminify (lihat poin di atas). Disimpan sebagai peringatan, bukan langkah yang perlu dijalankan
 
 ---
 
