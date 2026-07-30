@@ -1610,13 +1610,22 @@ document.getElementById('sharePanelClose').addEventListener('click', closeShareP
 document.getElementById('shareBackdrop').addEventListener('click', closeSharePanel);
 
 /* ============================================
-   FITUR 6 — DEEP LINK (URL ?concert=id)
+   FITUR 6 — DEEP LINK (URL ?concert=id, ?q=keyword)
    ============================================ */
 function handleDeepLink() {
   const params = new URLSearchParams(window.location.search);
   const cid    = params.get('concert');
   if (cid && CONCERTS.find(x => x.id === cid)) {
     setTimeout(() => openModal(cid), 400);
+  }
+  // ?q= backs the SearchAction urlTemplate in index.html's WebSite JSON-LD.
+  // Without it the markup would advertise a search endpoint that does not exist.
+  const q = params.get('q');
+  if (q && q.trim()) {
+    searchQuery = q;
+    const input = document.getElementById('searchInput');
+    if (input) input.value = q;
+    applyFilters();
   }
 }
 

@@ -301,3 +301,7 @@ Timestamp updated: "// Last auto-updated: 15 Jun 2026 09:00 WIB" → "// Last au
 **Commits:** 
 - `Mark 20 past concerts as 'past' status — update data accuracy` (b6f83c3)
 - `Update data sync timestamp: June 15 → July 21, 2026` (f4161c8)
+
+## Query param `?q=`
+
+`index.html` punya `WebSite.potentialAction` (SearchAction) dengan `urlTemplate` `https://www.list-concert-tour.web.id/?q={search_term_string}`. `handleDeepLink()` di `app.js` yang mengimplementasikannya — baca `?q=`, isi `#searchInput`, panggil `applyFilters()`. **Jangan hapus salah satunya saja**: markup tanpa implementasi = mengiklankan endpoint pencarian palsu ke Google.

@@ -239,3 +239,11 @@ Hanya dua `timeAgo` identik di `features3.js` (GroupBuying & TicketMarket) yang 
 ### Sitemap lastmod dihapus (Juli 2026)
 
 4 `<lastmod>2026-07-26</lastmod>` dihapus dari `sitemap.xml`. Tanggalnya hardcoded dan beku: konten konser berubah tiap hari (scraper jalan 01:00 WIB) tapi `<lastmod>` tidak pernah ikut diupdate, jadi nilainya bohong. Google mengabaikan `lastmod` yang tidak melacak perubahan nyata, dan field ini **opsional** menurut sitemaps.org — lebih baik tidak ada daripada salah. `<changefreq>` + `<priority>` tetap. Jumlah `<loc>` tetap 4, jadi `tests/e2e.spec.ts:55-60` (assert tepat 4) tetap lolos; tidak ada assertion yang membaca `<lastmod>`. **Jangan tambahkan kembali** kecuali ada mekanisme yang benar-benar mengupdate tanggalnya.
+
+### SEO: urlTemplate SearchAction diperbaiki + `?q=` diaktifkan (Juli 2026)
+
+`index.html:104` memuat `"urlTemplate": "{{https://www.list-concert-tour.web.id?q={search_term_string}}}"` — kurung kurawal ganda membuatnya bukan URL valid, dan slash path hilang. Diperbaiki jadi `https://www.list-concert-tour.web.id/?q={search_term_string}`.
+
+Masalah kedua: situs tidak pernah membaca `?q=`, jadi markup itu mengiklankan endpoint pencarian yang tidak ada. `handleDeepLink()` (`app.js`) sekarang membaca `?q=`, mengisi `#searchInput`, dan memanggil `applyFilters()` — jadi markup-nya jujur. Nilainya hanya dipakai untuk `.toLowerCase().includes()` di `applyFilters()`, tidak pernah masuk `innerHTML`, jadi tidak ada jalur XSS dari query param. Verifikasi: render `?q=coldplay` → 1 kartu tersisa, input terisi, 0 JSON-LD parse error.
+
+Catatan: Google menghentikan fitur sitelinks searchbox (Nov 2024), jadi ini memperbaiki markup yang salah, bukan menambah rich result baru.
