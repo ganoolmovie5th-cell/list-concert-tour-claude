@@ -19,6 +19,7 @@ Website jadwal konser internasional di Indonesia 2025–2027. Single-page app (S
 - Setelah edit JS: **tidak perlu minify.** `index.html` dan `sw.js` memuat `.js` langsung, bukan `.min.js`. File `*.min.js` yang ada sekarang basi dan tidak dimuat siapa pun — jangan regenerate
 - Setelah edit CSS: `npx clean-css-cli -o style.min.css style.css` — `style.min.css` **masih dipakai** (`index.html` memuatnya via `media="print"` swap)
 - **JANGAN** pakai Python minifier atau terser dengan `--mangle` **kalau** suatu saat minify JS diaktifkan lagi — mangling merename global function names (`window.openModal`, handler di `window._openModalHandlers`, dll) yang dipanggil lintas file dan dari atribut `onclick` di HTML, jadi situs langsung rusak. Saat ini tidak relevan karena JS memang tidak diminify (lihat poin di atas). Disimpan sebagai peringatan, bukan langkah yang perlu dijalankan
+- **JANGAN** kirim harga karangan ke JSON-LD. `injectEventSchemas()` hanya mengirim `price` + `priceCurrency` kalau `c.priceMin > 0` atau kategori tiket punya angka asli — 28 dari 45 konser `priceMin: 0` (TBA). Jangan tambahkan `validFrom`: tanggal mulai jual tiket tidak ada di data, dan `new Date()` bikin field berubah tiap page load (Google mengabaikannya)
 
 ---
 

@@ -113,6 +113,17 @@ list-concert-tour-claude/
 
 ---
 
+### JSON-LD offers: hapus harga karangan & validFrom (Juli 2026)
+
+Rich Results Test dilaporkan `missing field url, offers` untuk repo ini. Render live diperiksa: 45/45 Event **sudah** punya `url` dan `offers`, jadi laporan itu tidak cocok dengan kode saat ini — kemungkinan hasil crawl lama sebelum fix `@id`/`url` path-rooted. Perlu re-test setelah deploy.
+
+Tapi pemeriksaan itu menemukan dua masalah nyata di `injectEventSchemas()`:
+
+1. `const priceNum = c.priceMin || 100000` — 28 dari 45 konser punya `priceMin: 0` (harga TBA), jadi semuanya mengirim `price: 100000` ke Google. Angka karangan. Sekarang `price` + `priceCurrency` hanya dikirim kalau `priceMin > 0`, atau kalau kategori tiket punya angka asli. Konser TBA cukup `url` + `availability` — `offers` tetap ada, jadi required field tidak dilanggar.
+2. `validFrom: new Date().toISOString()` — nilainya berubah tiap page load. Anti-pattern sama dengan `<lastmod>` yang baru dihapus dari `sitemap.xml`: field yang selalu bergerak diabaikan Google. Dihapus; tanggal mulai jual tiket tidak ada di data.
+
+Verifikasi: `node --check app.js` lolos + self-check logika offers (TBA tanpa `price`, kategori tiket dengan harga asli, `url` selalu ada).
+
 © 2026 ConcertID. Dibuat dengan ❤️ untuk komunitas fans musik Indonesia.
 
 ---

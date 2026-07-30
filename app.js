@@ -1977,35 +1977,34 @@ function injectEventSchemas() {
 
     // Offers is a required field, so it is always emitted — a concert with no
     // ticketUrl yet falls back to its own deep link rather than dropping the key.
+    // price is only emitted when it is real: priceMin is 0 for TBA pricing, and a
+    // placeholder number would tell Google a price we do not have. Same reason
+    // there is no validFrom — the on-sale date is not in the data, and stamping
+    // new Date() made the field change on every page load, a signal Google
+    // discounts.
     {
-      const priceNum = c.priceMin || 100000; // ponytail: default 100k IDR for TBA pricing
       const offerUrl = c.ticketUrl || schema['url'];
+      const availability = isPast(c)
+        ? 'https://schema.org/OutOfStock'
+        : 'https://schema.org/InStock';
       const defaultOffer = [{
         '@type': 'Offer',
         'url': offerUrl,
-        'price': priceNum,
-        'priceCurrency': 'IDR',
-        'availability': isPast(c)
-          ? 'https://schema.org/OutOfStock'
-          : 'https://schema.org/InStock',
-        'validFrom': new Date().toISOString()
+        ...(c.priceMin > 0 && { 'price': c.priceMin, 'priceCurrency': 'IDR' }),
+        'availability': availability
       }];
 
       if (c.ticketCategories && c.ticketCategories.length > 1) {
         const filtered = c.ticketCategories
           .filter(t => t.price && t.price.includes('Rp'))
           .map(t => {
-            const tPrice = parseInt((t.price || '').replace(/[^0-9]/g, '')) || priceNum;
+            const tPrice = parseInt((t.price || '').replace(/[^0-9]/g, ''));
             return {
               '@type': 'Offer',
               'name': t.name,
               'url': offerUrl,
-              'price': tPrice,
-              'priceCurrency': 'IDR',
-              'availability': isPast(c)
-                ? 'https://schema.org/OutOfStock'
-                : 'https://schema.org/InStock',
-              'validFrom': new Date().toISOString()
+              ...(tPrice > 0 && { 'price': tPrice, 'priceCurrency': 'IDR' }),
+              'availability': availability
             };
           });
         schema['offers'] = filtered.length > 0 ? filtered : defaultOffer;
