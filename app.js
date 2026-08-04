@@ -1148,6 +1148,28 @@ const CONCERTS = [
     rumorDetail: 'Eras Tour tidak mampir ke Indonesia. Taylor Swift belum umumkan tur baru 2026/2027. Rumor murni harapan fans, belum ada konfirmasi resmi apapun.',
     description: 'Rumor Taylor Swift ke Jakarta selalu muncul tiap tahun. Pemerintah Indonesia bahkan pernah aktif mengupayakannya. Sampai kini tidak ada konfirmasi resmi.',
     sources: ["stylecaster.com", "jakartaglobe.id"],
+  },
+  {
+    id: 'maroon-5-jakarta-2027',
+    artist: 'Maroon 5',
+    tour: 'Love Is Like Tour — Asia 2027',
+    genre: 'pop', emoji: '🎤',
+    dates: ["5 Februari 2027"],
+    rawDate: new Date('2027-02-05'),
+    time: 'TBA',
+    venue: 'TBA (Belum diumumkan)',
+    city: 'Jakarta',
+    promotor: 'Live Nation Asia',
+    ticketPlatform: 'TBA',
+    ticketUrl: '#',
+    priceRange: 'Belum diumumkan',
+    priceMin: 0, priceMax: 0,
+    ticketCategories: [
+      { name: 'Semua kategori', price: 'TBA — Menunggu pengumuman' },
+    ],
+    confirmStatus: 'confirmed', hot: true,
+    description: 'Maroon 5 kembali ke Jakarta sebagai bagian dari Love Is Like Tour Asia 2027. Tur dimulai di Kaohsiung (24 Jan), Seoul (27 Jan), Tokyo (30-31 Jan, 2 Feb), Jakarta (5 Feb), Manila (7 Feb), Bangkok (9 Feb), dan ditutup di Singapura (12 Feb). Maroon 5 sebelumnya tampil di Jakarta pada 2011, 2012, dan terakhir 1 Februari 2025 di JIS.',
+    sources: ["herald.id", "Live Nation Asia (Instagram)"],
   }
 
 ];
