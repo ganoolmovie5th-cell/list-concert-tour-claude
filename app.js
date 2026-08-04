@@ -64,6 +64,20 @@ const ARTIST_IMAGES = {
   'enhypen-jakarta-2027':           WEB_BASE + '/images/enhypen-jakarta-2027.jpeg?v=2',
   'byeon-woo-seok-jakarta-2026':    WEB_BASE + '/images/byeon-woo-seok-jakarta-2026.jpeg?v=2',
   'kanye-west-jakarta-2026':        WEB_BASE + '/images/kanye-west-jakarta-2026.jpeg?v=2',
+  // ── BATCH AUG 2026 ──
+  'maroon-5-jakarta-2027':          WEB_BASE + '/images/maroon-5-jakarta-2027.jpeg?v=2',
+  'lee-hi-jakarta-2026':            WEB_BASE + '/images/lee-hi-jakarta-2026.jpeg?v=2',
+  'ikon-jakarta-2026':              WEB_BASE + '/images/ikon-jakarta-2026.jpeg?v=2',
+  'jannabi-jakarta-2026':           WEB_BASE + '/images/jannabi-jakarta-2026.jpeg?v=2',
+  'park-ji-hoon-jakarta-2026':      WEB_BASE + '/images/park-ji-hoon-jakarta-2026.jpeg?v=2',
+  'u-know-jakarta-2026':            WEB_BASE + '/images/u-know-jakarta-2026.jpeg?v=2',
+  'mamamoo-jakarta-2026':           WEB_BASE + '/images/mamamoo-jakarta-2026.jpeg?v=2',
+  'tiffany-young-jakarta-2026':     WEB_BASE + '/images/tiffany-young-jakarta-2026.jpeg?v=2',
+  'nct-127-jakarta-2026':           WEB_BASE + '/images/nct-127-jakarta-2026.jpeg?v=2',
+  'the-rose-jakarta-2026':          WEB_BASE + '/images/the-rose-jakarta-2026.jpeg?v=2',
+  'lany-jakarta-2026':              WEB_BASE + '/images/lany-jakarta-2026.jpeg?v=2',
+  'simple-plan-jakarta-2026':       WEB_BASE + '/images/simple-plan-jakarta-2026.jpeg?v=2',
+  'boynextdoor-jakarta-2026':       WEB_BASE + '/images/boynextdoor-jakarta-2026.jpeg?v=2',
 };
 
 const CONCERTS = [
