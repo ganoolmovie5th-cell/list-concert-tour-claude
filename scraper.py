@@ -387,6 +387,117 @@ def scrape_kapanlagi() -> list[dict]:
     return found
 
 
+def scrape_tixid() -> list[dict]:
+    """TIX ID — platform tiket konser & event."""
+    found = []
+    soup = fetch("https://www.tix.id/event")
+    if soup:
+        for card in soup.select("a[href*='/event/']")[:20]:
+            title = card.get_text(strip=True)
+            if not title or len(title) < 5:
+                continue
+            if not any(k in title.lower() for k in ["concert", "konser", "live", "tour", "festival", "fan meeting"]):
+                continue
+            link = card.get("href", "")
+            if not link.startswith("http"):
+                link = "https://www.tix.id" + link
+            found.append({
+                "title": title, "url": link, "date": "",
+                "source": "tix.id", "source_label": "TIX ID",
+                "reliability": "HIGH",
+            })
+    log.info(f"tix.id: {len(found)} event")
+    return found
+
+
+def scrape_idntimes() -> list[dict]:
+    """IDN Times Hype — berita konser & entertainment."""
+    found = []
+    soup = fetch("https://www.idntimes.com/hype/entertainment")
+    if soup:
+        for a in soup.select("a[href*='/hype/entertainment/']")[:30]:
+            title = a.get_text(strip=True)
+            if not title or len(title) < 10:
+                continue
+            if not any(k in title.lower() for k in ["konser", "concert", "tour", "jakarta", "indonesia", "tiket", "live"]):
+                continue
+            link = a.get("href", "")
+            if not link.startswith("http"):
+                link = "https://www.idntimes.com" + link
+            found.append({
+                "title": title, "url": link, "date": "",
+                "source": "idntimes.com", "source_label": "IDN Times",
+                "reliability": "MEDIUM",
+            })
+    log.info(f"idntimes: {len(found)} artikel")
+    return found
+
+
+def scrape_detik() -> list[dict]:
+    """Detik Hot — berita hiburan & konser."""
+    found = []
+    soup = fetch("https://hot.detik.com/music")
+    if soup:
+        for a in soup.select("article a, .media__title a")[:30]:
+            title = a.get_text(strip=True)
+            if not title or len(title) < 10:
+                continue
+            if not any(k in title.lower() for k in ["konser", "concert", "tour", "jakarta", "indonesia", "tiket", "live", "manggung"]):
+                continue
+            link = a.get("href", "")
+            found.append({
+                "title": title, "url": link, "date": "",
+                "source": "detik.com", "source_label": "Detik Hot",
+                "reliability": "MEDIUM",
+            })
+    log.info(f"detik: {len(found)} artikel")
+    return found
+
+
+def scrape_kompas() -> list[dict]:
+    """Kompas Entertainment — media nasional."""
+    found = []
+    soup = fetch("https://www.kompas.com/hype/musik")
+    if soup:
+        for a in soup.select("a.article__link, a[href*='/hype/read/']")[:30]:
+            title = a.get_text(strip=True)
+            if not title or len(title) < 10:
+                continue
+            if not any(k in title.lower() for k in ["konser", "concert", "tour", "jakarta", "indonesia", "tiket", "live", "manggung"]):
+                continue
+            link = a.get("href", "")
+            found.append({
+                "title": title, "url": link, "date": "",
+                "source": "kompas.com", "source_label": "Kompas",
+                "reliability": "HIGH",
+            })
+    log.info(f"kompas: {len(found)} artikel")
+    return found
+
+
+def scrape_cnn() -> list[dict]:
+    """CNN Indonesia Hiburan."""
+    found = []
+    soup = fetch("https://www.cnnindonesia.com/hiburan")
+    if soup:
+        for a in soup.select("a[href*='/hiburan/']")[:30]:
+            title = a.get_text(strip=True)
+            if not title or len(title) < 10:
+                continue
+            if not any(k in title.lower() for k in ["konser", "concert", "tour", "jakarta", "indonesia", "tiket", "live", "manggung"]):
+                continue
+            link = a.get("href", "")
+            if not link.startswith("http"):
+                link = "https://www.cnnindonesia.com" + link
+            found.append({
+                "title": title, "url": link, "date": "",
+                "source": "cnnindonesia.com", "source_label": "CNN Indonesia",
+                "reliability": "MEDIUM",
+            })
+    log.info(f"cnn: {len(found)} artikel")
+    return found
+
+
 # ── Deduplicate & Classify ─────────────────────────────────────────────────────
 
 def deduplicate(items: list[dict]) -> list[dict]:
@@ -620,6 +731,11 @@ def main():
         ("Live Nation Asia", scrape_livenation),
         ("RRI",              scrape_rri),
         ("Antara News",      scrape_kapanlagi),
+        ("TIX ID",           scrape_tixid),
+        ("IDN Times",        scrape_idntimes),
+        ("Detik Hot",        scrape_detik),
+        ("Kompas",           scrape_kompas),
+        ("CNN Indonesia",    scrape_cnn),
     ]
 
     for name, fn in scrapers:
