@@ -1175,7 +1175,7 @@ const CONCERTS = [
     city: 'Jakarta',
     promotor: 'Live Nation Asia',
     ticketPlatform: 'TBA',
-    ticketUrl: '#',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'Belum diumumkan',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
@@ -1219,7 +1219,7 @@ const CONCERTS = [
     city: 'Senayan, Jakarta',
     promotor: 'TBA',
     ticketPlatform: 'TBA',
-    ticketUrl: '#',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'TBA',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
@@ -1241,7 +1241,7 @@ const CONCERTS = [
     city: 'Jakarta Pusat',
     promotor: 'Flabbergast Production',
     ticketPlatform: 'TBA',
-    ticketUrl: '#',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'TBA',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
@@ -1263,7 +1263,7 @@ const CONCERTS = [
     city: 'PIK 2, Jakarta',
     promotor: 'TBA',
     ticketPlatform: 'TBA',
-    ticketUrl: '#',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'TBA',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
@@ -1285,7 +1285,7 @@ const CONCERTS = [
     city: 'Senayan, Jakarta',
     promotor: 'TBA',
     ticketPlatform: 'TBA',
-    ticketUrl: '#',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'TBA',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
@@ -1307,7 +1307,7 @@ const CONCERTS = [
     city: 'PIK 2, Jakarta',
     promotor: 'TBA',
     ticketPlatform: 'TBA',
-    ticketUrl: '#',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'TBA',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
@@ -1329,7 +1329,7 @@ const CONCERTS = [
     city: 'Jakarta Pusat',
     promotor: 'TBA',
     ticketPlatform: 'TBA',
-    ticketUrl: '#',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'TBA',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
@@ -1351,7 +1351,7 @@ const CONCERTS = [
     city: 'GBK Senayan, Jakarta',
     promotor: 'TBA',
     ticketPlatform: 'TBA',
-    ticketUrl: '#',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'TBA',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
@@ -1373,7 +1373,7 @@ const CONCERTS = [
     city: 'Jakarta Selatan',
     promotor: 'TBA',
     ticketPlatform: 'TBA',
-    ticketUrl: '#',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'TBA',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
@@ -1417,7 +1417,7 @@ const CONCERTS = [
     city: 'Senayan, Jakarta',
     promotor: 'TBA',
     ticketPlatform: 'TBA',
-    ticketUrl: '#',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'TBA',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
@@ -2292,7 +2292,7 @@ function injectEventSchemas() {
     // new Date() made the field change on every page load, a signal Google
     // discounts.
     {
-      const offerUrl = c.ticketUrl || schema['url'];
+      const offerUrl = (c.ticketUrl && c.ticketUrl !== '#') ? c.ticketUrl : schema['url'];
       const availability = isPast(c)
         ? 'https://schema.org/OutOfStock'
         : 'https://schema.org/InStock';
