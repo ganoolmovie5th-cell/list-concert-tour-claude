@@ -2279,7 +2279,7 @@ function injectEventSchemas() {
       'organizer': {
         '@type': 'Organization',
         'name': c.promotor || 'TBA',
-        'url': 'https://www.list-concert-tour.web.id'
+        'url': c.ticketUrl || 'https://www.list-concert-tour.web.id'
       },
       'performer': buildPerformers(c),
     };
@@ -2300,7 +2300,9 @@ function injectEventSchemas() {
         '@type': 'Offer',
         'url': offerUrl,
         ...(c.priceMin > 0 && { 'price': c.priceMin, 'priceCurrency': 'IDR' }),
-        'availability': availability
+        'availability': availability,
+        'priceCurrency': 'IDR',
+        'validFrom': c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2026-01-01'
       }];
 
       if (c.ticketCategories && c.ticketCategories.length > 1) {
@@ -2313,7 +2315,9 @@ function injectEventSchemas() {
               'name': t.name,
               'url': offerUrl,
               ...(tPrice > 0 && { 'price': tPrice, 'priceCurrency': 'IDR' }),
-              'availability': availability
+              'availability': availability,
+        'priceCurrency': 'IDR',
+        'validFrom': c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2026-01-01'
             };
           });
         schema['offers'] = filtered.length > 0 ? filtered : defaultOffer;
