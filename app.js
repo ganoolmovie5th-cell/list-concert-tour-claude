@@ -2299,7 +2299,7 @@ function injectEventSchemas() {
       const defaultOffer = [{
         '@type': 'Offer',
         'url': offerUrl,
-        ...(c.priceMin > 0 && { 'price': c.priceMin, 'priceCurrency': 'IDR' }),
+        'price': c.priceMin || 0, 'priceCurrency': 'IDR',
         'availability': availability,
         'priceCurrency': 'IDR',
         'validFrom': c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2026-01-01'
@@ -2314,7 +2314,7 @@ function injectEventSchemas() {
               '@type': 'Offer',
               'name': t.name,
               'url': offerUrl,
-              ...(tPrice > 0 && { 'price': tPrice, 'priceCurrency': 'IDR' }),
+              'price': tPrice || 0, 'priceCurrency': 'IDR',
               'availability': availability,
         'priceCurrency': 'IDR',
         'validFrom': c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2026-01-01'
