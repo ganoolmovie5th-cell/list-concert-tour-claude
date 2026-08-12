@@ -2279,30 +2279,25 @@ function injectEventSchemas() {
       'organizer': {
         '@type': 'Organization',
         'name': c.promotor || 'TBA',
-        'url': c.ticketUrl || 'https://www.list-concert-tour.web.id'
+        'url': c.promotorUrl || c.ticketUrl || 'https://www.list-concert-tour.web.id'
       },
       'performer': buildPerformers(c),
     };
 
     // Offers is a required field, so it is always emitted — a concert with no
     // ticketUrl yet falls back to its own deep link rather than dropping the key.
-    // price is only emitted when it is real: priceMin is 0 for TBA pricing, and a
-    // placeholder number would tell Google a price we do not have. Same reason
-    // there is no validFrom — the on-sale date is not in the data, and stamping
-    // new Date() made the field change on every page load, a signal Google
-    // discounts.
     {
       const offerUrl = (c.ticketUrl && c.ticketUrl !== '#') ? c.ticketUrl : schema['url'];
       const availability = isPast(c)
-        ? 'https://schema.org/OutOfStock'
-        : 'https://schema.org/InStock';
+        ? 'https://schema.org/SoldOut'
+        : (c.priceMin > 0 ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder');
       const defaultOffer = [{
         '@type': 'Offer',
         'url': offerUrl,
-        'price': c.priceMin || 0, 'priceCurrency': 'IDR',
         'availability': availability,
         'priceCurrency': 'IDR',
-        'validFrom': c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2026-01-01'
+        ...(c.priceMin > 0 ? { 'price': c.priceMin } : { 'price': 0, 'priceSpecification': { '@type': 'PriceSpecification', 'priceCurrency': 'IDR', 'price': 0 } }),
+        'validFrom': c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2025-01-01'
       }];
 
       if (c.ticketCategories && c.ticketCategories.length > 1) {
@@ -2316,8 +2311,7 @@ function injectEventSchemas() {
               'url': offerUrl,
               'price': tPrice || 0, 'priceCurrency': 'IDR',
               'availability': availability,
-        'priceCurrency': 'IDR',
-        'validFrom': c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2026-01-01'
+              'validFrom': c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2025-01-01'
             };
           });
         schema['offers'] = filtered.length > 0 ? filtered : defaultOffer;
