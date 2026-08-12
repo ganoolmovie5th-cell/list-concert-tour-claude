@@ -445,7 +445,7 @@ const CONCERTS = [
       { name: 'Pit / GA', price: 'Rp 2.200.000' },
       { name: 'VIP', price: 'Rp 2.800.000' },
     ],
-    confirmStatus: 'past', hot: true,
+    confirmStatus: 'past', hot: false,
     description: 'The Neighbourhood (The NBHD) membawa THE WOURLD TOUR ke Jakarta, stop final Asia Tenggara mereka. Terkenal dengan Sweater Weather, Stargazing, dan Afraid.',
     sources: ["songkick.com", "everythingindo.com"],
   },
