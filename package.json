@@ -8,6 +8,7 @@
     "test:e2e:report": "playwright show-report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.46.0"
+    "@playwright/test": "^1.46.0",
+    "terser": "^5.50.0"
   }
 }
