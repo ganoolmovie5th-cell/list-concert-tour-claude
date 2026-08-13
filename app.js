@@ -1469,6 +1469,14 @@ const isPast   = c => c.rawDate < TODAY;
 const isRumor  = c => c.confirmStatus === 'rumor';
 const genreLabel = g => ({ kpop:'K-Pop', pop:'Pop / R&B', rock:'Rock / Metal', jazz:'Jazz', indie:'Indie / Festival' }[g] || g);
 
+// Auto-detect past concerts: normalize confirmStatus & hot based on date
+CONCERTS.forEach(c => {
+  if (c.rawDate < TODAY && c.confirmStatus !== 'rumor') {
+    c.confirmStatus = 'past';
+    c.hot = false;
+  }
+});
+
 // Expose globals agar features.js bisa pakai
 window.isPast  = isPast;
 window.isRumor = isRumor;
