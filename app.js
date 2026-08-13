@@ -1213,7 +1213,7 @@ const CONCERTS = [
     ticketCategories: [
       { name: 'Semua kategori', price: 'Rp 1.300.000 – Rp 5.000.000' },
     ],
-    confirmStatus: 'confirmed', hot: false,
+    confirmStatus: 'past', hot: false,
     description: 'Lee Hi menggelar konser bertajuk 808 HI Recordings World Tour 2026 di Jakarta, dipromotori oleh The Great Indonesia Experiment dan Row One Asia.',
     sources: ["inilah.com", "rowone.asia"],
   },
