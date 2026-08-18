@@ -2305,17 +2305,18 @@ function injectEventSchemas() {
     // Offers is a required field, so it is always emitted — a concert with no
     // ticketUrl yet falls back to its own deep link rather than dropping the key.
     {
-      const offerUrl = (c.ticketUrl && c.ticketUrl !== '#') ? c.ticketUrl : schema['url'];
+      const offerUrl = (c.ticketUrl && c.ticketUrl !== '#' && c.ticketUrl.startsWith('http')) ? c.ticketUrl : BASE_URL + '/?concert=' + c.id;
       const availability = isPast(c)
         ? 'https://schema.org/SoldOut'
         : (c.priceMin > 0 ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder');
+      const validFrom = c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2025-01-01';
       const defaultOffer = [{
         '@type': 'Offer',
         'url': offerUrl,
         'availability': availability,
+        'price': c.priceMin || 0,
         'priceCurrency': 'IDR',
-        ...(c.priceMin > 0 ? { 'price': c.priceMin } : { 'price': 0, 'priceSpecification': { '@type': 'PriceSpecification', 'priceCurrency': 'IDR', 'price': 0 } }),
-        'validFrom': c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2025-01-01'
+        'validFrom': validFrom
       }];
 
       if (c.ticketCategories && c.ticketCategories.length > 1) {
@@ -2327,9 +2328,10 @@ function injectEventSchemas() {
               '@type': 'Offer',
               'name': t.name,
               'url': offerUrl,
-              'price': tPrice || 0, 'priceCurrency': 'IDR',
+              'price': tPrice || 0,
+              'priceCurrency': 'IDR',
               'availability': availability,
-              'validFrom': c.rawDate ? new Date(c.rawDate.getTime() - 30*24*60*60*1000).toISOString().split('T')[0] : '2025-01-01'
+              'validFrom': validFrom
             };
           });
         schema['offers'] = filtered.length > 0 ? filtered : defaultOffer;

@@ -43,7 +43,6 @@
     { "source": "/contact",            "destination": "/contact.html"           },
     { "source": "/konser",             "destination": "/konser.html"            },
     { "source": "/jadwal",             "destination": "/jadwal.html"            },
-    { "source": "/rumor",              "destination": "/rumor.html"             },
     { "source": "/artis",              "destination": "/"                       },
     { "source": "/venue",              "destination": "/"                       },
     { "source": "/kategori",           "destination": "/"                       },
@@ -53,6 +52,8 @@
     { "source": "/spotify-callback",   "destination": "/spotify-callback.html"  }
   ],
   "redirects": [
-    { "source": "/__", "destination": "/", "permanent": false }
+    { "source": "/__", "destination": "/", "permanent": false },
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/rumor", "destination": "/?filter=rumor", "permanent": true }
   ]
 }
