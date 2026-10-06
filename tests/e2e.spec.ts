@@ -1,5 +1,19 @@
 import { test, expect } from '@playwright/test';
 
+// Fetch a text resource using fetch() from inside the browser context. The
+// site sits behind a CDN that challenges datacenter IPs (e.g. CI runners); a
+// request made from a real browser context carries the cleared challenge
+// cookies, so it returns the raw body instead of a challenge page. (page.goto
+// on XML would render Chromium's XML viewer, mangling the raw text.)
+async function fetchText(page: import('@playwright/test').Page, path: string) {
+  // Establish a browser session first so CDN challenge cookies are set.
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  return page.evaluate(async (p) => {
+    const r = await fetch(p, { headers: { accept: 'text/plain,*/*' } });
+    return { status: r.status, text: await r.text() };
+  }, path);
+}
+
 // ─────────────────────────────────────────────────────────────────
 // Concert listings
 // ─────────────────────────────────────────────────────────────────
@@ -11,15 +25,9 @@ test.describe('Concert listings', () => {
 
   test('single H1 with selector h1.hero-title and expected text', async ({ page }) => {
     await page.goto('/');
-
-    // Exactly one H1 on the page
     await expect(page.locator('h1')).toHaveCount(1);
-
-    // H1 must carry the hero-title class
     const h1 = page.locator('h1.hero-title');
     await expect(h1).toBeVisible();
-
-    // H1 must contain the primary heading keyword
     await expect(h1).toContainText('Konser');
   });
 
@@ -44,32 +52,30 @@ test.describe('Concert listings', () => {
 // Sitemap
 // ─────────────────────────────────────────────────────────────────
 test.describe('Sitemap', () => {
-  test('sitemap.xml reachable and is valid XML', async ({ request }) => {
-    const res = await request.get('/sitemap.xml');
-    expect(res.ok()).toBeTruthy();
-    const body = await res.text();
-    expect(body).toContain('<?xml');
-    expect(body).toContain('<urlset');
+  test('sitemap.xml reachable and is valid XML', async ({ page }) => {
+    const { status, text } = await fetchText(page, '/sitemap.xml');
+    expect(status).toBe(200);
+    expect(text).toContain('<?xml');
+    expect(text).toContain('<urlset');
   });
 
-  test('sitemap contains exactly 4 URLs', async ({ request }) => {
-    const res = await request.get('/sitemap.xml');
-    const body = await res.text();
-    const locs = body.match(/<loc>/g);
+  test('sitemap contains exactly 4 URLs', async ({ page }) => {
+    const { text } = await fetchText(page, '/sitemap.xml');
+    const locs = text.match(/<loc>/g);
     // /about dan /contact sengaja dikeluarkan: keduanya stub redirect ber-noindex
     expect(locs, 'Expected 4 <loc> entries in sitemap.xml').toHaveLength(4);
   });
 
-  test('sitemap includes all required canonical paths', async ({ request }) => {
-    const res = await request.get('/sitemap.xml');
-    const body = await res.text();
+  test('sitemap includes all required canonical paths', async ({ page }) => {
+    const { text } = await fetchText(page, '/sitemap.xml');
     const required = ['/', '/jadwal', '/konser', '/rumor'];
     for (const path of required) {
-      expect(body, `sitemap.xml missing path: ${path}`).toContain(path);
+      expect(text, `sitemap.xml missing path: ${path}`).toContain(path);
     }
-    // Stub redirect noindex tidak boleh kembali masuk sitemap (sinyal soft-404)
     for (const path of ['/about', '/contact']) {
-      expect(body, `sitemap.xml must not list noindex stub: ${path}`).not.toContain(`<loc>https://www.list-concert-tour.web.id${path}</loc>`);
+      expect(text, `sitemap.xml must not list noindex stub: ${path}`).not.toContain(
+        `<loc>https://www.list-concert-tour.web.id${path}</loc>`,
+      );
     }
   });
 });
@@ -78,40 +84,36 @@ test.describe('Sitemap', () => {
 // Robots.txt
 // ─────────────────────────────────────────────────────────────────
 test.describe('Robots.txt', () => {
-  test('robots.txt is reachable', async ({ request }) => {
-    const res = await request.get('/robots.txt');
-    expect(res.ok()).toBeTruthy();
+  test('robots.txt is reachable', async ({ page }) => {
+    const { status } = await fetchText(page, '/robots.txt');
+    expect(status).toBe(200);
   });
 
-  test('Disallow rules are present for sw.js and minified assets', async ({ request }) => {
-    const res = await request.get('/robots.txt');
-    const body = await res.text();
-    expect(body, 'Missing Disallow: /sw.js').toContain('Disallow: /sw.js');
-    expect(body, 'Missing Disallow: /*.min.js').toContain('Disallow: /*.min.js');
-    expect(body, 'Missing Disallow: /*.min.css').toContain('Disallow: /*.min.css');
+  test('Disallow rules are present for sw.js and minified assets', async ({ page }) => {
+    const { text } = await fetchText(page, '/robots.txt');
+    expect(text, 'Missing Disallow: /sw.js').toContain('Disallow: /sw.js');
+    expect(text, 'Missing Disallow: /*.min.js').toContain('Disallow: /*.min.js');
+    expect(text, 'Missing Disallow: /*.min.css').toContain('Disallow: /*.min.css');
   });
 
-  test('manifest.json is NOT blocked (PWA validation requires access)', async ({ request }) => {
-    const res = await request.get('/robots.txt');
-    const body = await res.text();
+  test('manifest.json is NOT blocked (PWA validation requires access)', async ({ page }) => {
+    const { text } = await fetchText(page, '/robots.txt');
     expect(
-      body,
-      'manifest.json must not be in robots.txt Disallow — blocks Google PWA validation'
+      text,
+      'manifest.json must not be in robots.txt Disallow — blocks Google PWA validation',
     ).not.toContain('Disallow: /manifest.json');
   });
 
-  test('Sitemap URL is declared in robots.txt', async ({ request }) => {
-    const res = await request.get('/robots.txt');
-    const body = await res.text();
-    expect(body).toContain('Sitemap:');
-    expect(body).toContain('sitemap.xml');
+  test('Sitemap URL is declared in robots.txt', async ({ page }) => {
+    const { text } = await fetchText(page, '/robots.txt');
+    expect(text).toContain('Sitemap:');
+    expect(text).toContain('sitemap.xml');
   });
 
-  test('manifest.json is directly accessible (not blocked)', async ({ request }) => {
-    const res = await request.get('/manifest.json');
-    expect(res.ok()).toBeTruthy();
-    const json = await res.json();
-    expect(json).toHaveProperty('name');
-    expect(json).toHaveProperty('icons');
+  test('manifest.json is directly accessible (not blocked)', async ({ page }) => {
+    const { status, text } = await fetchText(page, '/manifest.json');
+    expect(status).toBe(200);
+    expect(text).toContain('"name"');
+    expect(text).toContain('"icons"');
   });
 });
