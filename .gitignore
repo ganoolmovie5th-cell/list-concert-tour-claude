@@ -4,3 +4,7 @@ node_modules/
 # AI IDE config
 .kiro/
 .claude/
+
+# Python cache
+__pycache__/
+*.pyc
