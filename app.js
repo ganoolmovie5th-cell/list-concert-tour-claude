@@ -1,4 +1,4 @@
-// Last auto-updated: 21 Jul 2026 09:00 WIB
+// Last auto-updated: 18 Nov 2026 17:00 WIB
 /* ============================================
    KonserIndo — Concert Data & App Logic
    Data: Tempo.co, Billboard, NME, Bandwagon Asia,
@@ -1458,6 +1458,53 @@ const CONCERTS = [
     confirmStatus: 'confirmed', hot: false,
     description: "BOYNEXTDOOR menggelar tur dunia KNOCK ON Vol.2 di ICE BSD Hall 5-6 Tangerang. Sebelum tur, mereka merilis album studio pertama 'HOME'.",
     sources: ["inilah.com", "bndinjakarta.com"],
+  },
+  {
+    id: 'why-cant-we-jakarta-2026',
+    artist: "Why Can't We?",
+    tour: "Why Can't We? Asia Tour 2026",
+    genre: 'pop', emoji: '🎤',
+    dates: ["29 November 2026"],
+    rawDate: new Date('2026-11-29'),
+    time: '20.00 WIB',
+    venue: 'ATP Live House Music Hall',
+    city: 'Jakarta Selatan',
+    promotor: 'TBA',
+    ticketPlatform: 'Megatix',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
+    priceRange: 'Rp 798.000 – Rp 3.000.000',
+    priceMin: 798000, priceMax: 3000000,
+    ticketCategories: [
+      { name: 'VIP Package (VIP Standing, Meet & Greet, Priority Entry, Early Merch Access)', price: 'Rp 3.000.000' },
+      { name: 'CAT 1', price: 'Rp 1.950.000' },
+      { name: 'CAT 2', price: 'Rp 1.500.000' },
+      { name: 'CAT 3', price: 'Rp 798.000' },
+    ],
+    confirmStatus: 'confirmed', hot: false,
+    description: "Jonah Marais, Jack Avery, dan Zach Herron, tiga mantan personel Why Don't We, tampil kembali sebagai Why Can't We? di Jakarta. Selain lagu-lagu Why Don't We, mereka membawakan karya solo masing-masing.",
+    sources: ["idntimes.com"],
+  },
+  {
+    id: 'tori-kelly-jakarta-2027',
+    artist: 'Tori Kelly',
+    tour: 'God Must Really Love Me Tour',
+    genre: 'pop', emoji: '🎶',
+    dates: ["29 Mei 2027"],
+    rawDate: new Date('2027-05-29'),
+    time: 'TBA',
+    venue: 'TBA',
+    city: 'Jakarta',
+    promotor: 'TBA',
+    ticketPlatform: 'TBA',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
+    priceRange: 'TBA',
+    priceMin: 0, priceMax: 0,
+    ticketCategories: [
+      { name: 'Semua kategori', price: 'TBA' },
+    ],
+    confirmStatus: 'confirmed', hot: false,
+    description: "Penyanyi peraih Grammy Tori Kelly mengumumkan tur Asia God Must Really Love Me dengan singgah di Jakarta pada 29 Mei 2027. Venue, kategori tiket, dan jadwal penjualan menunggu pengumuman promotor.",
+    sources: ["rri.co.id"],
   }
 
 ];
