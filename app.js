@@ -84,6 +84,18 @@ const ARTIST_IMAGES = {
   'joyland-sessions-jakarta-2026':  WEB_BASE + '/images/joyland-sessions-jakarta-2026.jpeg?v=3',
   'dwp-jakarta-2026':               WEB_BASE + '/images/dwp-jakarta-2026.jpeg?v=3',
   'the-script-jakarta-2027':        WEB_BASE + '/images/the-script-jakarta-2027.jpeg?v=3',
+  'bigbang-jakarta-2027':                     WEB_BASE + '/images/bigbang-jakarta-2027.jpeg?v=3',
+  'boyz-ii-men-dewa-19-jakarta-2026':         WEB_BASE + '/images/boyz-ii-men-dewa-19-jakarta-2026.jpeg?v=3',
+  'dimash-qudaibergen-jakarta-2026':          WEB_BASE + '/images/dimash-qudaibergen-jakarta-2026.jpeg?v=3',
+  'lalala-fest-jakarta-2027':                 WEB_BASE + '/images/lalala-fest-jakarta-2027.jpeg?v=3',
+  'm2m-jakarta-2027':                         WEB_BASE + '/images/m2m-jakarta-2027.jpeg?v=3',
+  'lolo-jakarta-2026':                        WEB_BASE + '/images/lolo-jakarta-2026.jpeg?v=3',
+  'mitski-jakarta-2026':                      WEB_BASE + '/images/mitski-jakarta-2026.jpeg?v=3',
+  'twilite-orchestra-beatles-queen-jakarta-2026':WEB_BASE + '/images/twilite-orchestra-beatles-queen-jakarta-2026.jpeg?v=3',
+  'andrea-bocelli-jakarta-2026':              WEB_BASE + '/images/andrea-bocelli-jakarta-2026.jpeg?v=3',
+  'bol4-jakarta-2026':                        WEB_BASE + '/images/bol4-jakarta-2026.jpeg?v=3',
+  'hwang-in-youp-jakarta-2026':               WEB_BASE + '/images/hwang-in-youp-jakarta-2026.jpeg?v=3',
+  'pestapora-2026':                           WEB_BASE + '/images/pestapora-2026.jpeg?v=3',
 };
 
 const CONCERTS = [
