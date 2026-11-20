@@ -78,12 +78,12 @@ const ARTIST_IMAGES = {
   'lany-jakarta-2026':              WEB_BASE + '/images/lany-jakarta-2026.jpeg?v=2',
   'simple-plan-jakarta-2026':       WEB_BASE + '/images/simple-plan-jakarta-2026.jpeg?v=2',
   'boynextdoor-jakarta-2026':       WEB_BASE + '/images/boynextdoor-jakarta-2026.jpeg?v=2',
-  'why-cant-we-jakarta-2026':       WEB_BASE + '/images/why-cant-we-jakarta-2026.jpeg?v=2',
-  'tori-kelly-jakarta-2027':        WEB_BASE + '/images/tori-kelly-jakarta-2027.jpeg?v=2',
-  'doh-kyung-soo-jakarta-2026':     WEB_BASE + '/images/doh-kyung-soo-jakarta-2026.jpeg?v=2',
-  'joyland-sessions-jakarta-2026':  WEB_BASE + '/images/joyland-sessions-jakarta-2026.jpeg?v=2',
-  'dwp-jakarta-2026':               WEB_BASE + '/images/dwp-jakarta-2026.jpeg?v=2',
-  'the-script-jakarta-2027':        WEB_BASE + '/images/the-script-jakarta-2027.jpeg?v=2',
+  'why-cant-we-jakarta-2026':       WEB_BASE + '/images/why-cant-we-jakarta-2026.jpeg?v=3',
+  'tori-kelly-jakarta-2027':        WEB_BASE + '/images/tori-kelly-jakarta-2027.jpeg?v=3',
+  'doh-kyung-soo-jakarta-2026':     WEB_BASE + '/images/doh-kyung-soo-jakarta-2026.jpeg?v=3',
+  'joyland-sessions-jakarta-2026':  WEB_BASE + '/images/joyland-sessions-jakarta-2026.jpeg?v=3',
+  'dwp-jakarta-2026':               WEB_BASE + '/images/dwp-jakarta-2026.jpeg?v=3',
+  'the-script-jakarta-2027':        WEB_BASE + '/images/the-script-jakarta-2027.jpeg?v=3',
 };
 
 const CONCERTS = [
