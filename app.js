@@ -1,4 +1,4 @@
-// Last auto-updated: 21 Nov 2026 18:00 WIB
+// Last auto-updated: 21 Nov 2026 21:00 WIB
 /* ============================================
    KonserIndo — Concert Data & App Logic
    Data: Tempo.co, Billboard, NME, Bandwagon Asia,
@@ -32,6 +32,7 @@ const ARTIST_IMAGES = {
   'the-neighbourhood-jakarta-2026': WEB_BASE + '/images/the-neighbourhood-jakarta-2026.jpeg?v=5',
   'lalala-fest-2026':               WEB_BASE + '/images/lalala-fest-2026.jpeg?v=2',
   'five-sos-jakarta-2026':          WEB_BASE + '/images/five-sos-jakarta-2026.jpeg?v=2',
+  'five-sos-jakarta-2026-dec':      WEB_BASE + '/images/five-sos-jakarta-2026.jpeg?v=2',
   'java-jazz-2026':                 WEB_BASE + '/images/java-jazz-2026.jpeg?v=2',
   'bryan-adams-jakarta-2026':       WEB_BASE + '/images/bryan-adams-jakarta-2026.jpeg?v=2',
   'westlife-jakarta-2027':          WEB_BASE + '/images/westlife-jakarta-2027.jpeg?v=2',
@@ -662,6 +663,7 @@ const CONCERTS = [
     genre: 'kpop', emoji: '💜',
     dates: ["26 Desember 2026", "27 Desember 2026", "29 Desember 2026"],
     rawDate: new Date('2026-12-26'),
+    endDate: new Date('2026-12-29'),
     time: '18:00 WIB',
     venue: 'Gelora Bung Karno (GBK) Utama',
     city: 'Senayan, Jakarta Pusat',
@@ -1753,17 +1755,17 @@ const CONCERTS = [
     time: 'TBA',
     venue: 'Tennis Indoor Senayan',
     city: 'Senayan, Jakarta',
-    promotor: 'We The Fest',
-    ticketPlatform: 'TBA',
-    ticketUrl: 'https://www.list-concert-tour.web.id',
-    priceRange: 'TBA',
+    promotor: 'Ismaya Live x AEG Presents Asia',
+    ticketPlatform: 'Ismaya Live',
+    ticketUrl: 'https://ismayalive.com/upcoming',
+    priceRange: 'Mulai Rp 900.000',
     priceMin: 0, priceMax: 0,
     ticketCategories: [
-      { name: 'Semua kategori', price: 'TBA' },
+      { name: 'Semua kategori', price: 'Mulai Rp 900.000' },
     ],
     confirmStatus: 'past', hot: false,
     description: 'Konser solo pertama Mitski di Jakarta, bagian dari tur Asia Tenggara bersama Bangkok, Manila, Kuala Lumpur, dan Singapura.',
-    sources: ["bandwagon.asia", "songkick.com"],
+    sources: ["bandwagon.asia", "voi.id", "indonesia.travel"],
   },
   {
     id: 'twilite-orchestra-beatles-queen-jakarta-2026',
@@ -1775,8 +1777,8 @@ const CONCERTS = [
     time: '19.00 WIB',
     venue: 'Tennis Indoor Senayan',
     city: 'Senayan, Jakarta',
-    promotor: 'TBA',
-    ticketPlatform: 'TBA',
+    promotor: 'TipTip.id',
+    ticketPlatform: 'TipTip.id',
     ticketUrl: 'https://www.list-concert-tour.web.id',
     priceRange: 'TBA',
     priceMin: 0, priceMax: 0,
@@ -1874,6 +1876,50 @@ const CONCERTS = [
     confirmStatus: 'past', hot: false,
     description: 'Festival musik Indonesia tiga hari dengan ratusan musisi lokal, edisi kelima, diselenggarakan Boss Creator.',
     sources: ["whatsnewindonesia.com"],
+  },
+  {
+    id: 'five-sos-jakarta-2026-dec',
+    artist: '5 Seconds of Summer (5SOS) - Show 2',
+    tour: "EVERYONE'S A STAR! World Tour",
+    genre: 'pop', emoji: '⭐',
+    dates: ["6 Desember 2026"],
+    rawDate: new Date('2026-12-06'),
+    time: 'TBA',
+    venue: 'Indonesia Arena, GBK',
+    city: 'Senayan, Jakarta Pusat',
+    promotor: 'Live Nation Asia',
+    ticketPlatform: '5sosjakarta.com',
+    ticketUrl: 'https://5sosjakarta.com',
+    priceRange: 'TBA',
+    priceMin: 0, priceMax: 0,
+    ticketCategories: [
+      { name: 'Semua kategori', price: 'TBA' },
+    ],
+    confirmStatus: 'confirmed', hot: false,
+    description: "Show kedua 5 Seconds of Summer di Indonesia Arena GBK, sekaligus penutup EVERYONE'S A STAR! World Tour 2026. Show pertama 14 November 2026.",
+    sources: ["rri.co.id", "asianews.network"],
+  },
+  {
+    id: 'top-pre-studio-jakarta-2026',
+    artist: 'T.O.P',
+    tour: 'T.O.P PRE-STUDIO 2026',
+    genre: 'kpop', emoji: '🎤',
+    dates: ["19 September 2026"],
+    rawDate: new Date('2026-09-19'),
+    time: '19.00 WIB',
+    venue: 'Istora Senayan',
+    city: 'Senayan, Jakarta',
+    promotor: 'TONZ Entertainment',
+    ticketPlatform: 'TBA',
+    ticketUrl: 'https://www.list-concert-tour.web.id',
+    priceRange: 'TBA',
+    priceMin: 0, priceMax: 0,
+    ticketCategories: [
+      { name: 'Semua kategori', price: 'TBA' },
+    ],
+    confirmStatus: 'cancelled', hot: false,
+    description: 'Fan meeting T.O.P (eks BIGBANG) dibatalkan promotor pada 10 September 2026, sembilan hari sebelum acara, dengan alasan "kondisi lokal". Informasi refund lewat platform tiket resmi.',
+    sources: ["allkpop.com", "voi.id", "chosun.com"],
   }
 
 ];
@@ -1881,13 +1927,16 @@ const CONCERTS = [
 /* ============================================
    UTILITY
    ============================================ */
-const isPast   = c => c.rawDate < TODAY;
+// Hari terakhir konser: endDate (jika tanggalnya tidak berurutan) atau rawDate + (jumlah tanggal - 1) hari
+const lastDay  = c => c.endDate || new Date(c.rawDate.getTime() + Math.max(0, (c.dates || []).length - 1) * 86400000);
+// Lewat = hari terakhir sudah berakhir (24.00 WIB = 17.00 UTC). Konser dibatalkan tidak pernah dianggap mendatang.
+const isPast   = c => c.confirmStatus === 'cancelled' || lastDay(c).getTime() + 17 * 3600000 < TODAY;
 const isRumor  = c => c.confirmStatus === 'rumor';
 const genreLabel = g => ({ kpop:'K-Pop', pop:'Pop / R&B', rock:'Rock / Metal', jazz:'Jazz', indie:'Indie / Festival' }[g] || g);
 
 // Auto-detect past concerts: normalize confirmStatus & hot based on date
 CONCERTS.forEach(c => {
-  if (c.rawDate < TODAY && c.confirmStatus !== 'rumor') {
+  if (isPast(c) && c.confirmStatus !== 'rumor' && c.confirmStatus !== 'cancelled') {
     c.confirmStatus = 'past';
     c.hot = false;
   }
@@ -1927,8 +1976,9 @@ function renderCards(list) {
   grid.innerHTML = list.map(c => {
     const past  = isPast(c);
     const rumor = isRumor(c);
-    const statusLabel = past ? 'Sudah Lewat' : rumor ? 'Rumor' : 'Confirmed';
-    const statusClass = past ? 'badge-status-past' : rumor ? 'badge-status-rumor' : 'badge-status-upcoming';
+    const cancelled = c.confirmStatus === 'cancelled';
+    const statusLabel = cancelled ? 'Dibatalkan' : past ? 'Sudah Lewat' : rumor ? 'Rumor' : 'Confirmed';
+    const statusClass = cancelled ? 'badge-status-cancelled' : past ? 'badge-status-past' : rumor ? 'badge-status-rumor' : 'badge-status-upcoming';
     const priceDisplay = c.priceMin > 0
       ? `Rp ${(c.priceMin/1e6).toFixed(1).replace('.0','')}jt – Rp ${(c.priceMax/1e6).toFixed(1).replace('.0','')}jt`
       : rumor ? '⚠️ Belum diumumkan' : c.priceRange;
@@ -2050,7 +2100,7 @@ function openModal(id) {
         <div class="modal-tour">${c.tour}</div>
         <div class="modal-badges">
           <span class="badge badge-genre-${c.genre}">${genreLabel(c.genre)}</span>
-          <span class="badge badge-status-${past?'past':rumor?'rumor':'upcoming'}">${past?'Sudah Lewat':rumor?'🔮 Rumor':'✅ Confirmed'}</span>
+          <span class="badge badge-status-${c.confirmStatus==='cancelled'?'cancelled':past?'past':rumor?'rumor':'upcoming'}">${c.confirmStatus==='cancelled'?'Dibatalkan':past?'Sudah Lewat':rumor?'🔮 Rumor':'✅ Confirmed'}</span>
           ${c.hot ? '<span class="badge badge-hot">🔥 Hot</span>' : ''}
         </div>
       </div>
@@ -2626,9 +2676,7 @@ function injectEventSchemas() {
   }
 
   // Helper: endDate = startDate + (jumlah hari - 1) + end time (estimasi +3 jam)
-  function endDateTime(rawDate, dates, timeStr) {
-    const extraDays = Math.max(0, dates.length - 1);
-    const endDate = new Date(rawDate.getTime() + extraDays * 86400000);
+  function endDateTime(endDate, timeStr) {
     const start = toISODateTime(endDate, timeStr);
     if (!start || !start.includes('T')) return endDate.toISOString().split('T')[0];
     // Tambah 3 jam untuk estimasi durasi konser
@@ -2684,7 +2732,7 @@ function injectEventSchemas() {
   // Create schema array untuk semua concerts
   const schemas = CONCERTS.map(c => {
     const startISO = toISODateTime(c.rawDate, c.time);
-    const endISO   = endDateTime(c.rawDate, c.dates, c.time);
+    const endISO   = endDateTime(lastDay(c), c.time);
 
     const schema = {
       '@context': 'https://schema.org',
