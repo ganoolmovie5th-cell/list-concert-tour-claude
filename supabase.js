@@ -18,6 +18,7 @@ const DB = {
         'Authorization': `Bearer ${SUPA_KEY}`,
         'Content-Type':  'application/json',
         'Prefer':        options._prefer || 'return=representation',
+        'x-device-uid':  getDeviceUID(),   // dibaca policy RLS (req_device_uid) untuk scoping update/delete
         ...options.headers,
       },
     });
